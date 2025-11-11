@@ -1,0 +1,9 @@
+{
+  "short_name": "DZ-CarPool",
+  "name": "DZ-CarPool - Covoiturage en Algérie",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
