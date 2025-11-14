@@ -5,11 +5,9 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 
 RUN apt-get update && apt-get install -y \
-    postgresql-client \
-    gcc \
-    python3-dev \
-    musl-dev \
+    build-essential \
     libpq-dev \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -21,9 +19,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+RUN python manage.py collectstatic --noinput
+
 RUN useradd -m -u 1000 django && chown -R django:django /app
 USER django
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]

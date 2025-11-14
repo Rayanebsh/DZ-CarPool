@@ -1,10 +1,9 @@
-# ==========================================
-# FICHIER 3: docker-compose.yml
-# ==========================================
-# Créer ce fichier à la racine: docker-compose.yml
+version: '3.9'
 
 services:
+  # ==========================================
   # Service PostgreSQL
+  # ==========================================
   db:
     image: postgres:15-alpine
     container_name: dzcarpool_db
@@ -26,11 +25,13 @@ services:
     networks:
       - dzcarpool_network
 
+  # ==========================================
   # Service Backend Django
+  # ==========================================
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: ${BACKEND_DOCKERFILE:-Dockerfile.dev} # utilise Dockerfile.dev par défaut, ou Dockerfile.prod si variable définie
     container_name: dzcarpool_backend
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
@@ -40,8 +41,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DEBUG=True
-      - SECRET_KEY=your-secret-key-change-in-production
+      - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
       - DATABASE_NAME=covoiturage
       - DATABASE_USER=admin
       - DATABASE_PASSWORD=admin123
@@ -58,11 +59,13 @@ services:
       - dzcarpool_network
     restart: unless-stopped
 
+  # ==========================================
   # Service Frontend React
+  # ==========================================
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: ${FRONTEND_DOCKERFILE:-Dockerfile.dev} # Dockerfile.dev par défaut
     container_name: dzcarpool_frontend
     volumes:
       - ./frontend:/app
@@ -82,7 +85,9 @@ services:
     tty: true
     restart: unless-stopped
 
+  # ==========================================
   # Service Redis (pour Celery/cache)
+  # ==========================================
   redis:
     image: redis:7-alpine
     container_name: dzcarpool_redis
@@ -94,17 +99,19 @@ services:
       - dzcarpool_network
     restart: unless-stopped
 
-  # Service Celery Worker (optionnel, pour tâches asynchrones)
+  # ==========================================
+  # Service Celery Worker (optionnel)
+  # ==========================================
   celery:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: ${BACKEND_DOCKERFILE:-Dockerfile.dev}
     container_name: dzcarpool_celery
     command: celery -A config worker -l info
     volumes:
       - ./backend:/app
     environment:
-      - DEBUG=True
+      - DEBUG=${DEBUG:-True}
       - DATABASE_NAME=covoiturage
       - DATABASE_USER=admin
       - DATABASE_PASSWORD=admin123
@@ -118,7 +125,9 @@ services:
       - dzcarpool_network
     restart: unless-stopped
 
+# ==========================================
 # Volumes persistants
+# ==========================================
 volumes:
   postgres_data:
     driver: local
@@ -129,7 +138,9 @@ volumes:
   redis_data:
     driver: local
 
+# ==========================================
 # Réseau personnalisé
+# ==========================================
 networks:
   dzcarpool_network:
     driver: bridge
