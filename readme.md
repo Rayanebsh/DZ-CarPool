@@ -1,4 +1,4 @@
-# 🚗 DZ-CarPool - Plateforme de Covoiturage en Algérie
+# 🚗 DZ-CarPool — Plateforme de Covoiturage en Algérie
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![Django](https://img.shields.io/badge/Django-4.2-green)]()
@@ -7,118 +7,130 @@
 
 ## 📋 Description
 
-DZ-CarPool est une plateforme web de covoiturage conçue pour faciliter les déplacements inter-wilayas en Algérie. Elle permet aux conducteurs de proposer des trajets avec des places disponibles et aux passagers de réserver ces places en toute simplicité.
+**DZ-CarPool** est une plateforme web de covoiturage dédiée aux déplacements inter-wilayas en Algérie. Les conducteurs publient des trajets avec des places disponibles ; les passagers recherchent, réservent et communiquent facilement.
 
-## 🎯 Fonctionnalités MVP
+## 🎯 Fonctionnalités (MVP)
 
-- ✅ **Profils Utilisateurs** : Inscription conducteur/passager avec photo et biographie
-- ✅ **Gestion des Trajets** : Création, modification, suppression de trajets
-- ✅ **Recherche** : Recherche de trajets par ville de départ, arrivée et date
-- ✅ **Réservation** : Système de réservation avec approbation manuelle
-- ✅ **Messagerie** : Communication entre conducteurs et passagers
-- ✅ **Tarification intelligente** : Commission 15% + option "Trajet Confort" (+30%)
-- ✅ **Suggestion de prix** : Basée sur les prix du carburant par wilaya
+* **Profils utilisateurs** : conducteur / passager (photo, bio)
+* **Gestion des trajets** : création, modification, suppression
+* **Recherche avancée** : départ, arrivée, date
+* **Réservation** : approbation manuelle par le conducteur
+* **Messagerie** : échanges conducteur ↔ passager
+* **Tarification** : commission 15% + option *Trajet Confort* (+30%)
+* **Suggestion de prix** : basée sur le carburant par wilaya
 
 ## 🛠️ Stack Technique
 
 ### Backend
-- **Framework** : Django 4.2 + Django REST Framework
-- **Base de données** : PostgreSQL 15
-- **Authentification** : JWT (djangorestframework-simplejwt)
-- **Documentation API** : drf-spectacular (Swagger/OpenAPI)
+
+* **Framework** : Django 4.2, Django REST Framework
+* **Base de données** : PostgreSQL 15
+* **Auth** : JWT (`djangorestframework-simplejwt`)
+* **Docs API** : OpenAPI/Swagger (`drf-spectacular`)
 
 ### Frontend
-- **Framework** : React 18.2
-- **Routing** : React Router v6
-- **HTTP Client** : Axios
-- **UI** : Material-UI / Tailwind CSS
+
+* **Framework** : React 18
+* **Routing** : React Router v6
+* **HTTP** : Axios
+* **UI** : Material UI / Tailwind CSS
 
 ### DevOps
-- **Containerisation** : Docker + Docker Compose
-- **CI/CD** : GitHub Actions
-- **Tests** : Pytest (backend) + Jest (frontend)
+
+* **Containerisation** : Docker, Docker Compose
+* **CI/CD** : GitHub Actions
+* **Tests** : Pytest (backend), Jest (frontend)
 
 ## 🚀 Démarrage Rapide
 
 ### Prérequis
-- Docker Desktop installé
-- Git installé
+
+* Docker Desktop
+* Git
 
 ### Installation
 
-1. Cloner le repository
 ```bash
 git clone https://github.com/Rayanebsh/DZ-CarPool.git
 cd DZ-CarPool
 ```
 
-2. Lancer les services Docker
 ```bash
 docker-compose build
 docker-compose up -d
 ```
 
-3. Initialiser la base de données
 ```bash
 docker-compose exec backend python manage.py migrate
 docker-compose exec backend python manage.py createsuperuser
 ```
 
-4. Accéder à l'application
-- Frontend : http://localhost:3000
-- Backend API : http://localhost:8000/api/
-- Admin Django : http://localhost:8000/admin/
-- API Docs : http://localhost:8000/api/docs/
+### Accès
+
+* **Frontend** : [http://localhost:3000](http://localhost:3000)
+* **API** : [http://localhost:8000/api/](http://localhost:8000/api/)
+* **Admin** : [http://localhost:8000/admin/](http://localhost:8000/admin/)
+* **Docs API** : [http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)
 
 ## 📁 Structure du Projet
+
 ```
 DZ-CarPool/
 ├── backend/                # API Django REST
-│   ├── config/            # Configuration Django
-│   ├── users/             # App gestion utilisateurs
-│   ├── trips/             # App gestion trajets
-│   ├── reservations/      # App gestion réservations
-│   └── messaging/         # App messagerie
-├── frontend/              # Application React
-│   ├── public/
-│   └── src/
-│       ├── components/    # Composants réutilisables
-│       ├── pages/         # Pages de l'app
-│       └── services/      # Services API
-├── docs/                  # Documentation technique
-└── docker-compose.yml     # Orchestration Docker
+│   ├── app/                # Apps Django
+│   ├── config/             # Configuration Django
+│   ├── core/               # Logique métier commune
+│   ├── tests/              # Tests backend
+│   ├── utils/              # Outils utilitaires
+│   └── media/              # Fichiers uploadés
+├── frontend/               # Application React
+│   ├── app/                # Pages / routing
+│   ├── components/         # Composants réutilisables
+│   ├── contexts/           # Context API / Auth
+│   ├── hooks/              # Hooks personnalisés
+│   ├── services/           # Appels API
+│   └── public/             # Assets publics
+├── docs/                   # Documentation
+│   ├── design/
+│   └── diagrams/
+├── integration/            # Intégration / E2E
+├── docker-compose.yml      # Orchestration Docker
+└── README.md
 ```
 
+> **Note** : `.venv`, `node_modules`, `.next`, `staticfiles` sont volontairement exclus.
+
 ## 🧪 Tests
+
 ```bash
-# Tests backend
+# Backend
 docker-compose exec backend pytest
 
-# Tests frontend
+# Frontend
 docker-compose exec frontend npm test
 ```
 
 ## 📚 Documentation
 
-- [Documentation Technique](./docs/ARCHITECTURE.md)
-- [Guide de Déploiement](./docs/DEPLOYMENT.md)
-- [Manuel Utilisateur](./docs/USER_MANUAL.md)
-- [Journal des Décisions](./docs/ARCHITECTURE_DECISIONS.md)
+* Architecture : `docs/ARCHITECTURE.md`
+* Déploiement : `docs/DEPLOYMENT.md`
+* Manuel utilisateur : `docs/USER_MANUAL.md`
+* Décisions d’architecture : `docs/ARCHITECTURE_DECISIONS.md`
 
 ## 👥 Équipe
 
-- **Bessah Rayane** - Développeur Full Stack
-- **Ouldchikh Larbi Yanis** - Développeur Backend
-- **Haddouche Athmane** - Développeur Frontend
-- **Djoumer Yacine** - Développeur Frontend
-- **Bekki Mustapha Aimen** - Designer
+* **Bessah Rayane** — Full Stack
+* **Ouldchikh Larbi Yanis** — Backend
+* **Haddouche Athmane** — Frontend
+* **Djoumer Yacine** — Frontend
+* **Bekki Mustapha Aimen** — Design
 
 ## 📄 Licence
 
-Ce projet est réalisé dans le cadre du module de Génie Logiciel.
+Projet académique — module *Génie Logiciel*.
 
-## 🔗 Liens Utiles
+## 🔗 Liens
 
-- [Cahier des charges](./docs/cahier_des_charges.pdf)
-- [Diagrammes UML](./docs/diagrams/)
-- [Rapport de projet](./docs/rapport_final.pdf)
+* Cahier des charges : `docs/cahier_des_charges.pdf`
+* Diagrammes UML : `docs/diagrams/`
+* Rapport final : `docs/rapport_final.pdf`
