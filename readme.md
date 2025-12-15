@@ -48,7 +48,7 @@ DZ-CarPool est une plateforme web de covoiturage conçue pour faciliter les dép
 
 1. Cloner le repository
 ```bash
-git clone https://github.com/<VotrePseudo>/DZ-CarPool.git
+git clone https://github.com/Rayanebsh/DZ-CarPool.git
 cd DZ-CarPool
 ```
 
@@ -107,9 +107,11 @@ docker-compose exec frontend npm test
 
 ## 👥 Équipe
 
-- **Nom Prénom** - Développeur Full Stack
-- **Nom Prénom** - Développeur Backend
-- **Nom Prénom** - Développeur Frontend
+- **Bessah Rayane** - Développeur Full Stack
+- **Ouldchikh Larbi Yanis** - Développeur Backend
+- **Haddouche Athmane** - Développeur Frontend
+- **Djoumer Yacine** - Développeur Frontend
+- **Bekki Mustapha Aimen** - Designer
 
 ## 📄 Licence
 
