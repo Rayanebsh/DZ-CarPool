@@ -1,38 +1,69 @@
-# ==========================================
-# FICHIER 6: .dockerignore (backend)
-# ==========================================
-# Créer ce fichier dans: backend/.dockerignore
+# ============================================================================
+# .dockerignore
+# ============================================================================
 
-__pycache__
-*.pyc
-*.pyo
-*.pyd
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
 .Python
 env/
 venv/
-.venv
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django
 *.log
-.git
-.gitignore
-.mypy_cache
-.pytest_cache
-.hypothesis
-*.db
-*.sqlite3
+local_settings.py
 db.sqlite3
+db.sqlite3-journal
 media/
 staticfiles/
-*.mo
-*.pot
-local_settings.py
+
+# Environment
 .env
-.env.local
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore

@@ -1,29 +1,42 @@
-FROM python:3.12-slim
+# ============================================================================
+# Dockerfile - Backend Django
+# ============================================================================
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
+FROM python:3.11-slim
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
-    postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
+# Variables d'environnement
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
+# Répertoire de travail
 WORKDIR /app
 
-RUN pip install --upgrade pip
+# Installation des dépendances système
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    gcc \
+    python3-dev \
+    musl-dev \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
+# Copier les requirements
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
+# Installer les dépendances Python
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+# Copier le code de l'application
 COPY . .
 
-RUN python manage.py collectstatic --noinput
+# Créer les répertoires nécessaires
+RUN mkdir -p media staticfiles logs
 
-RUN useradd -m -u 1000 django && chown -R django:django /app
-USER django
-
+# Exposer le port
 EXPOSE 8000
 
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Script de démarrage
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

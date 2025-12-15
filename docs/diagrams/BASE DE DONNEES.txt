@@ -1,0 +1,197 @@
+CREATE TABLE roles (
+    role_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    role_name VARCHAR(50) UNIQUE NOT NULL
+);
+
+
+
+CREATE TABLE preferences (
+    preference_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    preference_name VARCHAR(100) UNIQUE NOT NULL
+);
+
+
+
+CREATE TABLE users (
+    user_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+
+    role_id INT NOT NULL
+        REFERENCES roles(role_id),
+
+    profile_picture TEXT,
+    bio TEXT,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+
+
+CREATE TABLE user_preferences (
+    user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    preference_id INT REFERENCES preferences(preference_id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, preference_id)
+);
+
+
+
+CREATE TABLE user_documents (
+    user_document_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    user_id INT NOT NULL
+        REFERENCES users(user_id) ON DELETE CASCADE,
+
+    file_path TEXT NOT NULL,
+
+    uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    verified_by INT REFERENCES users(user_id) ON DELETE SET NULL,
+    verified_at TIMESTAMPTZ,
+
+    CONSTRAINT verified_consistency CHECK (
+        (verified = FALSE AND verified_by IS NULL AND verified_at IS NULL)
+        OR
+        (verified = TRUE AND verified_by IS NOT NULL AND verified_at IS NOT NULL)
+    )
+);
+
+
+
+
+CREATE TABLE trajets (
+    trajet_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    conducteur_id INT NOT NULL
+        REFERENCES users(user_id) ON DELETE CASCADE,
+
+    ville_depart VARCHAR(100) NOT NULL,
+    ville_arrivee VARCHAR(100) NOT NULL,
+
+    date_depart DATE NOT NULL,
+    heure_depart TIME NOT NULL,
+
+    nbr_places INT NOT NULL CHECK (nbr_places > 0),
+
+    price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
+    distance NUMERIC(10,2) NOT NULL CHECK (distance > 0),
+
+    is_confort BOOLEAN DEFAULT FALSE,
+    pause_required BOOLEAN DEFAULT FALSE,
+
+    price_platform NUMERIC(10,2),
+    price_driver NUMERIC(10,2),
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+
+
+
+CREATE TABLE reservations (
+    reservation_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    trajet_id INT NOT NULL
+        REFERENCES trajets(trajet_id) ON DELETE CASCADE,
+
+    passager_id INT NOT NULL
+        REFERENCES users(user_id) ON DELETE CASCADE,
+
+    nbr_places INT NOT NULL CHECK (nbr_places > 0),
+
+    status VARCHAR(20) NOT NULL
+        CHECK (status IN ('PENDING','CONFIRMED','REJECTED','CANCELLED')),
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    approved_at TIMESTAMPTZ,
+    cancelled_at TIMESTAMPTZ
+);
+
+
+
+
+
+CREATE TABLE ratings (
+    rating_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    reservation_id INT UNIQUE NOT NULL
+        REFERENCES reservations(reservation_id) ON DELETE CASCADE,
+
+    note INT NOT NULL CHECK (note BETWEEN 1 AND 5),
+    comment TEXT
+);
+
+
+
+
+
+CREATE TABLE messages (
+    message_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    sender_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    receiver_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+
+    trajet_id INT REFERENCES trajets(trajet_id) ON DELETE CASCADE,
+
+    content TEXT,
+    media TEXT,
+    media_type VARCHAR(50),
+
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+
+
+
+
+CREATE TABLE notifications (
+    notification_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    recipient_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    sender_id INT REFERENCES users(user_id) ON DELETE SET NULL,
+
+    type VARCHAR(50) NOT NULL,
+    content TEXT,
+
+    on_model VARCHAR(50),
+    related_id INT,
+
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+
+
+
+
+
+CREATE TABLE refresh_tokens (
+    refresh_token_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+
+    token_hash VARCHAR(255) NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMPTZ NOT NULL,
+
+    revoked BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+
+
+
+
+
+
+Index indispensables
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_trajets_conducteur ON trajets(conducteur_id);
+CREATE INDEX idx_reservations_trajet ON reservations(trajet_id);
+CREATE INDEX idx_messages_receiver ON messages(receiver_id);

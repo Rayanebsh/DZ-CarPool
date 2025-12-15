@@ -1,20 +1,47 @@
 from django.contrib import admin
-from django.urls import path
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from django.http import JsonResponse
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView
+)
 
-@api_view(['GET'])
-def api_root(request):
-    return Response({
-        'message': 'Bienvenue sur API DZ-CarPool',
-        'version': '1.0.0',
-        'status': 'operational'
-    })
+# Personnalisation de l'admin
+admin.site.site_header = "DZ-CarPool Administration"
+admin.site.site_title = "DZ-CarPool Admin"
+admin.site.index_title = "Bienvenue sur le panneau d'administration DZ-CarPool"
 
 urlpatterns = [
+    # Admin
     path('admin/', admin.site.urls),
-    path('api/', api_root, name='api-root'),
+    
+    # API Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    
+    # Health check endpoint
+    path('health/', lambda request: JsonResponse({'status': 'healthy'})),
+    
+    # API Endpoints v1
+    path('api/v1/users/', include('app.users.urls', namespace='users')),
+    path('api/v1/trajets/', include('app.trajets.urls', namespace='trajets')),
+    path('api/v1/reservations/', include('app.reservations.urls', namespace='reservations')),
+    path('api/v1/messaging/', include('app.messaging.urls', namespace='messaging')),
+    path('api/v1/notifications/', include('app.notifications.urls', namespace='notifications')),
 ]
+
+# Servir les fichiers média et statiques en développement
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    
+    # Debug toolbar
+    if 'debug_toolbar' in settings.INSTALLED_APPS:
+        import debug_toolbar
+        urlpatterns += [
+            path('__debug__/', include(debug_toolbar.urls)),
+        ]
