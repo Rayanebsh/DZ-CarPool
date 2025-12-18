@@ -73,12 +73,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         required=True,
         style={'input_type': 'password'}
     )
+    role = serializers.PrimaryKeyRelatedField(
+        queryset=Role.objects.all(),
+        required=False,
+        allow_null=True
+    )
+    documents = UserDocumentSerializer(many=True, required=False, read_only=True)
     
     class Meta:
         model = User
         fields = [
             'email', 'password', 'password_confirm',
-            'first_name', 'last_name', 'phone_number'
+            'first_name', 'last_name', 'phone_number',
+            'role', 'documents'
         ]
     
     def validate(self, attrs):
@@ -93,8 +100,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         """Crée un nouvel utilisateur"""
         validated_data.pop('password_confirm')
         
-        # Obtenir ou créer le rôle USER par défaut
-        user_role, _ = Role.objects.get_or_create(name='USER')
+        # Obtenir le rôle ou créer USER par défaut
+        role = validated_data.pop('role', None)
+        if role is None:
+            role, _ = Role.objects.get_or_create(
+                name='USER',
+                defaults={'description': 'Utilisateur standard'}
+            )
         
         user = User.objects.create_user(
             email=validated_data['email'],
@@ -102,10 +114,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', ''),
             phone_number=validated_data.get('phone_number', ''),
-            role=user_role
+            role=role
         )
         return user
-
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     """Serializer pour la mise à jour du profil utilisateur"""

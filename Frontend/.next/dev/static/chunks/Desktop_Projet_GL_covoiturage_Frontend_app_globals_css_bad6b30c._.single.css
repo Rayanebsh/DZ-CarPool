@@ -555,6 +555,10 @@
     top: 100%;
   }
 
+  .top-px {
+    top: 1px;
+  }
+
   .-right-12 {
     right: calc(var(--spacing) * -12);
   }
@@ -613,6 +617,10 @@
 
   .z-0 {
     z-index: 0;
+  }
+
+  .z-1 {
+    z-index: 1;
   }
 
   .z-10 {
@@ -942,6 +950,10 @@
 
   .h-\(--cell-size\) {
     height: var(--cell-size);
+  }
+
+  .h-\(--radix-navigation-menu-viewport-height\) {
+    height: var(--radix-navigation-menu-viewport-height);
   }
 
   .h-1\.5 {
@@ -2510,11 +2522,6 @@
     text-underline-offset: 4px;
   }
 
-  .antialiased {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
   .opacity-0 {
     opacity: 0;
   }
@@ -3103,6 +3110,11 @@
   .after\:left-1\/2:after {
     content: var(--tw-content);
     left: 50%;
+  }
+
+  .after\:w-0\.5:after {
+    content: var(--tw-content);
+    width: calc(var(--spacing) * .5);
   }
 
   .after\:w-1:after {
@@ -4581,6 +4593,18 @@
   }
 
   @supports ((-webkit-backdrop-filter: var(--tw)) or (backdrop-filter: var(--tw))) {
+    .supports-backdrop-filter\:bg-background\/60 {
+      background-color: var(--background);
+    }
+
+    @supports (color: color-mix(in lab, red, red)) {
+      .supports-backdrop-filter\:bg-background\/60 {
+        background-color: color-mix(in oklab, var(--background) 60%, transparent);
+      }
+    }
+  }
+
+  @supports ((-webkit-backdrop-filter: var(--tw)) or (backdrop-filter: var(--tw))) {
     .supports-\[backdrop-filter\]\:bg-background\/60 {
       background-color: var(--background);
     }
@@ -4715,6 +4739,12 @@
   @media (min-width: 48rem) {
     .md\:hidden {
       display: none;
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .md\:w-\(--radix-navigation-menu-viewport-width\) {
+      width: var(--radix-navigation-menu-viewport-width);
     }
   }
 

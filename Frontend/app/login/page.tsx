@@ -1,29 +1,47 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Car } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
+import { useAuth } from "@/contexts/auth-context" // ⬅️ Ajouter
 import Link from "next/link"
 import Image from "next/image"
 
 export default function LoginPage() {
   const { t, language, setLanguage } = useLanguage()
+  const { login } = useAuth() // ⬅️ Ajouter
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   })
+  const [loading, setLoading] = useState(false) // ⬅️ Ajouter
+  const [error, setError] = useState<string | null>(null) // ⬅️ Ajouter
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value })
+    setError(null) // Réinitialiser l'erreur
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
+    setLoading(true)
+
+    try {
+      await login({
+        email: formData.email,
+        password: formData.password,
+      })
+      // Succès - redirection automatique via AuthContext
+    } catch (err: any) {
+      setError(err.message || "Erreur de connexion")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -136,7 +154,7 @@ export default function LoginPage() {
                 type="submit"
                 className="w-full h-12 bg-[#FF5722] hover:bg-[#E64A19] text-white font-medium text-base"
               >
-                {t("createAccount")}
+                {t("login")}
               </Button>
 
               <div className="relative my-6">

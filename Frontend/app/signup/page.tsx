@@ -10,22 +10,29 @@ import { Car, Upload } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 import Link from "next/link"
 import Image from "next/image"
-
+import { useAuth } from "@/contexts/auth-context" // ⬅️ Ajouter
+import authService from "@/services/auth.service" // ⬅️ Ajouter
 export default function SignupPage() {
   const { t, language, setLanguage } = useLanguage()
   const [activeTab, setActiveTab] = useState<"register" | "login">("register")
+   const { register } = useAuth() // ⬅️ Ajouter
   const [userType, setUserType] = useState<"driver" | "passenger">("driver")
   const [formData, setFormData] = useState({
-    fullName: "",
+    first_name: "",
+    last_name: "",
     email: "",
     phoneNumber: "",
     password: "",
+    passwordConfirm: "",
   })
   const [idPhotoFile, setIdPhotoFile] = useState<File | null>(null)
+  const [loading, setLoading] = useState(false) // ⬅️ Ajouter
+  const [error, setError] = useState<string | null>(null) // ⬅️ Ajouter
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value })
+    setError(null) // Réinitialiser l'erreur
   }
 
   const handleIdPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,8 +52,42 @@ export default function SignupPage() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
+    setLoading(true)
+
+    try {
+      // Vérifier que les mots de passe correspondent
+      if (formData.password !== formData.passwordConfirm) {
+        throw new Error("Les mots de passe ne correspondent pas")
+      }
+      // Appeler l'API d'inscription
+      await register({
+        email: formData.email,
+        password: formData.password,
+        password_confirm: formData.passwordConfirm,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        phone_number: formData.phoneNumber,
+      })
+
+      // Si document uploadé, l'envoyer après inscription
+      if (idPhotoFile) {
+        try {
+          await authService.uploadDocument(idPhotoFile, 'CNI')
+        } catch (uploadError) {
+          console.error('Erreur upload document:', uploadError)
+          // On ne bloque pas l'inscription si l'upload échoue
+        }
+      }
+
+      // Succès - redirection automatique via AuthContext
+    } catch (err: any) {
+      setError(err.message || "Une erreur est survenue")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -154,19 +195,25 @@ export default function SignupPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
-                  {t("fullName")}
-                </Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder={t("enterFullName")}
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  required
-                  className="h-11 bg-white border-gray-300 focus:border-gray-900"
-                />
+                <Label htmlFor="first_name">{t("firstName")}</Label>
+                  <Input
+                    id="first_name"
+                    value={formData.first_name}
+                    onChange={handleInputChange}
+                    required
+                  />
               </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="last_name">{t("lastName")}</Label>
+                  <Input
+                    id="last_name"
+                    value={formData.last_name}
+                    onChange={handleInputChange}
+                    required
+                  />
+            </div>
+
 
               <div className="space-y-1.5">
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700">
@@ -207,6 +254,21 @@ export default function SignupPage() {
                   type="password"
                   placeholder={t("passwordPlaceholder")}
                   value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  className="h-11 bg-white border-gray-300 focus:border-gray-900"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="passwordConfirm" className="text-sm font-medium text-gray-700">
+                  {t("confirmPassword")}
+                </Label>
+                <Input
+                  id="passwordConfirm"
+                  type="password"
+                  placeholder={t("confirmPasswordPlaceholder")}
+                  value={formData.passwordConfirm}
                   onChange={handleInputChange}
                   required
                   className="h-11 bg-white border-gray-300 focus:border-gray-900"

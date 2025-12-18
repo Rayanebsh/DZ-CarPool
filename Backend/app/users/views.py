@@ -1,172 +1,190 @@
 """
 Views pour la gestion des utilisateurs
 """
-from rest_framework import viewsets, status, permissions
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
-from .models import User, Role, Preference, UserDocument
+
+from .models import User, Role, Preference
 from .serializers import (
-    UserSerializer, UserRegistrationSerializer, UserUpdateSerializer,
-    ChangePasswordSerializer, UserProfileSerializer, RoleSerializer,
-    PreferenceSerializer, UserDocumentSerializer
+    UserSerializer,
+    UserRegistrationSerializer,
+    UserUpdateSerializer,
+    ChangePasswordSerializer,
+    UserProfileSerializer,
+    RoleSerializer,
+    PreferenceSerializer,
+    UserDocumentSerializer,
 )
-from app.core.permissions import IsAuthenticatedOrCreateOnly
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """ViewSet pour la gestion des utilisateurs"""
-    
+    """
+    ViewSet pour la gestion des utilisateurs
+    """
     queryset = User.objects.all()
-    permission_classes = [IsAuthenticatedOrCreateOnly]
-    
+
+    # ---------- AUTHENTICATION ----------
+    def get_authenticators(self):
+        """
+        Désactiver l'authentification JWT
+        pour les endpoints publics
+        """
+        request = getattr(self, "request", None)
+
+        if request:
+            path = request.path.lower()
+            method = request.method.upper()
+
+            if (
+                (path.endswith("/register/") and method == "POST")
+                or (path.endswith("/login/") and method == "POST")
+                or (path.endswith("/users/") and method == "POST")
+            ):
+                return []
+
+        return super().get_authenticators()
+
+    # ---------- PERMISSIONS ----------
+    def get_permissions(self):
+        """
+        Permissions selon l'action
+        """
+        if self.action in ["register", "login", "create"]:
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    # ---------- SERIALIZERS ----------
     def get_serializer_class(self):
-        """Retourne le serializer approprié selon l'action"""
-        if self.action == 'create':
+        if self.action in ["register", "create"]:
             return UserRegistrationSerializer
-        elif self.action in ['update', 'partial_update']:
+        if self.action in ["update", "partial_update"]:
             return UserUpdateSerializer
-        elif self.action == 'retrieve':
+        if self.action in ["retrieve", "me"]:
             return UserProfileSerializer
         return UserSerializer
-    
-    def get_permissions(self):
-        """Permissions personnalisées selon l'action"""
-        if self.action == 'create':
-            return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
-    
-    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
+
+    # ---------- ACTIONS PUBLIQUES ----------
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
     def register(self, request):
-        """Inscription d'un nouvel utilisateur"""
+        """
+        Inscription d'un nouvel utilisateur
+        """
         serializer = UserRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            
-            # Générer les tokens JWT
-            refresh = RefreshToken.for_user(user)
-            
-            return Response({
-                'user': UserSerializer(user).data,
-                'tokens': {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                }
-            }, status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
-    def login(self, request):
-        """Connexion d'un utilisateur"""
-        email = request.data.get('email')
-        password = request.data.get('password')
-        
-        if not email or not password:
-            return Response({
-                'error': 'Email et mot de passe requis'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        user = authenticate(request, email=email, password=password)
-        
-        if user is None:
-            return Response({
-                'error': 'Identifiants invalides'
-            }, status=status.HTTP_401_UNAUTHORIZED)
-        
-        if not user.is_active:
-            return Response({
-                'error': 'Compte désactivé'
-            }, status=status.HTTP_403_FORBIDDEN)
-        
-        # Générer les tokens JWT
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.save()
         refresh = RefreshToken.for_user(user)
-        
-        return Response({
-            'user': UserSerializer(user).data,
-            'tokens': {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }
-        })
-    
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+
+        return Response(
+            {
+                "user": UserSerializer(user).data,
+                "tokens": {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                },
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
+    def login(self, request):
+        """
+        Connexion utilisateur
+        """
+        email = request.data.get("email")
+        password = request.data.get("password")
+
+        if not email or not password:
+            return Response(
+                {"error": "Email et mot de passe requis"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = User.objects.filter(email=email).first()
+
+        if not user:
+            return Response(
+                {"error": "Utilisateur non trouvé"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not user.check_password(password):
+            return Response(
+                {"error": "Mot de passe incorrect"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if not user.is_active:
+            return Response(
+                {"error": "Compte désactivé"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        refresh = RefreshToken.for_user(user)
+
+        return Response(
+            {
+                "user": UserSerializer(user).data,
+                "tokens": {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    # ---------- ACTIONS AUTHENTIFIÉES ----------
+    @action(detail=False, methods=["get"])
     def me(self, request):
-        """Récupère le profil de l'utilisateur connecté"""
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data)
-    
-    @action(detail=False, methods=['put'], permission_classes=[permissions.IsAuthenticated])
+
+    @action(detail=False, methods=["put"])
     def update_profile(self, request):
-        """Met à jour le profil de l'utilisateur connecté"""
         serializer = UserUpdateSerializer(
-            request.user,
-            data=request.data,
-            partial=True
+            request.user, data=request.data, partial=True
         )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(UserProfileSerializer(request.user).data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(UserProfileSerializer(request.user).data)
+
+    @action(detail=False, methods=["post"])
     def change_password(self, request):
-        """Change le mot de passe de l'utilisateur"""
         serializer = ChangePasswordSerializer(
-            data=request.data,
-            context={'request': request}
+            data=request.data, context={"request": request}
         )
-        if serializer.is_valid():
-            user = request.user
-            user.set_password(serializer.validated_data['new_password'])
-            user.save()
-            
-            return Response({
-                'message': 'Mot de passe changé avec succès'
-            })
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=True, methods=['get'])
-    def stats(self, request, pk=None):
-        """Récupère les statistiques d'un utilisateur"""
-        user = self.get_object()
-        
-        return Response({
-            'trips_as_driver': user.trips_as_driver,
-            'trips_as_passenger': user.trips_as_passenger,
-            'average_rating': float(user.average_rating),
-            'total_trips': user.trips_as_driver + user.trips_as_passenger,
-        })
-    
-    @action(detail=False, methods=['post'])
+        serializer.is_valid(raise_exception=True)
+
+        request.user.set_password(serializer.validated_data["new_password"])
+        request.user.save()
+
+        return Response({"message": "Mot de passe changé avec succès"})
+
+    @action(detail=False, methods=["post"])
     def upload_document(self, request):
-        """Upload un document de vérification"""
         serializer = UserDocumentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=False, methods=['get'])
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["get"])
     def documents(self, request):
-        """Liste les documents de l'utilisateur"""
         documents = request.user.documents.all()
         serializer = UserDocumentSerializer(documents, many=True)
         return Response(serializer.data)
 
 
+# ---------- AUTRES VIEWSETS ----------
 class RoleViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet pour la lecture des rôles"""
-    
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 
 class PreferenceViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet pour la lecture des préférences"""
-    
     queryset = Preference.objects.all()
     serializer_class = PreferenceSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
