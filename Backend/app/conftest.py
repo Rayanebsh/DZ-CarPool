@@ -1,441 +1,334 @@
-from decimal import Decimal
+"""
+apps/users/conftest.py
+Fixtures réutilisables pour les tests d'authentification
+"""
 
 import pytest
-from app.messaging.models import Message
-from app.notifications.models import Notification
-from app.reservations.models import Reservation
-from app.trajets.models import FuelPrice, Trajet
-from app.users.models import Role
-from django.contrib.auth import get_user_model
-from rest_framework import status
-from rest_framework.test import APIClient
-from utils.pricing import (
-    calculate_fuel_cost,
-    calculate_platform_commission,
-    calculate_suggested_price,
+from app.users.models import (
+    EmailVerification,
+    PhoneVerification,
+    Preference,
+    Role,
+    UserDocument,
 )
+from django.contrib.auth import get_user_model
+from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
+
+
+# ============================================
+# FIXTURES DE BASE
+# ============================================
 
 
 @pytest.fixture
 def api_client():
-    """Client API pour les tests"""
+    """Client API non authentifié"""
     return APIClient()
 
 
 @pytest.fixture
-def user_role():
-    """Rôle utilisateur par défaut"""
-    return Role.objects.create(name="USER", description="Utilisateur standard")
+def authenticated_client(user):
+    """Client API authentifié avec un utilisateur"""
+    client = APIClient()
+    refresh = RefreshToken.for_user(user)
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+    return client
+
+
+# ============================================
+# FIXTURES UTILISATEURS
+# ============================================
 
 
 @pytest.fixture
-def user(user_role):
-    """Utilisateur de test"""
+def user_data():
+    """Données valides pour créer un utilisateur"""
+    return {
+        "email": "test@example.com",
+        "password": "TestPassword123!",
+        "password_confirm": "TestPassword123!",
+        "first_name": "Test",
+        "last_name": "User",
+        "phone_number": "+213555123456",
+    }
+
+
+@pytest.fixture
+def user(db, role_user):
+    """Utilisateur simple sans vérifications"""
     return User.objects.create_user(
-        email="test@example.com",
-        password="testpass123",
-        first_name="Test",
+        email="user@example.com",
+        password="TestPassword123!",
+        first_name="John",
+        last_name="Doe",
+        phone_number="+213555111111",
+        role=role_user,
+    )
+
+
+@pytest.fixture
+def verified_user(db, role_user):
+    """Utilisateur avec email et téléphone vérifiés"""
+    from django.utils import timezone
+
+    user = User.objects.create_user(
+        email="verified@example.com",
+        password="TestPassword123!",
+        first_name="Verified",
         last_name="User",
-        role=user_role,
+        phone_number="+213555222222",
+        email_verified=True,
+        email_verified_at=timezone.now(),
+        phone_verified=True,
+        phone_verified_at=timezone.now(),
+        role=role_user,
+    )
+    return user
+
+
+@pytest.fixture
+def admin_user(db, role_admin):
+    """Utilisateur administrateur"""
+    return User.objects.create_superuser(
+        email="admin@example.com",
+        password="AdminPassword123!",
+        first_name="Admin",
+        last_name="User",
+        role=role_admin,
     )
 
 
 @pytest.fixture
-def conducteur(user_role):
-    """Conducteur de test"""
-    return User.objects.create_user(
-        email="driver@example.com",
-        password="driverpass123",
-        first_name="Driver",
-        last_name="Test",
-        role=user_role,
+def inactive_user(db, role_user):
+    """Utilisateur désactivé"""
+    user = User.objects.create_user(
+        email="inactive@example.com",
+        password="TestPassword123!",
+        first_name="Inactive",
+        last_name="User",
+        role=role_user,
+    )
+    user.is_active = False
+    user.save()
+    return user
+
+
+# ============================================
+# FIXTURES ROLES ET PREFERENCES
+# ============================================
+
+
+@pytest.fixture
+def role_user(db):
+    """Rôle utilisateur standard"""
+    role, _ = Role.objects.get_or_create(
+        name="USER", defaults={"description": "Utilisateur standard"}
+    )
+    return role
+
+
+@pytest.fixture
+def role_driver(db):
+    """Rôle conducteur"""
+    role, _ = Role.objects.get_or_create(
+        name="DRIVER", defaults={"description": "Conducteur"}
+    )
+    return role
+
+
+@pytest.fixture
+def role_admin(db):
+    """Rôle administrateur"""
+    role, _ = Role.objects.get_or_create(
+        name="ADMIN", defaults={"description": "Administrateur"}
+    )
+    return role
+
+
+@pytest.fixture
+def preferences(db):
+    """Liste de préférences de trajet"""
+    prefs = []
+    pref_data = [
+        ("NO_SMOKING", "Non fumeur"),
+        ("MUSIC", "Musique autorisée"),
+        ("PETS_ALLOWED", "Animaux acceptés"),
+        ("SILENT_RIDE", "Trajet silencieux"),
+    ]
+    for name, desc in pref_data:
+        pref, _ = Preference.objects.get_or_create(
+            name=name, defaults={"description": desc}
+        )
+        prefs.append(pref)
+    return prefs
+
+
+# ============================================
+# FIXTURES VERIFICATION
+# ============================================
+
+
+@pytest.fixture
+def email_verification(user):
+    """Code de vérification email valide"""
+    return EmailVerification.objects.create(user=user)
+
+
+@pytest.fixture
+def expired_email_verification(user):
+    """Code de vérification email expiré"""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    verification = EmailVerification.objects.create(user=user)
+    verification.expires_at = timezone.now() - timedelta(hours=1)
+    verification.save()
+    return verification
+
+
+@pytest.fixture
+def phone_verification(user):
+    """Code de vérification téléphone valide"""
+    return PhoneVerification.objects.create(user=user)
+
+
+@pytest.fixture
+def expired_phone_verification(user):
+    """Code de vérification téléphone expiré"""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    verification = PhoneVerification.objects.create(user=user)
+    verification.expires_at = timezone.now() - timedelta(hours=1)
+    verification.save()
+    return verification
+
+
+# ============================================
+# FIXTURES DOCUMENTS
+# ============================================
+
+
+@pytest.fixture
+def user_document(user):
+    """Document utilisateur non vérifié"""
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    fake_file = SimpleUploadedFile(
+        "test_document.pdf", b"file_content", content_type="application/pdf"
+    )
+
+    return UserDocument.objects.create(
+        user=user, document_type="CNI", file_path=fake_file
     )
 
 
 @pytest.fixture
-def passager(user_role):
-    """Passager de test"""
-    return User.objects.create_user(
-        email="passenger@example.com",
-        password="passengerpass123",
-        first_name="Passenger",
-        last_name="Test",
-        role=user_role,
+def verified_document(user, admin_user):
+    """Document utilisateur vérifié"""
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from django.utils import timezone
+
+    fake_file = SimpleUploadedFile(
+        "verified_document.pdf", b"file_content", content_type="application/pdf"
+    )
+
+    return UserDocument.objects.create(
+        user=user,
+        document_type="PERMIS",
+        file_path=fake_file,
+        verified=True,
+        verified_by=admin_user,
+        verified_at=timezone.now(),
+    )
+
+
+# ============================================
+# FIXTURES GOOGLE OAUTH
+# ============================================
+
+
+@pytest.fixture
+def google_user_data():
+    """Données utilisateur retournées par Google OAuth"""
+    return {
+        "sub": "123456789",
+        "email": "google.user@gmail.com",
+        "given_name": "Google",
+        "family_name": "User",
+        "picture": "https://example.com/photo.jpg",
+        "email_verified": True,
+    }
+
+
+@pytest.fixture
+def mock_google_response(google_user_data):
+    """Mock de la réponse de l'API Google"""
+
+    class MockResponse:
+        status_code = 200
+
+        def json(self):
+            return google_user_data
+
+    return MockResponse()
+
+
+# ============================================
+# FIXTURES MOCKING SERVICES
+# ============================================
+
+
+@pytest.fixture
+def mock_email_service(mocker):
+    """Mock du service d'envoi d'email"""
+    return mocker.patch(
+        "app.users.services.EmailService.send_verification_code", return_value=True
     )
 
 
 @pytest.fixture
-def trajet(conducteur):
-    """Trajet de test"""
-    return Trajet.objects.create(
-        conducteur=conducteur,
-        ville_depart="Alger",
-        ville_arrivee="Oran",
-        date="2025-12-31",
-        heure_depart="08:00",
-        nbr_places=4,
-        price=Decimal("1500.00"),
-        distance=Decimal("450.00"),
+def mock_sms_service(mocker):
+    """Mock du service d'envoi de SMS"""
+    return mocker.patch(
+        "app.users.services.SMSService.send_verification_code", return_value=True
     )
 
 
 @pytest.fixture
-def reservation(trajet, passager):
-    """Réservation de test"""
-    return Reservation.objects.create(trajet=trajet, passager=passager, nbr_places=2)
+def mock_google_oauth(mocker, mock_google_response):
+    """Mock de l'authentification Google OAuth"""
+    return mocker.patch("requests.get", return_value=mock_google_response)
+
+
+# ============================================
+# FIXTURES TOKENS JWT
+# ============================================
 
 
 @pytest.fixture
-def fuel_price():
-    """Prix du carburant de test"""
-    return FuelPrice.objects.create(
-        wilaya="Alger", fuel_type="ESSENCE", price_per_liter=Decimal("50.00")
-    )
-
-
-# ============================================================================
-# apps/users/tests/test_models.py
-# ============================================================================
-
-
-User = get_user_model()
-
-
-@pytest.mark.django_db
-class TestUserModel:
-    """Tests pour le modèle User"""
-
-    def test_create_user(self, user_role):
-        """Test de création d'utilisateur"""
-        user = User.objects.create_user(
-            email="newuser@example.com", password="password123", role=user_role
-        )
-        assert user.email == "newuser@example.com"
-        assert user.check_password("password123")
-        assert user.is_active is True
-        assert user.is_staff is False
-
-    def test_create_superuser(self, user_role):
-        """Test de création de superutilisateur"""
-        superuser = User.objects.create_superuser(
-            email="admin@example.com", password="admin123", role=user_role
-        )
-        assert superuser.is_staff is True
-        assert superuser.is_superuser is True
-
-    def test_user_full_name(self, user):
-        """Test du nom complet"""
-        assert user.full_name == "Test User"
-
-    def test_user_string_representation(self, user):
-        """Test de la représentation en string"""
-        assert str(user) == "test@example.com"
-
-
-# ============================================================================
-# apps/users/tests/test_views.py
-# ============================================================================
-
-
-@pytest.mark.django_db
-class TestUserRegistration:
-    """Tests pour l'inscription"""
-
-    def test_register_user_success(self, api_client, user_role):
-        """Test d'inscription réussie"""
-        data = {
-            "email": "newuser@example.com",
-            "password": "SecurePass123",
-            "password_confirm": "SecurePass123",
-            "first_name": "New",
-            "last_name": "User",
-        }
-        response = api_client.post("/api/users/register/", data)
-
-        assert response.status_code == status.HTTP_201_CREATED
-        assert "user" in response.data
-        assert "tokens" in response.data
-        assert response.data["user"]["email"] == "newuser@example.com"
-
-    def test_register_user_password_mismatch(self, api_client, user_role):
-        """Test d'inscription avec mots de passe différents"""
-        data = {
-            "email": "test@example.com",
-            "password": "password123",
-            "password_confirm": "different123",
-            "first_name": "Test",
-            "last_name": "User",
-        }
-        response = api_client.post("/api/users/register/", data)
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    def test_register_duplicate_email(self, api_client, user, user_role):
-        """Test d'inscription avec email existant"""
-        data = {
-            "email": user.email,
-            "password": "password123",
-            "password_confirm": "password123",
-            "first_name": "Test",
-            "last_name": "User",
-        }
-        response = api_client.post("/api/users/register/", data)
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-@pytest.mark.django_db
-class TestUserLogin:
-    """Tests pour la connexion"""
-
-    def test_login_success(self, api_client, user):
-        """Test de connexion réussie"""
-        data = {"email": "test@example.com", "password": "testpass123"}
-        response = api_client.post("/api/users/login/", data)
-
-        assert response.status_code == status.HTTP_200_OK
-        assert "tokens" in response.data
-        assert "access" in response.data["tokens"]
-
-    def test_login_invalid_credentials(self, api_client, user):
-        """Test de connexion avec mauvais identifiants"""
-        data = {"email": "test@example.com", "password": "wrongpassword"}
-        response = api_client.post("/api/users/login/", data)
-
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-
-# ============================================================================
-# apps/trajets/tests/test_models.py
-# ============================================================================
-
-
-@pytest.mark.django_db
-class TestTrajetModel:
-    """Tests pour le modèle Trajet"""
-
-    def test_create_trajet(self, conducteur):
-        """Test de création de trajet"""
-        trajet = Trajet.objects.create(
-            conducteur=conducteur,
-            ville_depart="Alger",
-            ville_arrivee="Oran",
-            date="2025-12-31",
-            heure_depart="08:00",
-            nbr_places=4,
-            price=Decimal("1500.00"),
-            distance=Decimal("450.00"),
-        )
-
-        assert trajet.conducteur == conducteur
-        assert trajet.places_disponibles == 4
-        assert trajet.price_platform > 0  # Commission calculée
-        assert trajet.price_driver > 0
-
-    def test_trajet_pause_required(self, conducteur):
-        """Test de pause obligatoire pour longue distance"""
-        trajet = Trajet.objects.create(
-            conducteur=conducteur,
-            ville_depart="Alger",
-            ville_arrivee="Tamanrasset",
-            date="2025-12-31",
-            heure_depart="08:00",
-            nbr_places=3,
-            price=Decimal("5000.00"),
-            distance=Decimal("2000.00"),
-        )
-
-        assert trajet.pause_required is True
-
-    def test_trajet_confort_pricing(self, conducteur):
-        """Test de tarification avec option confort"""
-        trajet = Trajet.objects.create(
-            conducteur=conducteur,
-            ville_depart="Alger",
-            ville_arrivee="Oran",
-            date="2025-12-31",
-            heure_depart="08:00",
-            nbr_places=4,
-            price=Decimal("1000.00"),
-            distance=Decimal("450.00"),
-            is_confort=True,
-        )
-
-        # Vérifier que le prix a augmenté de 30%
-        assert trajet.price > Decimal("1000.00")
-
-    def test_can_reserve(self, trajet):
-        """Test de vérification de disponibilité"""
-        assert trajet.can_reserve(2) is True
-        assert trajet.can_reserve(5) is False
-
-
-# ============================================================================
-# apps/trajets/tests/test_pricing.py
-# ============================================================================
-
-
-@pytest.mark.django_db
-class TestPricing:
-    """Tests pour les calculs de prix"""
-
-    def test_calculate_fuel_cost(self):
-        """Test du calcul du coût carburant"""
-        cost = calculate_fuel_cost(
-            distance=100, fuel_price_per_liter=50.0, consumption=8.0
-        )
-
-        assert isinstance(cost, Decimal)
-        assert cost == Decimal("400.00")  # (100/100) * 8 * 50
-
-    def test_calculate_suggested_price(self, fuel_price):
-        """Test du calcul du prix suggéré"""
-        price = calculate_suggested_price(
-            distance=100, ville_depart="Alger", nbr_places=4
-        )
-
-        assert isinstance(price, Decimal)
-        assert price > 0
-
-    def test_calculate_platform_commission(self):
-        """Test du calcul de la commission"""
-        base_price = Decimal("1000.00")
-
-        final, commission, driver = calculate_platform_commission(
-            base_price, is_confort=False
-        )
-
-        assert final == base_price
-        assert commission == base_price * Decimal("0.15")
-        assert driver == base_price - commission
-
-    def test_calculate_commission_with_confort(self):
-        """Test du calcul avec option confort"""
-        base_price = Decimal("1000.00")
-
-        final, commission, driver = calculate_platform_commission(
-            base_price, is_confort=True
-        )
-
-        assert final > base_price  # Prix augmenté de 30%
-        assert commission > 0
-        assert driver > 0
-
-
-# ============================================================================
-# apps/reservations/tests/test_models.py
-# ============================================================================
-
-
-@pytest.mark.django_db
-class TestReservationModel:
-    """Tests pour le modèle Reservation"""
-
-    def test_create_reservation(self, trajet, passager):
-        """Test de création de réservation"""
-        reservation = Reservation.objects.create(
-            trajet=trajet, passager=passager, nbr_places=2
-        )
-
-        assert reservation.status == "PENDING"
-        assert reservation.total_price > 0
-
-    def test_approve_reservation(self, reservation):
-        """Test d'approbation de réservation"""
-        initial_places = reservation.trajet.places_disponibles
-
-        reservation.approve()
-        reservation.trajet.refresh_from_db()
-
-        assert reservation.status == "CONFIRMED"
-        assert reservation.approved_at is not None
-        assert reservation.trajet.places_disponibles < initial_places
-
-    def test_reject_reservation(self, reservation):
-        """Test de rejet de réservation"""
-        reservation.reject("Places insuffisantes")
-
-        assert reservation.status == "REJECTED"
-        assert reservation.rejection_reason == "Places insuffisantes"
-
-    def test_cancel_reservation(self, reservation):
-        """Test d'annulation de réservation"""
-        reservation.approve()
-        initial_places = reservation.trajet.places_disponibles
-
-        reservation.cancel("Changement de plans")
-        reservation.trajet.refresh_from_db()
-
-        assert reservation.status == "CANCELLED"
-        assert reservation.trajet.places_disponibles > initial_places
-
-
-# ============================================================================
-# apps/messaging/tests/test_models.py
-# ============================================================================
-
-
-@pytest.mark.django_db
-class TestMessageModel:
-    """Tests pour le modèle Message"""
-
-    def test_create_message(self, user, conducteur):
-        """Test de création de message"""
-        message = Message.objects.create(
-            sender=user,
-            receiver=conducteur,
-            text="Bonjour, je suis intéressé par votre trajet",
-        )
-
-        assert message.sender == user
-        assert message.receiver == conducteur
-        assert message.is_read is False
-
-    def test_mark_as_read(self, user, conducteur):
-        """Test de marquage comme lu"""
-        message = Message.objects.create(
-            sender=user, receiver=conducteur, text="Test message"
-        )
-
-        message.mark_as_read()
-
-        assert message.is_read is True
-        assert message.read_at is not None
-
-
-# ============================================================================
-# apps/notifications/tests/test_models.py
-# ============================================================================
-
-
-@pytest.mark.django_db
-class TestNotificationModel:
-    """Tests pour le modèle Notification"""
-
-    def test_create_notification(self, user, conducteur):
-        """Test de création de notification"""
-        notification = Notification.objects.create(
-            recipient=user,
-            sender=conducteur,
-            type="MESSAGE_RECEIVED",
-            content="Nouveau message de Test Driver",
-        )
-
-        assert notification.recipient == user
-        assert notification.is_read is False
-
-    def test_mark_as_read(self, user, conducteur):
-        """Test de marquage comme lu"""
-        notification = Notification.objects.create(
-            recipient=user,
-            sender=conducteur,
-            type="MESSAGE_RECEIVED",
-            content="Test notification",
-        )
-
-        notification.mark_as_read()
-
-        assert notification.is_read is True
-        assert notification.read_at is not None
+def jwt_tokens(user):
+    """Génère des tokens JWT pour un utilisateur"""
+    refresh = RefreshToken.for_user(user)
+    return {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
+
+
+@pytest.fixture
+def expired_token(user):
+    """Génère un token JWT expiré"""
+    from datetime import datetime, timedelta
+
+    from rest_framework_simplejwt.tokens import RefreshToken
+
+    refresh = RefreshToken.for_user(user)
+    # Modifier le temps d'expiration pour qu'il soit dans le passé
+    refresh.access_token.set_exp(lifetime=timedelta(seconds=-10))
+    return str(refresh.access_token)
