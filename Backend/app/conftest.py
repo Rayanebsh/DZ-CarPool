@@ -324,7 +324,7 @@ def jwt_tokens(user):
 @pytest.fixture
 def expired_token(user):
     """Génère un token JWT expiré"""
-    from datetime import datetime, timedelta
+    from datetime import timedelta
 
     from rest_framework_simplejwt.tokens import RefreshToken
 
