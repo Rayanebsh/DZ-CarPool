@@ -7,4 +7,5 @@ class CustomJWTAuthentication(JWTAuthentication):
     Hérite de `JWTAuthentication` de `rest_framework_simplejwt`.
     On peut étendre/override ses méthodes si nécessaire.
     """
+
     pass

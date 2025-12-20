@@ -1,156 +1,186 @@
 """
 Serializers pour la gestion des utilisateurs
 """
+
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import User, Role, Preference, UserDocument
 from .models import EmailVerification, PhoneVerification
 
+
 class RoleSerializer(serializers.ModelSerializer):
     """Serializer pour les rôles"""
-    
+
     class Meta:
         model = Role
-        fields = ['id', 'name', 'description']
+        fields = ["id", "name", "description"]
 
 
 class PreferenceSerializer(serializers.ModelSerializer):
     """Serializer pour les préférences"""
-    
+
     class Meta:
         model = Preference
-        fields = ['id', 'name', 'description']
+        fields = ["id", "name", "description"]
 
 
 class UserDocumentSerializer(serializers.ModelSerializer):
     """Serializer pour les documents utilisateurs"""
-    
+
     class Meta:
         model = UserDocument
         fields = [
-            'id', 'document_type', 'file_path', 'uploaded_at',
-            'verified', 'verified_by', 'verified_at', 'rejection_reason'
+            "id",
+            "document_type",
+            "file_path",
+            "uploaded_at",
+            "verified",
+            "verified_by",
+            "verified_at",
+            "rejection_reason",
         ]
-        read_only_fields = ['uploaded_at', 'verified', 'verified_by', 'verified_at']
+        read_only_fields = ["uploaded_at", "verified", "verified_by", "verified_at"]
 
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer pour les utilisateurs"""
-    
-    role_detail = RoleSerializer(source='role', read_only=True)
-    preferences_detail = PreferenceSerializer(source='preferences', many=True, read_only=True)
+
+    role_detail = RoleSerializer(source="role", read_only=True)
+    preferences_detail = PreferenceSerializer(
+        source="preferences", many=True, read_only=True
+    )
     documents = UserDocumentSerializer(many=True, read_only=True)
-    
+
     class Meta:
         model = User
         fields = [
-            'id', 'email', 'first_name', 'last_name', 'phone_number',
-            'phone_verified', 'profile_picture', 'bio', 'role', 'role_detail',
-            'preferences', 'preferences_detail', 'documents',
-            'trips_as_driver', 'trips_as_passenger', 'average_rating',
-            'date_joined', 'is_active'
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "phone_number",
+            "phone_verified",
+            "profile_picture",
+            "bio",
+            "role",
+            "role_detail",
+            "preferences",
+            "preferences_detail",
+            "documents",
+            "trips_as_driver",
+            "trips_as_passenger",
+            "average_rating",
+            "date_joined",
+            "is_active",
         ]
         read_only_fields = [
-            'id', 'date_joined', 'trips_as_driver', 
-            'trips_as_passenger', 'average_rating', 'is_active'
+            "id",
+            "date_joined",
+            "trips_as_driver",
+            "trips_as_passenger",
+            "average_rating",
+            "is_active",
         ]
         extra_kwargs = {
-            'email': {'required': True},
+            "email": {"required": True},
         }
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Serializer pour l'inscription d'un nouvel utilisateur"""
-    
+
     password = serializers.CharField(
         write_only=True,
         required=True,
         validators=[validate_password],
-        style={'input_type': 'password'}
+        style={"input_type": "password"},
     )
     password_confirm = serializers.CharField(
-        write_only=True,
-        required=True,
-        style={'input_type': 'password'}
+        write_only=True, required=True, style={"input_type": "password"}
     )
     role = serializers.PrimaryKeyRelatedField(
-        queryset=Role.objects.all(),
-        required=False,
-        allow_null=True
+        queryset=Role.objects.all(), required=False, allow_null=True
     )
     documents = UserDocumentSerializer(many=True, required=False, read_only=True)
-    
+
     class Meta:
         model = User
         fields = [
-            'email', 'password', 'password_confirm',
-            'first_name', 'last_name', 'phone_number',
-            'role', 'documents'
+            "email",
+            "password",
+            "password_confirm",
+            "first_name",
+            "last_name",
+            "phone_number",
+            "role",
+            "documents",
         ]
-    
+
     def validate(self, attrs):
         """Valide que les mots de passe correspondent"""
-        if attrs['password'] != attrs['password_confirm']:
-            raise serializers.ValidationError({
-                "password": "Les mots de passe ne correspondent pas."
-            })
+        if attrs["password"] != attrs["password_confirm"]:
+            raise serializers.ValidationError(
+                {"password": "Les mots de passe ne correspondent pas."}
+            )
         return attrs
-    
+
     def create(self, validated_data):
         """Crée un nouvel utilisateur"""
-        validated_data.pop('password_confirm')
-        
+        validated_data.pop("password_confirm")
+
         # Obtenir le rôle ou créer USER par défaut
-        role = validated_data.pop('role', None)
+        role = validated_data.pop("role", None)
         if role is None:
             role, _ = Role.objects.get_or_create(
-                name='USER',
-                defaults={'description': 'Utilisateur standard'}
+                name="USER", defaults={"description": "Utilisateur standard"}
             )
-        
+
         user = User.objects.create_user(
-            email=validated_data['email'],
-            password=validated_data['password'],
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', ''),
-            phone_number=validated_data.get('phone_number', ''),
-            role=role
+            email=validated_data["email"],
+            password=validated_data["password"],
+            first_name=validated_data.get("first_name", ""),
+            last_name=validated_data.get("last_name", ""),
+            phone_number=validated_data.get("phone_number", ""),
+            role=role,
         )
         return user
 
+
 class UserUpdateSerializer(serializers.ModelSerializer):
     """Serializer pour la mise à jour du profil utilisateur"""
-    
+
     class Meta:
         model = User
         fields = [
-            'first_name', 'last_name', 'phone_number',
-            'profile_picture', 'bio', 'preferences'
+            "first_name",
+            "last_name",
+            "phone_number",
+            "profile_picture",
+            "bio",
+            "preferences",
         ]
 
 
 class ChangePasswordSerializer(serializers.Serializer):
     """Serializer pour le changement de mot de passe"""
-    
+
     old_password = serializers.CharField(required=True, write_only=True)
     new_password = serializers.CharField(
-        required=True,
-        write_only=True,
-        validators=[validate_password]
+        required=True, write_only=True, validators=[validate_password]
     )
     new_password_confirm = serializers.CharField(required=True, write_only=True)
-    
+
     def validate(self, attrs):
         """Valide que les nouveaux mots de passe correspondent"""
-        if attrs['new_password'] != attrs['new_password_confirm']:
-            raise serializers.ValidationError({
-                "new_password": "Les nouveaux mots de passe ne correspondent pas."
-            })
+        if attrs["new_password"] != attrs["new_password_confirm"]:
+            raise serializers.ValidationError(
+                {"new_password": "Les nouveaux mots de passe ne correspondent pas."}
+            )
         return attrs
-    
+
     def validate_old_password(self, value):
         """Valide que l'ancien mot de passe est correct"""
-        user = self.context['request'].user
+        user = self.context["request"].user
         if not user.check_password(value):
             raise serializers.ValidationError("L'ancien mot de passe est incorrect.")
         return value
@@ -158,38 +188,56 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializer détaillé pour le profil utilisateur"""
-    
-    role_detail = RoleSerializer(source='role', read_only=True)
-    preferences_detail = PreferenceSerializer(source='preferences', many=True, read_only=True)
+
+    role_detail = RoleSerializer(source="role", read_only=True)
+    preferences_detail = PreferenceSerializer(
+        source="preferences", many=True, read_only=True
+    )
     documents = UserDocumentSerializer(many=True, read_only=True)
-    
+
     # Statistiques supplémentaires
     total_trips = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = User
         fields = [
-            'id', 'email', 'first_name', 'last_name', 'phone_number',
-            'phone_verified', 'profile_picture', 'bio', 'role', 'role_detail',
-            'preferences', 'preferences_detail', 'documents',
-            'trips_as_driver', 'trips_as_passenger', 'average_rating',
-            'total_trips', 'date_joined'
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "phone_number",
+            "phone_verified",
+            "profile_picture",
+            "bio",
+            "role",
+            "role_detail",
+            "preferences",
+            "preferences_detail",
+            "documents",
+            "trips_as_driver",
+            "trips_as_passenger",
+            "average_rating",
+            "total_trips",
+            "date_joined",
         ]
-        read_only_fields = ['id', 'email', 'date_joined']
-    
+        read_only_fields = ["id", "email", "date_joined"]
+
     def get_total_trips(self, obj):
         """Calcule le nombre total de trajets"""
         return obj.trips_as_driver + obj.trips_as_passenger
 
+
 class SendEmailVerificationSerializer(serializers.Serializer):
     """Serializer pour l'envoi du code de vérification d'email"""
+
     pass  # Utilise l'utilisateur authentifié
 
 
 class VerifyEmailSerializer(serializers.Serializer):
     """Serializer pour la vérification d'email"""
+
     code = serializers.CharField(max_length=6, min_length=6)
-    
+
     def validate_code(self, value):
         """Valide que le code contient uniquement des chiffres"""
         if not value.isdigit():
@@ -201,13 +249,15 @@ class VerifyEmailSerializer(serializers.Serializer):
 
 class SendPhoneVerificationSerializer(serializers.Serializer):
     """Serializer pour l'envoi du code de vérification de téléphone"""
+
     pass  # Utilise l'utilisateur authentifié
 
 
 class VerifyPhoneSerializer(serializers.Serializer):
     """Serializer pour la vérification de téléphone"""
+
     code = serializers.CharField(max_length=6, min_length=6)
-    
+
     def validate_code(self, value):
         """Valide que le code contient uniquement des chiffres"""
         if not value.isdigit():
@@ -219,7 +269,7 @@ class VerifyPhoneSerializer(serializers.Serializer):
 
 class ResendVerificationSerializer(serializers.Serializer):
     """Serializer pour renvoyer un code de vérification"""
+
     verification_type = serializers.ChoiceField(
-        choices=['email', 'phone'],
-        required=True
+        choices=["email", "phone"], required=True
     )

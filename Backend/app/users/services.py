@@ -2,6 +2,7 @@
 app/users/services.py - Services pour l'envoi d'emails et SMS
 Créer ce fichier dans app/users/
 """
+
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -13,15 +14,15 @@ logger = logging.getLogger(__name__)
 
 class EmailService:
     """Service pour l'envoi d'emails"""
-    
+
     @staticmethod
     def send_verification_code(user, code):
         """
         Envoie un email avec le code de vérification
         En mode dev, le code est affiché dans la console
         """
-        subject = 'Vérification de votre email - DZ-CarPool'
-        
+        subject = "Vérification de votre email - DZ-CarPool"
+
         # Message HTML
         html_message = f"""
         <html>
@@ -43,7 +44,7 @@ class EmailService:
             </body>
         </html>
         """
-        
+
         # Message texte
         text_message = f"""
         Bienvenue sur DZ-CarPool!
@@ -54,11 +55,12 @@ class EmailService:
         
         Ce code est valide pendant 30 minutes.
         """
-        
+
         try:
             # En mode développement, afficher dans la console
             if settings.DEBUG:
-                logger.info(f"""
+                logger.info(
+                    f"""
                 ════════════════════════════════════════
                 📧 EMAIL DE VÉRIFICATION
                 ════════════════════════════════════════
@@ -66,8 +68,9 @@ class EmailService:
                 Nom: {user.first_name} {user.last_name}
                 Code: {code}
                 ════════════════════════════════════════
-                """)
-            
+                """
+                )
+
             # Envoyer l'email
             send_mail(
                 subject=subject,
@@ -85,19 +88,22 @@ class EmailService:
 
 class SMSService:
     """Service pour l'envoi de SMS (simulation)"""
-    
+
     @staticmethod
     def send_verification_code(user, code):
         """
         Envoie un SMS avec le code de vérification
         En mode dev, le code est affiché dans la console
         """
-        message = f"DZ-CarPool: Votre code de vérification est {code}. Valide 30 minutes."
-        
+        message = (
+            f"DZ-CarPool: Votre code de vérification est {code}. Valide 30 minutes."
+        )
+
         try:
             # En mode développement, afficher dans la console
             if settings.DEBUG:
-                logger.info(f"""
+                logger.info(
+                    f"""
                 ════════════════════════════════════════
                 📱 SMS DE VÉRIFICATION
                 ════════════════════════════════════════
@@ -106,11 +112,12 @@ class SMSService:
                 Code: {code}
                 Message: {message}
                 ════════════════════════════════════════
-                """)
-            
+                """
+                )
+
             # TODO: Intégration future avec un provider SMS (Twilio, etc.)
             # Pour l'instant, on simule l'envoi
-            
+
             return True
         except Exception as e:
             logger.error(f"Erreur envoi SMS: {e}")

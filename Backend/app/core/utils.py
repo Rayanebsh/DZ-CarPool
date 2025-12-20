@@ -10,7 +10,7 @@ def send_notification_email(user, subject, template_name, context):
     """
     html_message = render_to_string(template_name, context)
     plain_message = strip_tags(html_message)
-    
+
     send_mail(
         subject=subject,
         message=plain_message,
@@ -42,6 +42,7 @@ def calculate_trip_duration(distance, average_speed=80):
     Calcule la durée estimée d'un trajet
     """
     from datetime import timedelta
+
     hours = distance / average_speed
     return timedelta(hours=hours)
 
@@ -52,4 +53,5 @@ def generate_unique_code(length=8):
     """
     import random
     import string
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+
+    return "".join(random.choices(string.ascii_uppercase + string.digits, k=length))

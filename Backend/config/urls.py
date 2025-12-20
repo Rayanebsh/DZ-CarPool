@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
-    SpectacularRedocView
+    SpectacularRedocView,
 )
 
 admin.site.site_header = "DZ-CarPool Administration"
@@ -15,33 +15,34 @@ admin.site.index_title = "Bienvenue sur le panneau d'administration DZ-CarPool"
 
 urlpatterns = [
     # Admin
-    path('admin/', admin.site.urls),
-    
+    path("admin/", admin.site.urls),
     # API Documentation
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "api/docs/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+    path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     # Health check endpoint
-    path('health/', lambda request: JsonResponse({'status': 'healthy'})),
-    
+    path("health/", lambda request: JsonResponse({"status": "healthy"})),
     # ✅ CHANGÉ : Ajouter le préfixe v1/
-    path('api/v1/users/', include('app.users.urls')),  # ← Enlevé namespace
-    path('api/v1/trajets/', include('app.trajets.urls')),
-    path('api/v1/reservations/', include('app.reservations.urls')),
-    path('api/v1/messaging/', include('app.messaging.urls')),
-    path('api/v1/notifications/', include('app.notifications.urls')),
-
+    path("api/v1/users/", include("app.users.urls")),  # ← Enlevé namespace
+    path("api/v1/trajets/", include("app.trajets.urls")),
+    path("api/v1/reservations/", include("app.reservations.urls")),
+    path("api/v1/messaging/", include("app.messaging.urls")),
+    path("api/v1/notifications/", include("app.notifications.urls")),
     # Allauth URLs (pour Google Auth)
-    path('accounts/', include('allauth.urls')),
+    path("accounts/", include("allauth.urls")),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    
-    if 'debug_toolbar' in settings.INSTALLED_APPS:
+
+    if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
+
         urlpatterns += [
-            path('__debug__/', include(debug_toolbar.urls)),
+            path("__debug__/", include(debug_toolbar.urls)),
         ]
