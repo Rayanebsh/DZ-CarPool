@@ -36,8 +36,7 @@ class EmailService:
             f"<p style='color: #666; font-size: 12px;'>"
             f"Si vous n'avez pas créé de compte, ignorez cet email."
             f"</p></div></body></html>"
-    )
-
+        )
 
         # Message texte
         text_message = f"""

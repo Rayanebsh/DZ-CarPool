@@ -19,7 +19,6 @@ def cache_response(timeout=300, key_prefix="view"):
                 f"{request.user.id if request.user.is_authenticated else 'anon'}"
             )
 
-
             # Vérifier le cache
             cached_response = cache.get(cache_key)
             if cached_response is not None:
@@ -54,12 +53,7 @@ def require_verified_account(func):
 
         # Vérifier si au moins le téléphone ou un document est vérifié
         has_verified_phone = request.user.phone_verified
-        has_verified_document = (
-            request.user.documents
-            .filter(verified=True)
-            .exists()
-        )
-
+        has_verified_document = request.user.documents.filter(verified=True).exists()
 
         if not (has_verified_phone or has_verified_document):
             return Response(

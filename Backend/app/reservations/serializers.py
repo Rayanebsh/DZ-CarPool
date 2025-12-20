@@ -111,10 +111,10 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
             recipient=reservation.trajet.conducteur,
             sender=request.user,
             type="RESERVATION_REQUEST",
-            content = (
+            content=(
                 f"{request.user.full_name} demande à réserver "
                 f"{validated_data['nbr_places']} place(s)"
-            ),    
+            ),
             related_model="Reservation",
             related_id=reservation.id,
         )

@@ -13,6 +13,7 @@ from utils.pricing import (
 )
 from app.messaging.models import Message
 from app.notifications.models import Notification
+
 User = get_user_model()
 
 
@@ -98,7 +99,6 @@ def fuel_price():
 # ============================================================================
 
 
-
 User = get_user_model()
 
 
@@ -136,8 +136,6 @@ class TestUserModel:
 # ============================================================================
 # apps/users/tests/test_views.py
 # ============================================================================
-
-
 
 
 @pytest.mark.django_db
@@ -213,8 +211,6 @@ class TestUserLogin:
 # ============================================================================
 
 
-
-
 @pytest.mark.django_db
 class TestTrajetModel:
     """Tests pour le modèle Trajet"""
@@ -278,8 +274,6 @@ class TestTrajetModel:
 # ============================================================================
 # apps/trajets/tests/test_pricing.py
 # ============================================================================
-
-
 
 
 @pytest.mark.django_db
@@ -382,8 +376,6 @@ class TestReservationModel:
 # ============================================================================
 
 
-
-
 @pytest.mark.django_db
 class TestMessageModel:
     """Tests pour le modèle Message"""
@@ -415,8 +407,6 @@ class TestMessageModel:
 # ============================================================================
 # apps/notifications/tests/test_models.py
 # ============================================================================
-
-
 
 
 @pytest.mark.django_db

@@ -28,6 +28,8 @@ from .serializers import (
 )
 from .models import EmailVerification, PhoneVerification
 from .services import EmailService, SMSService
+
+
 class UserViewSet(viewsets.ModelViewSet):
     """
     ViewSet pour la gestion des utilisateurs
