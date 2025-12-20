@@ -13,7 +13,12 @@ def cache_response(timeout=300, key_prefix="view"):
         @wraps(func)
         def wrapper(self, request, *args, **kwargs):
             # Construire la clé de cache
-            cache_key = f"{key_prefix}:{request.path}:{request.user.id if request.user.is_authenticated else 'anon'}"
+            cache_key = (
+                f"{key_prefix}:"
+                f"{request.path}:"
+                f"{request.user.id if request.user.is_authenticated else 'anon'}"
+            )
+
 
             # Vérifier le cache
             cached_response = cache.get(cache_key)
@@ -49,7 +54,12 @@ def require_verified_account(func):
 
         # Vérifier si au moins le téléphone ou un document est vérifié
         has_verified_phone = request.user.phone_verified
-        has_verified_document = request.user.documents.filter(verified=True).exists()
+        has_verified_document = (
+            request.user.documents
+            .filter(verified=True)
+            .exists()
+        )
+
 
         if not (has_verified_phone or has_verified_document):
             return Response(

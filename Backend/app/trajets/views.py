@@ -246,8 +246,6 @@ class TrajetViewSet(viewsets.ModelViewSet):
                 {"error": "Accès non autorisé"}, status=status.HTTP_403_FORBIDDEN
             )
 
-        from app.reservations.models import Reservation
-
         reservations = trajet.reservations.all()
 
         stats = {

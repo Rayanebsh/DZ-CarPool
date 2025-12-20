@@ -4,16 +4,16 @@ import django
 from decimal import Decimal
 from datetime import date, timedelta
 import random
+from django.contrib.auth import get_user_model
+from app.users.models import Role, Preference
+from app.trajets.models import Trajet, FuelPrice
+from app.reservations.models import Reservation
 
 # Configuration Django
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
-from django.contrib.auth import get_user_model
-from app.users.models import Role, Preference
-from app.trajets.models import Trajet, FuelPrice
-from app.reservations.models import Reservation
 
 User = get_user_model()
 
@@ -41,7 +41,7 @@ def create_fixtures():
             email=f"user{i}@dzcarpool.com",
             defaults={
                 "first_name": f"User{i}",
-                "last_name": f"Test",
+                "last_name": f"Test{i}",
                 "role": user_role,
             },
         )

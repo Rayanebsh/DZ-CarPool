@@ -5,7 +5,6 @@ Serializers pour la gestion des utilisateurs
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import User, Role, Preference, UserDocument
-from .models import EmailVerification, PhoneVerification
 
 
 class RoleSerializer(serializers.ModelSerializer):

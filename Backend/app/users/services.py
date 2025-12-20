@@ -5,8 +5,6 @@ Créer ce fichier dans app/users/
 
 from django.core.mail import send_mail
 from django.conf import settings
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 import logging
 
 logger = logging.getLogger(__name__)
@@ -24,26 +22,22 @@ class EmailService:
         subject = "Vérification de votre email - DZ-CarPool"
 
         # Message HTML
-        html_message = f"""
-        <html>
-            <body style="font-family: Arial, sans-serif; padding: 20px;">
-                <div style="max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #FF5722;">Bienvenue sur DZ-CarPool!</h2>
-                    <p>Bonjour {user.first_name or user.email},</p>
-                    <p>Merci de vous être inscrit sur DZ-CarPool. Voici votre code de vérification:</p>
-                    <div style="background-color: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0;">
-                        <h1 style="color: #FF5722; margin: 0; font-size: 36px; letter-spacing: 10px;">
-                            {code}
-                        </h1>
-                    </div>
-                    <p>Ce code est valide pendant 30 minutes.</p>
-                    <p style="color: #666; font-size: 12px;">
-                        Si vous n'avez pas créé de compte, ignorez cet email.
-                    </p>
-                </div>
-            </body>
-        </html>
-        """
+        html_message = (
+            f"<html>"
+            f"<body style='font-family: Arial, sans-serif; padding: 20px;'>"
+            f"<div style='max-width: 600px; margin: 0 auto;'>"
+            f"<h2 style='color: #FF5722;'>Bienvenue sur DZ-CarPool!</h2>"
+            f"<p>Bonjour {user.first_name or user.email},</p>"
+            f"<p>Merci de vous être inscrit sur DZ-CarPool. Voici votre code de vérification:</p>"
+            f"<div style='background-color: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0;'>"
+            f"<h1 style='color: #FF5722; margin: 0; font-size: 36px; letter-spacing: 10px;'>"
+            f"{code}</h1></div>"
+            f"<p>Ce code est valide pendant 30 minutes.</p>"
+            f"<p style='color: #666; font-size: 12px;'>"
+            f"Si vous n'avez pas créé de compte, ignorez cet email."
+            f"</p></div></body></html>"
+    )
+
 
         # Message texte
         text_message = f"""
@@ -55,9 +49,7 @@ class EmailService:
         
         Ce code est valide pendant 30 minutes.
         """
-
         try:
-            # En mode développement, afficher dans la console
             if settings.DEBUG:
                 logger.info(
                     f"""

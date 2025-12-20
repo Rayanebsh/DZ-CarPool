@@ -25,14 +25,9 @@ from .serializers import (
     UserDocumentSerializer,
     VerifyEmailSerializer,
     VerifyPhoneSerializer,
-    ResendVerificationSerializer,
 )
 from .models import EmailVerification, PhoneVerification
 from .services import EmailService, SMSService
-
-User = get_user_model()
-
-
 class UserViewSet(viewsets.ModelViewSet):
     """
     ViewSet pour la gestion des utilisateurs

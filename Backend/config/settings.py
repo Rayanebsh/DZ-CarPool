@@ -5,7 +5,6 @@ Configuration Django pour le projet DZ-CarPool
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
-import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

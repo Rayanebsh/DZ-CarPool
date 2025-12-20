@@ -1,15 +1,18 @@
-"""
-conftest.py - Fixtures globales pour les tests
-"""
-
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from decimal import Decimal
-from app.users.models import Role, Preference
+from app.users.models import Role
 from app.trajets.models import Trajet, FuelPrice
 from app.reservations.models import Reservation
-
+from rest_framework import status
+from utils.pricing import (
+    calculate_fuel_cost,
+    calculate_suggested_price,
+    calculate_platform_commission,
+)
+from app.messaging.models import Message
+from app.notifications.models import Notification
 User = get_user_model()
 
 
@@ -94,8 +97,7 @@ def fuel_price():
 # apps/users/tests/test_models.py
 # ============================================================================
 
-import pytest
-from django.contrib.auth import get_user_model
+
 
 User = get_user_model()
 
@@ -135,8 +137,7 @@ class TestUserModel:
 # apps/users/tests/test_views.py
 # ============================================================================
 
-import pytest
-from rest_framework import status
+
 
 
 @pytest.mark.django_db
@@ -211,9 +212,7 @@ class TestUserLogin:
 # apps/trajets/tests/test_models.py
 # ============================================================================
 
-import pytest
-from decimal import Decimal
-from app.trajets.models import Trajet
+
 
 
 @pytest.mark.django_db
@@ -280,13 +279,7 @@ class TestTrajetModel:
 # apps/trajets/tests/test_pricing.py
 # ============================================================================
 
-import pytest
-from decimal import Decimal
-from utils.pricing import (
-    calculate_fuel_cost,
-    calculate_suggested_price,
-    calculate_platform_commission,
-)
+
 
 
 @pytest.mark.django_db
@@ -340,9 +333,6 @@ class TestPricing:
 # apps/reservations/tests/test_models.py
 # ============================================================================
 
-import pytest
-from app.reservations.models import Reservation
-
 
 @pytest.mark.django_db
 class TestReservationModel:
@@ -391,8 +381,7 @@ class TestReservationModel:
 # apps/messaging/tests/test_models.py
 # ============================================================================
 
-import pytest
-from app.messaging.models import Message
+
 
 
 @pytest.mark.django_db
@@ -427,8 +416,7 @@ class TestMessageModel:
 # apps/notifications/tests/test_models.py
 # ============================================================================
 
-import pytest
-from app.notifications.models import Notification
+
 
 
 @pytest.mark.django_db

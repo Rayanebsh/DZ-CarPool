@@ -48,7 +48,6 @@ class ReservationSerializer(serializers.ModelSerializer):
 
         # Peut noter si réservation confirmée et terminée
         from django.utils import timezone
-        from datetime import timedelta
 
         is_completed = (
             obj.status == "CONFIRMED" and obj.trajet.date < timezone.now().date()
@@ -112,7 +111,10 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
             recipient=reservation.trajet.conducteur,
             sender=request.user,
             type="RESERVATION_REQUEST",
-            content=f"{request.user.full_name} demande à réserver {validated_data['nbr_places']} place(s)",
+            content = (
+                f"{request.user.full_name} demande à réserver "
+                f"{validated_data['nbr_places']} place(s)"
+            ),    
             related_model="Reservation",
             related_id=reservation.id,
         )

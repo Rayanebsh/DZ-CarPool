@@ -3,7 +3,6 @@ Serializers pour la gestion des trajets
 """
 
 from rest_framework import serializers
-from django.conf import settings
 from decimal import Decimal
 from .models import Trajet, TrajetEtape, FuelPrice
 from app.users.serializers import UserSerializer
