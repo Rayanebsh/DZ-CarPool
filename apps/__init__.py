@@ -1,2 +1,3 @@
 from pathlib import Path
-__path__.append(str(Path(__file__).resolve().parent / 'Backend' / 'app'))
+
+__path__.append(str(Path(__file__).resolve().parent / "Backend" / "app"))
