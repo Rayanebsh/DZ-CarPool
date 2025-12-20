@@ -2,8 +2,9 @@
 # apps/trajets/tests/test_models.py
 # ============================================================================
 
-import pytest
 from decimal import Decimal
+
+import pytest
 from app.trajets.models import Trajet
 
 

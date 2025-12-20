@@ -1,13 +1,14 @@
 import os
-import sys
-import django
-from decimal import Decimal
-from datetime import date, timedelta
 import random
-from django.contrib.auth import get_user_model
-from app.users.models import Role, Preference
-from app.trajets.models import Trajet, FuelPrice
+import sys
+from datetime import date, timedelta
+from decimal import Decimal
+
+import django
 from app.reservations.models import Reservation
+from app.trajets.models import FuelPrice, Trajet
+from app.users.models import Preference, Role
+from django.contrib.auth import get_user_model
 
 # Configuration Django
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

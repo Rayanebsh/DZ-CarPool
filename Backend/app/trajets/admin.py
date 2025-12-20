@@ -2,8 +2,8 @@
 # apps/trajets/admin.py - Administration des trajets
 # ============================================================================
 
+from app.trajets.models import FuelPrice, Trajet, TrajetEtape
 from django.contrib import admin
-from app.trajets.models import Trajet, TrajetEtape, FuelPrice
 from django.utils.html import format_html
 
 

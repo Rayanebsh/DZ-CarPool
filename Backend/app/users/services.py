@@ -3,9 +3,10 @@ app/users/services.py - Services pour l'envoi d'emails et SMS
 Créer ce fichier dans app/users/
 """
 
-from django.core.mail import send_mail
-from django.conf import settings
 import logging
+
+from django.conf import settings
+from django.core.mail import send_mail
 
 logger = logging.getLogger(__name__)
 

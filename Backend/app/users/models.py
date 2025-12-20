@@ -2,17 +2,18 @@
 Modèles pour la gestion des utilisateurs du projet DZ-CarPool
 """
 
+import random
+import string
+from datetime import timedelta
+
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
-from django.db import models
 from django.core.validators import FileExtensionValidator
+from django.db import models
 from django.utils import timezone
-from datetime import timedelta
-import random
-import string
 
 
 class Role(models.Model):
@@ -132,8 +133,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def update_statistics(self):
         """Met à jour les statistiques de l'utilisateur"""
-        from app.trajets.models import Trajet
         from app.reservations.models import Reservation
+        from app.trajets.models import Trajet
 
         self.trips_as_driver = Trajet.objects.filter(conducteur=self).count()
 

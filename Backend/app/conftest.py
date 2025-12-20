@@ -1,18 +1,19 @@
-import pytest
-from django.contrib.auth import get_user_model
-from rest_framework.test import APIClient
 from decimal import Decimal
-from app.users.models import Role
-from app.trajets.models import Trajet, FuelPrice
-from app.reservations.models import Reservation
-from rest_framework import status
-from utils.pricing import (
-    calculate_fuel_cost,
-    calculate_suggested_price,
-    calculate_platform_commission,
-)
+
+import pytest
 from app.messaging.models import Message
 from app.notifications.models import Notification
+from app.reservations.models import Reservation
+from app.trajets.models import FuelPrice, Trajet
+from app.users.models import Role
+from django.contrib.auth import get_user_model
+from rest_framework import status
+from rest_framework.test import APIClient
+from utils.pricing import (
+    calculate_fuel_cost,
+    calculate_platform_commission,
+    calculate_suggested_price,
+)
 
 User = get_user_model()
 

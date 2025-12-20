@@ -3,29 +3,28 @@ Views pour la gestion des utilisateurs
 AVEC GOOGLE OAUTH - VERSION CORRIGÉE
 """
 
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.utils import timezone
-from allauth.socialaccount.models import SocialAccount
 import requests
+from allauth.socialaccount.models import SocialAccount
+from django.utils import timezone
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import User, Role, Preference
+from .models import EmailVerification, PhoneVerification, Preference, Role, User
 from .serializers import (
-    UserSerializer,
-    UserRegistrationSerializer,
-    UserUpdateSerializer,
     ChangePasswordSerializer,
-    UserProfileSerializer,
-    RoleSerializer,
     PreferenceSerializer,
+    RoleSerializer,
     UserDocumentSerializer,
+    UserProfileSerializer,
+    UserRegistrationSerializer,
+    UserSerializer,
+    UserUpdateSerializer,
     VerifyEmailSerializer,
     VerifyPhoneSerializer,
 )
-from .models import EmailVerification, PhoneVerification
 from .services import EmailService, SMSService
 
 

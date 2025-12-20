@@ -1,9 +1,10 @@
+from datetime import timedelta
+
+from app.notifications.models import Notification
+from app.trajets.models import Trajet
+from app.users.models import RefreshToken
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from datetime import timedelta
-from app.trajets.models import Trajet
-from app.notifications.models import Notification
-from app.users.models import RefreshToken
 
 
 class Command(BaseCommand):

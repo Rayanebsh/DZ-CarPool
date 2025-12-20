@@ -2,10 +2,11 @@
 app/users/urls.py - URLs pour les utilisateurs
 """
 
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import UserViewSet, RoleViewSet, PreferenceViewSet
+
+from .views import PreferenceViewSet, RoleViewSet, UserViewSet
 
 router = DefaultRouter()
 router.register(r"", UserViewSet, basename="user")

@@ -5,7 +5,8 @@ apps/users/admin.py - Administration des utilisateurs
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
-from .models import User, Role, Preference, UserDocument, RefreshToken
+
+from .models import Preference, RefreshToken, Role, User, UserDocument
 
 
 @admin.register(User)

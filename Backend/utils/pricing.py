@@ -2,10 +2,11 @@
 Utilitaires pour le calcul des prix et de la tarification
 """
 
-from decimal import Decimal
-from django.conf import settings
 import json
 import os
+from decimal import Decimal
+
+from django.conf import settings
 
 
 def calculate_fuel_cost(distance, fuel_price_per_liter=None, consumption=None):

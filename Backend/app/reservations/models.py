@@ -2,9 +2,9 @@
 Modèles pour la gestion des réservations du projet DZ-CarPool
 """
 
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 from django.utils import timezone
 
 

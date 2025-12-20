@@ -1,25 +1,26 @@
-from rest_framework import viewsets, status, permissions, filters
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
+from app.core.filters import TrajetFilter
 from django.db.models import Q
 from django.utils import timezone
-from .models import Trajet, FuelPrice
-from .serializers import (
-    TrajetListSerializer,
-    TrajetDetailSerializer,
-    TrajetCreateSerializer,
-    TrajetUpdateSerializer,
-    TrajetSearchSerializer,
-    FuelPriceSerializer,
-)
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+from .models import FuelPrice, Trajet
 from .permissions import (
-    IsDriverOrReadOnly,
-    CanModifyTrajet,
     CanCancelTrajet,
+    CanModifyTrajet,
     CanViewTrajetReservations,
+    IsDriverOrReadOnly,
 )
-from app.core.filters import TrajetFilter
+from .serializers import (
+    FuelPriceSerializer,
+    TrajetCreateSerializer,
+    TrajetDetailSerializer,
+    TrajetListSerializer,
+    TrajetSearchSerializer,
+    TrajetUpdateSerializer,
+)
 
 
 class TrajetViewSet(viewsets.ModelViewSet):

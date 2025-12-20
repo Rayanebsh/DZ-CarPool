@@ -2,12 +2,13 @@
 # apps/trajets/tests/test_pricing.py
 # ============================================================================
 
-import pytest
 from decimal import Decimal
+
+import pytest
 from utils.pricing import (
     calculate_fuel_cost,
-    calculate_suggested_price,
     calculate_platform_commission,
+    calculate_suggested_price,
 )
 
 

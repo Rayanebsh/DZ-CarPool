@@ -1,14 +1,15 @@
-from rest_framework import viewsets, status, permissions
+from django.db.models import Q
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q
-from .models import Reservation, Rating
-from .serializers import (
-    ReservationSerializer,
-    ReservationCreateSerializer,
-    RatingSerializer,
-)
+
+from .models import Rating, Reservation
 from .permissions import IsReservationOwnerOrDriver
+from .serializers import (
+    RatingSerializer,
+    ReservationCreateSerializer,
+    ReservationSerializer,
+)
 
 
 class ReservationViewSet(viewsets.ModelViewSet):

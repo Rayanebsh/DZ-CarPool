@@ -1,7 +1,8 @@
-from rest_framework import serializers
-from .models import Reservation, Rating
-from app.users.serializers import UserSerializer
 from app.trajets.serializers import TrajetListSerializer
+from app.users.serializers import UserSerializer
+from rest_framework import serializers
+
+from .models import Rating, Reservation
 
 
 class ReservationSerializer(serializers.ModelSerializer):

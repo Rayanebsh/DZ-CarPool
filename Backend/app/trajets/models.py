@@ -2,10 +2,11 @@
 Modèles pour la gestion des trajets du projet DZ-CarPool
 """
 
-from django.db import models
-from django.core.validators import MinValueValidator
-from django.conf import settings
 from decimal import Decimal
+
+from django.conf import settings
+from django.core.validators import MinValueValidator
+from django.db import models
 
 
 class Trajet(models.Model):
