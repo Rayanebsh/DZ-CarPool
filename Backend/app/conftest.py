@@ -438,27 +438,3 @@ class TestNotificationModel:
 
         assert notification.is_read is True
         assert notification.read_at is not None
-
-
-# ============================================================================
-# pytest.ini - Configuration pytest
-# ============================================================================
-
-"""
-[pytest]
-DJANGO_SETTINGS_MODULE = config.settings
-python_files = tests.py test_*.py *_tests.py
-python_classes = Test*
-python_functions = test_*
-addopts = 
-    --strict-markers
-    --verbose
-    --tb=short
-    --cov=apps
-    --cov-report=html
-    --cov-report=term-missing
-markers =
-    slow: marks tests as slow
-    integration: marks tests as integration tests
-    unit: marks tests as unit tests
-"""

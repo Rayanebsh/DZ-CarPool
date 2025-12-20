@@ -21,7 +21,6 @@ class EmailService:
         """
         subject = "Vérification de votre email - DZ-CarPool"
 
-        # Message HTML
         html_message = (
             f"<html>"
             f"<body style='font-family: Arial, sans-serif; padding: 20px;'>"
@@ -29,7 +28,8 @@ class EmailService:
             f"<h2 style='color: #FF5722;'>Bienvenue sur DZ-CarPool!</h2>"
             f"<p>Bonjour {user.first_name or user.email},</p>"
             f"<p>Merci de vous être inscrit sur DZ-CarPool. Voici votre code de vérification:</p>"
-            f"<div style='background-color: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0;'>"
+            f"<div style='background-color: #f5f5f5; padding: 20px; "
+            f"text-align: center; margin: 20px 0;'>"
             f"<h1 style='color: #FF5722; margin: 0; font-size: 36px; letter-spacing: 10px;'>"
             f"{code}</h1></div>"
             f"<p>Ce code est valide pendant 30 minutes.</p>"
@@ -41,11 +41,8 @@ class EmailService:
         # Message texte
         text_message = f"""
         Bienvenue sur DZ-CarPool!
-        
         Bonjour {user.first_name or user.email},
-        
         Voici votre code de vérification: {code}
-        
         Ce code est valide pendant 30 minutes.
         """
         try:

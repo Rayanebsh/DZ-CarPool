@@ -58,7 +58,10 @@ def require_verified_account(func):
         if not (has_verified_phone or has_verified_document):
             return Response(
                 {
-                    "error": "Compte non vérifié. Veuillez vérifier votre téléphone ou soumettre un document."
+                    "error": (
+                        "Compte non vérifié. "
+                        "Veuillez vérifier votre téléphone ou soumettre un document."
+                    ),
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )
