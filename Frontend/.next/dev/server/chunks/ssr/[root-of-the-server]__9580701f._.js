@@ -583,7 +583,7 @@ module.exports = mod;
 "[project]/Desktop/Projet_GL/covoiturage/Frontend/contexts/auth-context.tsx [app-ssr] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
-// contexts/auth-context.tsx
+// contexts/auth-context.tsx - VERSION MISE À JOUR
 __turbopack_context__.s([
     "AuthProvider",
     ()=>AuthProvider,
@@ -604,7 +604,6 @@ function AuthProvider({ children }) {
     const [user, setUser] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
-    // Charger l'utilisateur au démarrage
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         const loadUser = async ()=>{
             try {
@@ -613,7 +612,6 @@ function AuthProvider({ children }) {
                     if (storedUser) {
                         setUser(storedUser);
                     } else {
-                        // Récupérer depuis l'API si pas en local
                         const currentUser = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$services$2f$auth$2e$service$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].getCurrentUser();
                         setUser(currentUser);
                     }
@@ -631,7 +629,7 @@ function AuthProvider({ children }) {
         try {
             const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$services$2f$auth$2e$service$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].login(data);
             setUser(response.user);
-            router.push('/dashboard'); // Redirection après login
+            router.push('/#hero');
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Erreur de connexion');
         }
@@ -640,7 +638,8 @@ function AuthProvider({ children }) {
         try {
             const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$services$2f$auth$2e$service$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].register(data);
             setUser(response.user);
-            router.push('/dashboard'); // Redirection après inscription
+            // ⬇️ REDIRECTION VERS LA PAGE DE VÉRIFICATION
+            router.push('/verify');
         } catch (error) {
             const errorMsg = error.response?.data?.error || error.response?.data?.email?.[0] || 'Erreur d\'inscription';
             throw new Error(errorMsg);
@@ -651,6 +650,10 @@ function AuthProvider({ children }) {
         setUser(null);
         router.push('/login');
     };
+    const updateUser = (updatedUser)=>{
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(AuthContext.Provider, {
         value: {
             user,
@@ -658,12 +661,13 @@ function AuthProvider({ children }) {
             login,
             register,
             logout,
-            isAuthenticated: !!user
+            isAuthenticated: !!user,
+            updateUser
         },
         children: children
     }, void 0, false, {
         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/contexts/auth-context.tsx",
-        lineNumber: 79,
+        lineNumber: 84,
         columnNumber: 5
     }, this);
 }

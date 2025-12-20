@@ -9,7 +9,6 @@ from drf_spectacular.views import (
     SpectacularRedocView
 )
 
-# Personnalisation de l'admin
 admin.site.site_header = "DZ-CarPool Administration"
 admin.site.site_title = "DZ-CarPool Admin"
 admin.site.index_title = "Bienvenue sur le panneau d'administration DZ-CarPool"
@@ -26,20 +25,21 @@ urlpatterns = [
     # Health check endpoint
     path('health/', lambda request: JsonResponse({'status': 'healthy'})),
     
-    # API Endpoints v1
-    path('api/v1/users/', include('app.users.urls', namespace='users')),
-    path('api/v1/trajets/', include('app.trajets.urls', namespace='trajets')),
-    path('api/v1/reservations/', include('app.reservations.urls', namespace='reservations')),
-    path('api/v1/messaging/', include('app.messaging.urls', namespace='messaging')),
-    path('api/v1/notifications/', include('app.notifications.urls', namespace='notifications')),
+    # ✅ CHANGÉ : Ajouter le préfixe v1/
+    path('api/v1/users/', include('app.users.urls')),  # ← Enlevé namespace
+    path('api/v1/trajets/', include('app.trajets.urls')),
+    path('api/v1/reservations/', include('app.reservations.urls')),
+    path('api/v1/messaging/', include('app.messaging.urls')),
+    path('api/v1/notifications/', include('app.notifications.urls')),
+
+    # Allauth URLs (pour Google Auth)
+    path('accounts/', include('allauth.urls')),
 ]
 
-# Servir les fichiers média et statiques en développement
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     
-    # Debug toolbar
     if 'debug_toolbar' in settings.INSTALLED_APPS:
         import debug_toolbar
         urlpatterns += [

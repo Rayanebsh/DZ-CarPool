@@ -4,6 +4,7 @@ Configuration Django pour le projet DZ-CarPool
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,17 +21,24 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # Requis pour allauth
     
     # Third party apps
     'rest_framework',
     'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',  # Pour blacklist des tokens
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django_filters',
     'drf_spectacular',
     
+    # Allauth pour social authentication
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',  # Provider Google
+    
     # Local apps
-    'app.core.apps.CoreConfig',  # Application core avec signaux
+    'app.core.apps.CoreConfig',
     'app.users',
     'app.trajets',
     'app.reservations',
@@ -40,24 +48,31 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # ✅ ICI ET PAS AILLEURS
+
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
     'app.core.middleware.RequestLoggingMiddleware',
     'app.core.middleware.UserActivityMiddleware',
     'app.core.middleware.RateLimitMiddleware',
 ]
+
 
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -148,7 +163,6 @@ REST_FRAMEWORK = {
         'sustained': '1000/day',
         'anon_burst': '20/min',
     },
-    # Format de date/heure
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',
     'DATE_FORMAT': '%Y-%m-%d',
     'TIME_FORMAT': '%H:%M:%S',
@@ -181,16 +195,42 @@ SIMPLE_JWT = {
     'TOKEN_TYPE_CLAIM': 'token_type',
     
     'JTI_CLAIM': 'jti',
-    
 }
 
 # CORS Settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+if DEBUG:
+    # Mode développement - Permissif
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_CREDENTIALS = True
+else:
+    # Mode production - Stricte
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
 ]
 
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
 
 # DRF Spectacular Settings
 SPECTACULAR_SETTINGS = {
@@ -246,6 +286,8 @@ LOGGING = {
         },
     },
 }
+
+# Cache Configuration
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -261,18 +303,38 @@ CACHES = {
 # Cache pour les sessions
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
-# Email Settings
-EMAIL_BACKEND = config(
-    'EMAIL_BACKEND',
-    default='django.core.mail.backends.console.EmailBackend'  # Console en dev
-)
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@dzcarpool.com')
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# ============================================
+# EMAIL CONFIGURATION
+# ============================================
+DJANGO_ENV = config('DJANGO_ENV', default='development')
+
+if DJANGO_ENV == 'production':
+    # MODE PRODUCTION - Envoi SMTP réel
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+    EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@dzcarpool.com')
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
+    
+    print("="*60)
+    print("✅ MODE PRODUCTION : Envoi d'emails SMTP activé")
+    print(f"📧 Serveur SMTP : {EMAIL_HOST}:{EMAIL_PORT}")
+    print(f"👤 Utilisateur : {EMAIL_HOST_USER}")
+    print("="*60)
+else:
+    # MODE DÉVELOPPEMENT - Console uniquement
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'noreply@dzcarpool.com'
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
+    
+    print("="*60)
+    print("🔧 MODE DÉVELOPPEMENT : Emails affichés dans la console")
+    print("💡 Pour envoyer de vrais emails, définissez DJANGO_ENV=production")
+    print("="*60)
 
 # Templates d'emails
 EMAIL_TEMPLATES = {
@@ -281,3 +343,53 @@ EMAIL_TEMPLATES = {
     'trajet_cancelled': 'emails/trajet_cancelled.html',
     'password_reset': 'emails/password_reset.html',
 }
+
+# ============================================
+# ALLAUTH CONFIGURATION - GOOGLE AUTH
+# ============================================
+SITE_ID = 1
+
+# Backends d'authentification
+AUTHENTICATION_BACKENDS = [
+    # Backend Django par défaut (email/password)
+    'django.contrib.auth.backends.ModelBackend',
+    # Backend allauth (pour Google, Facebook, etc.)
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Configuration allauth
+AUTH_USER_MODEL = 'users.User'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_UNIQUE_EMAIL = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+ACCOUNT_LOGIN_METHODS = {'email'}  # Remplace ACCOUNT_AUTHENTICATION_METHOD
+
+ACCOUNT_SIGNUP_FIELDS = [
+    'email*',      # * = required
+    'password1*', 
+    'password2*',
+]
+# Configuration Google OAuth
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'APP': {
+            'client_id': config('GOOGLE_OAUTH_CLIENT_ID', default=''),
+            'secret': config('GOOGLE_OAUTH_CLIENT_SECRET', default=''),
+            'key': ''
+        }
+    }
+}
+
+# Redirection après login social
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'

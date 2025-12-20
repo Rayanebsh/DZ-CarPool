@@ -4,7 +4,11 @@ Modèles pour la gestion des utilisateurs du projet DZ-CarPool
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.core.validators import FileExtensionValidator
-
+from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+import random
+import string
 
 class Role(models.Model):
     """Modèle pour les rôles utilisateurs"""
@@ -69,6 +73,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=100, blank=True)
     phone_number = models.CharField(max_length=20, blank=True)
     phone_verified = models.BooleanField(default=False)
+    email_verified = models.BooleanField(default=False)
+    email_verified_at = models.DateTimeField(null=True, blank=True)
+    phone_verified_at = models.DateTimeField(null=True, blank=True)
     
     profile_picture = models.ImageField(
         upload_to='profiles/',
@@ -222,3 +229,90 @@ class RefreshToken(models.Model):
         """Vérifie si le token est toujours valide"""
         from django.utils import timezone
         return not self.revoked and self.expires_at > timezone.now()
+    
+class EmailVerification(models.Model):
+    """Modèle pour la vérification d'email"""
+    
+    user = models.ForeignKey(
+        'User',
+        on_delete=models.CASCADE,
+        related_name='email_verifications'
+    )
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_verified = models.BooleanField(default=False)
+    attempts = models.IntegerField(default=0)
+    
+    class Meta:
+        db_table = 'email_verifications'
+        verbose_name = 'Vérification Email'
+        verbose_name_plural = 'Vérifications Email'
+        ordering = ['-created_at']
+    
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = self.generate_code()
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(minutes=30)
+        super().save(*args, **kwargs)
+    
+    @staticmethod
+    def generate_code():
+        """Génère un code aléatoire de 6 chiffres"""
+        return ''.join(random.choices(string.digits, k=6))
+    
+    def is_valid(self):
+        """Vérifie si le code est encore valide"""
+        return (
+            not self.is_verified 
+            and self.expires_at > timezone.now() 
+            and self.attempts < 3
+        )
+    
+    def __str__(self):
+        return f"Email verification for {self.user.email}"
+
+
+class PhoneVerification(models.Model):
+    """Modèle pour la vérification de téléphone"""
+    
+    user = models.ForeignKey(
+        'User',
+        on_delete=models.CASCADE,
+        related_name='phone_verifications'
+    )
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_verified = models.BooleanField(default=False)
+    attempts = models.IntegerField(default=0)
+    
+    class Meta:
+        db_table = 'phone_verifications'
+        verbose_name = 'Vérification Téléphone'
+        verbose_name_plural = 'Vérifications Téléphone'
+        ordering = ['-created_at']
+    
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = self.generate_code()
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(minutes=30)
+        super().save(*args, **kwargs)
+    
+    @staticmethod
+    def generate_code():
+        """Génère un code aléatoire de 6 chiffres"""
+        return ''.join(random.choices(string.digits, k=6))
+    
+    def is_valid(self):
+        """Vérifie si le code est encore valide"""
+        return (
+            not self.is_verified 
+            and self.expires_at > timezone.now() 
+            and self.attempts < 3
+        )
+    
+    def __str__(self):
+        return f"Phone verification for {self.user.phone_number}"

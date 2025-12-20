@@ -199,22 +199,22 @@ function RootLayout({ children }) {
                     ]
                 }, void 0, true, {
                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/layout.tsx",
-                    lineNumber: 44,
+                    lineNumber: 45,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/layout.tsx",
-                lineNumber: 43,
+                lineNumber: 44,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/layout.tsx",
-            lineNumber: 42,
+            lineNumber: 43,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/layout.tsx",
-        lineNumber: 41,
+        lineNumber: 42,
         columnNumber: 5
     }, this);
 }

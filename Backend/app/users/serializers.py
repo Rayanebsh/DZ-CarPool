@@ -4,7 +4,7 @@ Serializers pour la gestion des utilisateurs
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import User, Role, Preference, UserDocument
-
+from .models import EmailVerification, PhoneVerification
 
 class RoleSerializer(serializers.ModelSerializer):
     """Serializer pour les rôles"""
@@ -180,3 +180,46 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_total_trips(self, obj):
         """Calcule le nombre total de trajets"""
         return obj.trips_as_driver + obj.trips_as_passenger
+
+class SendEmailVerificationSerializer(serializers.Serializer):
+    """Serializer pour l'envoi du code de vérification d'email"""
+    pass  # Utilise l'utilisateur authentifié
+
+
+class VerifyEmailSerializer(serializers.Serializer):
+    """Serializer pour la vérification d'email"""
+    code = serializers.CharField(max_length=6, min_length=6)
+    
+    def validate_code(self, value):
+        """Valide que le code contient uniquement des chiffres"""
+        if not value.isdigit():
+            raise serializers.ValidationError(
+                "Le code doit contenir uniquement des chiffres"
+            )
+        return value
+
+
+class SendPhoneVerificationSerializer(serializers.Serializer):
+    """Serializer pour l'envoi du code de vérification de téléphone"""
+    pass  # Utilise l'utilisateur authentifié
+
+
+class VerifyPhoneSerializer(serializers.Serializer):
+    """Serializer pour la vérification de téléphone"""
+    code = serializers.CharField(max_length=6, min_length=6)
+    
+    def validate_code(self, value):
+        """Valide que le code contient uniquement des chiffres"""
+        if not value.isdigit():
+            raise serializers.ValidationError(
+                "Le code doit contenir uniquement des chiffres"
+            )
+        return value
+
+
+class ResendVerificationSerializer(serializers.Serializer):
+    """Serializer pour renvoyer un code de vérification"""
+    verification_type = serializers.ChoiceField(
+        choices=['email', 'phone'],
+        required=True
+    )

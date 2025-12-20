@@ -11,7 +11,8 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { useLanguage } from "@/contexts/language-context"
 import { LocationAutocomplete } from "@/components/location-autocomplete"
-import { Calendar, Users, DollarSign, Car, Clock } from "lucide-react"
+import { Calendar, Users, DollarSign, Clock } from "lucide-react"
+import Image from "next/image"
 
 export default function OfferRidePage() {
   const { t } = useLanguage()
@@ -40,8 +41,8 @@ export default function OfferRidePage() {
       <main className="container mx-auto px-4 lg:px-8 py-12">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#FF5722]/10 mb-4">
-              <Car className="w-8 h-8 text-[#FF5722]" />
+            <div className="inline-flex items-center justify-center w-50 h-50 rounded-lg bg-[#FF5722] mx-auto mb-4">
+              <Image src="/images/logo.png" alt="DZ-CarPool" width={200} height={200} className="object-contain" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{t("offerRideTitle")}</h1>
             <p className="text-lg text-muted-foreground">{t("offerRideSubtitle")}</p>

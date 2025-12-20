@@ -1,4 +1,5 @@
-import { Car, Facebook, Instagram } from "lucide-react"
+import { Facebook, Instagram } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 
 export function Footer() {
@@ -9,8 +10,8 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary">
-                <Car className="w-6 h-6 text-primary-foreground" />
+              <div className="flex items-center justify-center w-25 h-25 rounded-lg bg-primary">
+                <Image src="/images/logo.png" alt="DZ-CarPool" width={100} height={100} className="object-contain" />
               </div>
               <span className="text-xl font-bold text-foreground">DZ-CarPool</span>
             </div>

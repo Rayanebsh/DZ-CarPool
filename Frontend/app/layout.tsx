@@ -4,7 +4,9 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { LanguageProvider } from "@/contexts/language-context"
 import "./globals.css"
-import { AuthProvider } from '@/contexts/auth-context'; //
+import { AuthProvider } from '@/contexts/auth-context'
+import { GoogleOAuthProvider } from '@react-oauth/google'
+
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
@@ -40,11 +42,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <LanguageProvider>
-          <AuthProvider> {/* ⬅️ Wrapper avec AuthProvider */}
-            {children}
-          </AuthProvider>
-        </LanguageProvider>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
+          <LanguageProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </LanguageProvider>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );
