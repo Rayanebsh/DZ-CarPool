@@ -1,5 +1,5 @@
 """
-app/users/urls.py - URLs pour les utilisateurs
+app/users/urls.py - URLs pour les utilisateurs MISES À JOUR
 """
 
 from django.urls import include, path
@@ -23,16 +23,27 @@ urlpatterns = [
 ]
 
 # Les URLs générées automatiquement par le router :
+# ========== AUTHENTIFICATION ==========
 # POST   /api/v1/users/register/
 # POST   /api/v1/users/login/
 # POST   /api/v1/users/google_auth/
 # GET    /api/v1/users/me/
+
+# ========== PRÉFÉRENCES (NOUVELLES) ==========
+# GET    /api/v1/users/preferences/           # Liste toutes les préférences disponibles
+# POST   /api/v1/users/preferences/           # Mettre à jour les préférences de l'utilisateur
+# GET    /api/v1/users/my_preferences/        # Récupérer les préférences de l'utilisateur connecté
+
+# ========== VÉRIFICATIONS ==========
 # POST   /api/v1/users/send_email_verification/
 # POST   /api/v1/users/verify_email/
 # POST   /api/v1/users/send_phone_verification/
 # POST   /api/v1/users/verify_phone/
 # GET    /api/v1/users/verification_status/
+
+# ========== DOCUMENTS ==========
 # POST   /api/v1/users/upload_document/
 # GET    /api/v1/users/documents/
+
+# ========== AUTRES ==========
 # GET    /api/v1/users/roles/
-# GET    /api/v1/users/preferences/

@@ -1,6 +1,6 @@
 """
 Views pour la gestion des utilisateurs
-AVEC GOOGLE OAUTH - VERSION CORRIGÉE
+AVEC VÉRIFICATION DES PRÉFÉRENCES ET REDIRECTION
 """
 
 import requests
@@ -38,8 +38,7 @@ class UserViewSet(viewsets.ModelViewSet):
     # ---------- AUTHENTICATION ----------
     def get_authenticators(self):
         """
-        Désactiver l'authentification JWT
-        pour les endpoints publics
+        Désactiver l'authentification JWT pour les endpoints publics
         """
         request = getattr(self, "request", None)
 
@@ -47,7 +46,6 @@ class UserViewSet(viewsets.ModelViewSet):
             path = request.path.lower()
             method = request.method.upper()
 
-            # Ajouter google_auth aux endpoints publics
             if (
                 (path.endswith("/register/") and method == "POST")
                 or (path.endswith("/login/") and method == "POST")
@@ -77,6 +75,47 @@ class UserViewSet(viewsets.ModelViewSet):
             return UserProfileSerializer
         return UserSerializer
 
+    # ---------- HELPER METHODS ----------
+    def _check_user_preferences(self, user):
+        """
+        Vérifie si l'utilisateur a des préférences
+        Retourne True s'il a des préférences, False sinon
+        """
+        return user.preferences.exists()
+
+    def _get_redirect_url(self, user, is_new_user=False):
+        """
+        Détermine l'URL de redirection selon le statut de l'utilisateur
+        """
+        if is_new_user:
+            return "/preferences"
+
+        # Si l'utilisateur existe mais n'a pas de préférences
+        if not self._check_user_preferences(user):
+            return "/preferences"
+
+        # Utilisateur avec préférences
+        return "/#hero"
+
+    def _generate_auth_response(self, user, is_new_user=False):
+        """
+        Génère la réponse d'authentification avec tokens et redirection
+        """
+        refresh = RefreshToken.for_user(user)
+        has_preferences = self._check_user_preferences(user)
+        redirect_url = self._get_redirect_url(user, is_new_user)
+
+        return {
+            "user": UserSerializer(user).data,
+            "tokens": {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            },
+            "is_new_user": is_new_user,
+            "has_preferences": has_preferences,
+            "redirect_url": redirect_url,
+        }
+
     # ---------- ACTIONS PUBLIQUES ----------
     @action(detail=False, methods=["post"], permission_classes=[AllowAny])
     def register(self, request):
@@ -87,23 +126,14 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.save()
-        refresh = RefreshToken.for_user(user)
+        response_data = self._generate_auth_response(user, is_new_user=True)
 
-        return Response(
-            {
-                "user": UserSerializer(user).data,
-                "tokens": {
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
-                },
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=["post"], permission_classes=[AllowAny])
     def login(self, request):
         """
-        Connexion utilisateur
+        Connexion utilisateur avec vérification des préférences
         """
         email = request.data.get("email")
         password = request.data.get("password")
@@ -134,30 +164,15 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        refresh = RefreshToken.for_user(user)
+        # ✅ Génération de la réponse avec vérification des préférences
+        response_data = self._generate_auth_response(user, is_new_user=False)
 
-        return Response(
-            {
-                "user": UserSerializer(user).data,
-                "tokens": {
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
-                },
-            },
-            status=status.HTTP_200_OK,
-        )
+        return Response(response_data, status=status.HTTP_200_OK)
 
-    # ---------- GOOGLE OAUTH - CORRIGÉ ----------
     @action(detail=False, methods=["post"], permission_classes=[AllowAny])
     def google_auth(self, request):
         """
         Authentification avec Google OAuth
-        Reçoit le token d'accès Google et crée/connecte l'utilisateur
-
-        Expected payload:
-        {
-            "access_token": "..."
-        }
         """
         access_token = request.data.get("access_token")
 
@@ -213,13 +228,11 @@ class UserViewSet(viewsets.ModelViewSet):
                 else:
                     # Créer un nouvel utilisateur
                     is_new_user = True
-
-                    # ✅ CORRECTION : Ne pas créer de username
                     user = User.objects.create(
                         email=email,
                         first_name=given_name,
                         last_name=family_name,
-                        email_verified=True,  # Email vérifié via Google
+                        email_verified=True,
                         email_verified_at=timezone.now(),
                         is_active=True,
                     )
@@ -229,24 +242,10 @@ class UserViewSet(viewsets.ModelViewSet):
                         user=user, provider="google", uid=uid, extra_data=google_data
                     )
 
-            # Générer les tokens JWT
-            refresh = RefreshToken.for_user(user)
+            # ✅ Génération de la réponse avec vérification des préférences
+            response_data = self._generate_auth_response(user, is_new_user)
 
-            # Déterminer l'URL de redirection
-            redirect_url = "/preferences/" if is_new_user else "/#hero"
-
-            return Response(
-                {
-                    "user": UserSerializer(user).data,
-                    "tokens": {
-                        "refresh": str(refresh),
-                        "access": str(refresh.access_token),
-                    },
-                    "is_new_user": is_new_user,
-                    "redirect_url": redirect_url,
-                },
-                status=status.HTTP_200_OK,
-            )
+            return Response(response_data, status=status.HTTP_200_OK)
 
         except requests.RequestException as e:
             return Response(
@@ -262,8 +261,35 @@ class UserViewSet(viewsets.ModelViewSet):
     # ---------- ACTIONS AUTHENTIFIÉES ----------
     @action(detail=False, methods=["get"])
     def me(self, request):
-        serializer = UserProfileSerializer(request.user)
-        return Response(serializer.data)
+        """
+        Récupère les informations de l'utilisateur connecté avec statut des préférences
+        """
+        user = request.user
+        serializer = UserProfileSerializer(user)
+        data = serializer.data
+
+        # Ajouter le statut des préférences
+        data["has_preferences"] = self._check_user_preferences(user)
+        data["preferences_count"] = user.preferences.count()
+
+        return Response(data)
+
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
+    def check_preferences(self, request):
+        """
+        Vérifie si l'utilisateur a configuré ses préférences
+        """
+        user = request.user
+        has_preferences = self._check_user_preferences(user)
+        redirect_url = self._get_redirect_url(user)
+
+        return Response(
+            {
+                "has_preferences": has_preferences,
+                "preferences_count": user.preferences.count(),
+                "redirect_url": redirect_url,
+            }
+        )
 
     @action(detail=False, methods=["put"])
     def update_profile(self, request):
@@ -272,6 +298,68 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response(UserProfileSerializer(request.user).data)
 
+    # ---------- GESTION DES PRÉFÉRENCES ----------
+    @action(detail=False, methods=["get", "post"], permission_classes=[IsAuthenticated])
+    def preferences(self, request):
+        """
+        GET: Récupère TOUTES les préférences disponibles (pour la sélection)
+        POST: Met à jour les préférences de l'utilisateur
+        """
+        user = request.user
+
+        if request.method == "GET":
+            # ✅ CORRECTION : Retourner TOUTES les préférences disponibles
+            all_preferences = Preference.objects.all().order_by("category", "id")
+            return Response(PreferenceSerializer(all_preferences, many=True).data)
+
+        elif request.method == "POST":
+            preference_ids = request.data.get("preference_ids", [])
+
+            if not isinstance(preference_ids, list):
+                return Response(
+                    {"error": "preference_ids doit être une liste"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Vérifier que toutes les préférences existent
+            preferences = Preference.objects.filter(id__in=preference_ids)
+
+            if len(preferences) != len(preference_ids):
+                return Response(
+                    {"error": "Certaines préférences n'existent pas"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Mettre à jour les préférences
+            user.preferences.set(preferences)
+
+            return Response(
+                {
+                    "message": "Préférences mises à jour avec succès",
+                    "preference_ids": preference_ids,
+                    "preferences": PreferenceSerializer(
+                        user.preferences.all(), many=True
+                    ).data,
+                    "has_preferences": True,
+                }
+            )
+
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
+    def my_preferences(self, request):
+        """
+        Récupère uniquement les préférences de l'utilisateur connecté
+        """
+        user = request.user
+        serializer = PreferenceSerializer(user.preferences.all(), many=True)
+        return Response(
+            {
+                "count": user.preferences.count(),
+                "preferences": serializer.data,
+                "has_preferences": self._check_user_preferences(user),
+            }
+        )
+
+    # ---------- AUTRES ACTIONS ----------
     @action(detail=False, methods=["post"])
     def change_password(self, request):
         serializer = ChangePasswordSerializer(
@@ -300,26 +388,18 @@ class UserViewSet(viewsets.ModelViewSet):
     # ---------- VERIFICATION EMAIL ----------
     @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def send_email_verification(self, request):
-        """
-        Envoie un code de vérification par email
-        """
         user = request.user
 
-        # Vérifier si l'email est déjà vérifié
         if user.email_verified:
             return Response(
                 {"message": "Email déjà vérifié"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Invalider les codes précédents
         EmailVerification.objects.filter(user=user, is_verified=False).update(
             is_verified=True
         )
 
-        # Créer un nouveau code
         verification = EmailVerification.objects.create(user=user)
-
-        # Envoyer l'email
         email_sent = EmailService.send_verification_code(user, verification.code)
 
         if not email_sent:
@@ -337,16 +417,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def verify_email(self, request):
-        """
-        Vérifie le code email
-        """
         serializer = VerifyEmailSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         code = serializer.validated_data["code"]
         user = request.user
 
-        # Récupérer le code le plus récent
         try:
             verification = EmailVerification.objects.filter(
                 user=user, code=code, is_verified=False
@@ -356,11 +432,9 @@ class UserViewSet(viewsets.ModelViewSet):
                 {"error": "Code invalide"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Incrémenter les tentatives
         verification.attempts += 1
         verification.save()
 
-        # Vérifier si le code est valide
         if not verification.is_valid():
             if verification.attempts >= 3:
                 return Response(
@@ -376,7 +450,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 {"error": "Code invalide"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Marquer comme vérifié
         verification.is_verified = True
         verification.save()
 
@@ -391,34 +464,25 @@ class UserViewSet(viewsets.ModelViewSet):
     # ---------- VERIFICATION TELEPHONE ----------
     @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def send_phone_verification(self, request):
-        """
-        Envoie un code de vérification par SMS
-        """
         user = request.user
 
-        # Vérifier si le téléphone est déjà vérifié
         if user.phone_verified:
             return Response(
                 {"message": "Téléphone déjà vérifié"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Vérifier que l'utilisateur a un numéro de téléphone
         if not user.phone_number:
             return Response(
                 {"error": "Aucun numéro de téléphone enregistré"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Invalider les codes précédents
         PhoneVerification.objects.filter(user=user, is_verified=False).update(
             is_verified=True
         )
 
-        # Créer un nouveau code
         verification = PhoneVerification.objects.create(user=user)
-
-        # Envoyer le SMS
         sms_sent = SMSService.send_verification_code(user, verification.code)
 
         if not sms_sent:
@@ -436,16 +500,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
     def verify_phone(self, request):
-        """
-        Vérifie le code téléphone
-        """
         serializer = VerifyPhoneSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         code = serializer.validated_data["code"]
         user = request.user
 
-        # Récupérer le code le plus récent
         try:
             verification = PhoneVerification.objects.filter(
                 user=user, code=code, is_verified=False
@@ -455,11 +515,9 @@ class UserViewSet(viewsets.ModelViewSet):
                 {"error": "Code invalide"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Incrémenter les tentatives
         verification.attempts += 1
         verification.save()
 
-        # Vérifier si le code est valide
         if not verification.is_valid():
             if verification.attempts >= 3:
                 return Response(
@@ -475,7 +533,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 {"error": "Code invalide"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Marquer comme vérifié
         verification.is_verified = True
         verification.save()
 
@@ -489,9 +546,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def verification_status(self, request):
-        """
-        Retourne le statut de vérification de l'utilisateur
-        """
         user = request.user
         return Response(
             {
@@ -511,6 +565,20 @@ class RoleViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class PreferenceViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Preference.objects.all()
+    """
+    ViewSet pour les préférences
+    """
+
+    queryset = Preference.objects.all().order_by("category", "id")
     serializer_class = PreferenceSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        category = self.request.query_params.get("category", None)
+
+        if category:
+            queryset = queryset.filter(category=category)
+
+        return queryset

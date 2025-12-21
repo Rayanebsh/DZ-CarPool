@@ -1,86 +1,105 @@
-// components/google-login-button.tsx
 "use client"
 
-import { useGoogleLogin } from '@react-oauth/google'
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/contexts/auth-context"
-import { useState } from "react"
-import { useRouter } from 'next/navigation'
-import authService from "@/services/auth.service"
+import { useGoogleLogin } from '@react-oauth/google';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/auth-context';
+import authService from '@/services/auth.service';
+import { useState } from 'react';
 
 interface GoogleLoginButtonProps {
-  text?: string
-  onError?: (error: string) => void
+  text: string;
+  onError?: (error: string) => void;
 }
 
-export default function GoogleLoginButton({ 
-  text = "Continuer avec Google", 
-  onError 
-}: GoogleLoginButtonProps) {
-  const { setUser, setIsAuthenticated } = useAuth()
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+export default function GoogleLoginButton({ text, onError }: GoogleLoginButtonProps) {
+  const router = useRouter();
+  const { setUser, setIsAuthenticated } = useAuth();
+  const [loading, setLoading] = useState(false);
 
-  const handleGoogleLogin = useGoogleLogin({
+  const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      setLoading(true)
+      setLoading(true);
+      
       try {
-        // Envoyer le token à votre backend
-        const response = await authService.googleAuth(tokenResponse.access_token)
+        console.log('✅ Token Google reçu:', tokenResponse.access_token);
         
-        // Mettre à jour le contexte d'authentification
-        setUser(response.user)
-        setIsAuthenticated(true)
+        // Envoyer le token au backend
+        const authResponse = await authService.googleAuth(tokenResponse.access_token);
         
-        // Redirection selon le statut
-        if (response.is_new_user) {
-          // Nouvel utilisateur → page de vérification
-          router.push('/verify')
-        } else {
-          // Utilisateur existant → page d'accueil
-          router.push('/#hero')
-        }
+        console.log('✅ Authentification réussie:', authResponse);
+
+        // Mettre à jour le contexte
+        setUser(authResponse.user);
+        setIsAuthenticated(true);
+
+        // Redirection
+        const redirectUrl = authResponse.redirect_url || '/#hero';
+        console.log('🔄 Redirection vers:', redirectUrl);
+        
+        router.push(redirectUrl);
+        
       } catch (error: any) {
-        console.error('Erreur Google Auth:', error)
-        const errorMsg = error.response?.data?.error || 'Erreur de connexion avec Google'
-        if (onError) onError(errorMsg)
+        console.error('❌ Erreur Google Auth:', error);
+        
+        let errorMsg = 'Erreur de connexion avec Google';
+        
+        if (error.response?.status === 401) {
+          errorMsg = 'Authentification Google refusée';
+        } else if (error.response?.status === 400) {
+          errorMsg = error.response?.data?.error || 'Token Google invalide';
+        } else if (error.response?.data?.error) {
+          errorMsg = error.response.data.error;
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+        
+        if (onError) {
+          onError(errorMsg);
+        }
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    onError: () => {
-      const errorMsg = 'Erreur lors de la connexion Google'
-      if (onError) onError(errorMsg)
-    }
-  })
+    onError: (error) => {
+      console.error('❌ Erreur Google Login:', error);
+      if (onError) {
+        onError('Impossible de se connecter avec Google');
+      }
+    },
+  });
 
   return (
-    <Button
+    <button
       type="button"
-      variant="outline"
-      onClick={() => handleGoogleLogin()}
+      onClick={() => googleLogin()}
       disabled={loading}
-      className="w-full h-12 bg-white border-gray-300 hover:bg-gray-50 font-medium"
+      className="w-full h-12 flex items-center justify-center gap-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-        <path
-          fill="#4285F4"
-          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-        />
-        <path
-          fill="#34A853"
-          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-        />
-        <path
-          fill="#FBBC05"
-          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-        />
-        <path
-          fill="#EA4335"
-          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-        />
-      </svg>
-      {loading ? 'Connexion...' : text}
-    </Button>
-  )
+      {loading ? (
+        <span className="text-gray-600">Connexion en cours...</span>
+      ) : (
+        <>
+          <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <path
+              fill="#4285F4"
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            />
+            <path
+              fill="#34A853"
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+            />
+            <path
+              fill="#EA4335"
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            />
+          </svg>
+          <span className="text-gray-700 font-medium">{text}</span>
+        </>
+      )}
+    </button>
+  );
 }

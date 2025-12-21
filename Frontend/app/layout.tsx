@@ -49,6 +49,7 @@ export default function RootLayout({
             </AuthProvider>
           </LanguageProvider>
         </GoogleOAuthProvider>
+        <Analytics />
       </body>
     </html>
   );

@@ -17,11 +17,47 @@ class RoleSerializer(serializers.ModelSerializer):
 
 
 class PreferenceSerializer(serializers.ModelSerializer):
-    """Serializer pour les préférences"""
+    """Serializer pour les préférences avec support multilingue"""
 
     class Meta:
         model = Preference
-        fields = ["id", "name", "description"]
+        fields = ["id", "name_fr", "name_en", "category", "icon", "description"]
+        read_only_fields = ["id"]
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    """Serializer pour la mise à jour du profil utilisateur"""
+
+    # Accepter une liste d'IDs de préférences
+    preferences = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Preference.objects.all(), required=False
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            "first_name",
+            "last_name",
+            "phone_number",
+            "profile_picture",
+            "bio",
+            "preferences",
+        ]
+
+    def update(self, instance, validated_data):
+        # Gérer les préférences séparément
+        preferences = validated_data.pop("preferences", None)
+
+        # Mettre à jour les autres champs
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Mettre à jour les préférences si fournies
+        if preferences is not None:
+            instance.preferences.set(preferences)
+
+        return instance
 
 
 class UserDocumentSerializer(serializers.ModelSerializer):
@@ -144,21 +180,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             role=role,
         )
         return user
-
-
-class UserUpdateSerializer(serializers.ModelSerializer):
-    """Serializer pour la mise à jour du profil utilisateur"""
-
-    class Meta:
-        model = User
-        fields = [
-            "first_name",
-            "last_name",
-            "phone_number",
-            "profile_picture",
-            "bio",
-            "preferences",
-        ]
 
 
 class ChangePasswordSerializer(serializers.Serializer):

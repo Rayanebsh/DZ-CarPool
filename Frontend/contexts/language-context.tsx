@@ -87,9 +87,10 @@ const translations = {
     getStarted: "Get Started",
     createAccountOrLogin: "Create an account or log in to continue.",
     register: "Register",
-    login: "Log In",
     imDriver: "I'm a Driver",
     imPassenger: "I'm a Passenger",
+    firstName: "First Name",
+    lastName: "Last Name",
     fullName: "Full Name",
     enterFullName: "Enter your full name",
     emailAddress: "Email Address",
@@ -98,6 +99,8 @@ const translations = {
     phonePlaceholder: "e.g., 05 XX XX XX XX",
     password: "Password",
     passwordPlaceholder: "********",
+    confirmPassword: "Confirm Password",
+    confirmPasswordPlaceholder: "********",
     uploadProfilePhoto: "Upload Profile Photo",
     uploadIdPhoto: "Upload ID Photo",
     optional: "Optional",
@@ -107,9 +110,7 @@ const translations = {
     or: "OR",
     continueWithGoogle: "Continue with Google",
     agreeTerms: "By continuing, you agree to the",
-    termsOfService: "Terms of Service",
     and: "and",
-    privacyPolicy: "Privacy Policy",
     alreadyHaveAccount: "Already have an account?",
     dontHaveAccount: "Don't have an account?",
     signUpHere: "Sign Up",
@@ -118,7 +119,7 @@ const translations = {
     trustedRideSharing: "Your trusted ride-sharing community.",
     connectWithDrivers:
       "Connect with drivers and passengers for inter-wilaya trips. Share the ride, share the cost, and travel safely across Algeria.",
-    forgotPassword: "forgot password ?",
+    forgotPassword: "forgot password?",
 
     // Offer Ride Page
     offerRideTitle: "Offer a Ride",
@@ -131,7 +132,6 @@ const translations = {
     pricePerSeat: "Price per Seat (DA)",
     additionalInfo: "Additional Information (Optional)",
     addDetails: "Add any details about your trip, stops, or preferences...",
-    publishRide: "Publish Ride",
     cancel: "Cancel",
 
     // Search Results Page
@@ -250,9 +250,10 @@ const translations = {
     getStarted: "Commencer",
     createAccountOrLogin: "Créez un compte ou connectez-vous pour continuer.",
     register: "S'inscrire",
-    login: "Se Connecter",
     imDriver: "Je suis Conducteur",
     imPassenger: "Je suis Passager",
+    firstName: "Prénom",
+    lastName: "Nom",
     fullName: "Nom Complet",
     enterFullName: "Entrez votre nom complet",
     emailAddress: "Adresse Email",
@@ -261,6 +262,8 @@ const translations = {
     phonePlaceholder: "ex., 05 XX XX XX XX",
     password: "Mot de Passe",
     passwordPlaceholder: "********",
+    confirmPassword: "Confirmer le mot de passe",
+    confirmPasswordPlaceholder: "********",
     uploadProfilePhoto: "Télécharger Photo de Profil",
     uploadIdPhoto: "Télécharger Photo de Pièce d'Identité",
     optional: "Optionnel",
@@ -270,9 +273,7 @@ const translations = {
     or: "OU",
     continueWithGoogle: "Continuer avec Google",
     agreeTerms: "En continuant, vous acceptez les",
-    termsOfService: "Conditions d'Utilisation",
     and: "et",
-    privacyPolicy: "Politique de Confidentialité",
     alreadyHaveAccount: "Vous avez déjà un compte ?",
     dontHaveAccount: "Vous n'avez pas de compte ?",
     signUpHere: "S'inscrire",
@@ -294,7 +295,6 @@ const translations = {
     pricePerSeat: "Prix par siège (DA)",
     additionalInfo: "Informations supplémentaires (Optionnel)",
     addDetails: "Ajoutez des détails sur votre voyage, arrêts ou préférences...",
-    publishRide: "Publier le trajet",
     cancel: "Annuler",
 
     // Search Results Page
@@ -339,7 +339,7 @@ const translations = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>("en")
+  const [language, setLanguage] = useState<Language>("fr") // Défaut en français
 
   const t = (key: string): string => {
     return translations[language][key as keyof typeof translations.en] || key

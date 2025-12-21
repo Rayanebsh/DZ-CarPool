@@ -83,9 +83,10 @@ const translations = {
         getStarted: "Get Started",
         createAccountOrLogin: "Create an account or log in to continue.",
         register: "Register",
-        login: "Log In",
         imDriver: "I'm a Driver",
         imPassenger: "I'm a Passenger",
+        firstName: "First Name",
+        lastName: "Last Name",
         fullName: "Full Name",
         enterFullName: "Enter your full name",
         emailAddress: "Email Address",
@@ -94,6 +95,8 @@ const translations = {
         phonePlaceholder: "e.g., 05 XX XX XX XX",
         password: "Password",
         passwordPlaceholder: "********",
+        confirmPassword: "Confirm Password",
+        confirmPasswordPlaceholder: "********",
         uploadProfilePhoto: "Upload Profile Photo",
         uploadIdPhoto: "Upload ID Photo",
         optional: "Optional",
@@ -103,9 +106,7 @@ const translations = {
         or: "OR",
         continueWithGoogle: "Continue with Google",
         agreeTerms: "By continuing, you agree to the",
-        termsOfService: "Terms of Service",
         and: "and",
-        privacyPolicy: "Privacy Policy",
         alreadyHaveAccount: "Already have an account?",
         dontHaveAccount: "Don't have an account?",
         signUpHere: "Sign Up",
@@ -113,7 +114,7 @@ const translations = {
         forAlgeria: "For Algeria, By Algerians",
         trustedRideSharing: "Your trusted ride-sharing community.",
         connectWithDrivers: "Connect with drivers and passengers for inter-wilaya trips. Share the ride, share the cost, and travel safely across Algeria.",
-        forgotPassword: "forgot password ?",
+        forgotPassword: "forgot password?",
         // Offer Ride Page
         offerRideTitle: "Offer a Ride",
         offerRideSubtitle: "Share your journey and help others travel",
@@ -125,7 +126,6 @@ const translations = {
         pricePerSeat: "Price per Seat (DA)",
         additionalInfo: "Additional Information (Optional)",
         addDetails: "Add any details about your trip, stops, or preferences...",
-        publishRide: "Publish Ride",
         cancel: "Cancel",
         // Search Results Page
         filters: "Filters",
@@ -231,9 +231,10 @@ const translations = {
         getStarted: "Commencer",
         createAccountOrLogin: "Créez un compte ou connectez-vous pour continuer.",
         register: "S'inscrire",
-        login: "Se Connecter",
         imDriver: "Je suis Conducteur",
         imPassenger: "Je suis Passager",
+        firstName: "Prénom",
+        lastName: "Nom",
         fullName: "Nom Complet",
         enterFullName: "Entrez votre nom complet",
         emailAddress: "Adresse Email",
@@ -242,6 +243,8 @@ const translations = {
         phonePlaceholder: "ex., 05 XX XX XX XX",
         password: "Mot de Passe",
         passwordPlaceholder: "********",
+        confirmPassword: "Confirmer le mot de passe",
+        confirmPasswordPlaceholder: "********",
         uploadProfilePhoto: "Télécharger Photo de Profil",
         uploadIdPhoto: "Télécharger Photo de Pièce d'Identité",
         optional: "Optionnel",
@@ -251,9 +254,7 @@ const translations = {
         or: "OU",
         continueWithGoogle: "Continuer avec Google",
         agreeTerms: "En continuant, vous acceptez les",
-        termsOfService: "Conditions d'Utilisation",
         and: "et",
-        privacyPolicy: "Politique de Confidentialité",
         alreadyHaveAccount: "Vous avez déjà un compte ?",
         dontHaveAccount: "Vous n'avez pas de compte ?",
         signUpHere: "S'inscrire",
@@ -273,7 +274,6 @@ const translations = {
         pricePerSeat: "Prix par siège (DA)",
         additionalInfo: "Informations supplémentaires (Optionnel)",
         addDetails: "Ajoutez des détails sur votre voyage, arrêts ou préférences...",
-        publishRide: "Publier le trajet",
         cancel: "Annuler",
         // Search Results Page
         filters: "Filtres",
@@ -315,7 +315,8 @@ const translations = {
 const LanguageContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createContext"])(undefined);
 function LanguageProvider({ children }) {
     _s();
-    const [language, setLanguage] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("en");
+    const [language, setLanguage] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("fr") // Défaut en français
+    ;
     const t = (key)=>{
         return translations[language][key] || key;
     };
@@ -332,7 +333,7 @@ function LanguageProvider({ children }) {
         columnNumber: 10
     }, this);
 }
-_s(LanguageProvider, "JgNS4s3wc06/6u6z+Ak7Ai5ELN8=");
+_s(LanguageProvider, "8pY+z7+WfvZjwkow3WzAZbxcoy8=");
 _c = LanguageProvider;
 function useLanguage() {
     _s1();
@@ -360,124 +361,145 @@ __turbopack_context__.s([
 var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/Desktop/Projet_GL/covoiturage/Frontend/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Desktop/Projet_GL/covoiturage/Frontend/node_modules/axios/lib/axios.js [app-client] (ecmascript)");
 ;
-const API_URL = __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'; // ✅ Ajouté /v1
+const API_URL = __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 class AuthService {
-    // Login classique
+    tokenKey = 'access_token';
+    refreshKey = 'refresh_token';
+    userKey = 'user';
+    // ========== STORAGE ==========
+    setTokens(access, refresh) {
+        localStorage.setItem(this.tokenKey, access);
+        localStorage.setItem(this.refreshKey, refresh);
+    }
+    getAccessToken() {
+        return localStorage.getItem(this.tokenKey);
+    }
+    getRefreshToken() {
+        return localStorage.getItem(this.refreshKey);
+    }
+    removeTokens() {
+        localStorage.removeItem(this.tokenKey);
+        localStorage.removeItem(this.refreshKey);
+        localStorage.removeItem(this.userKey);
+    }
+    setUser(user) {
+        localStorage.setItem(this.userKey, JSON.stringify(user));
+    }
+    getStoredUser() {
+        const userStr = localStorage.getItem(this.userKey);
+        return userStr ? JSON.parse(userStr) : null;
+    }
+    isAuthenticated() {
+        return !!this.getAccessToken();
+    }
+    // ========== AUTH METHODS ==========
     async login(data) {
         const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/login/`, data);
-        this.setTokens(response.data.tokens);
-        this.setUser(response.data.user);
-        return response.data;
+        const authData = response.data;
+        this.setTokens(authData.tokens.access, authData.tokens.refresh);
+        this.setUser(authData.user);
+        return authData;
     }
-    // Register classique
     async register(data) {
         const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/register/`, data);
-        this.setTokens(response.data.tokens);
-        this.setUser(response.data.user);
-        return response.data;
+        const authData = response.data;
+        this.setTokens(authData.tokens.access, authData.tokens.refresh);
+        this.setUser(authData.user);
+        return authData;
     }
-    // ✅ CORRIGÉ : Google OAuth
     async googleAuth(accessToken) {
-        try {
-            console.log('🔵 Tentative de connexion Google...');
-            console.log('🔵 URL:', `${API_URL}/users/google_auth/`);
-            console.log('🔵 Token:', accessToken.substring(0, 20) + '...');
-            // ✅ CORRECTION 1 : Parenthèses normales au lieu de backticks
-            const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/google_auth/`, {
-                access_token: accessToken
-            });
-            console.log('✅ Réponse reçue:', response.data);
-            this.setTokens(response.data.tokens);
-            this.setUser(response.data.user);
-            return response.data;
-        } catch (error) {
-            console.error('❌ Erreur Google Auth:', error.response?.data || error.message);
-            throw error;
-        }
-    }
-    // Logout
-    logout() {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
-    }
-    // Upload document
-    async uploadDocument(file, documentType) {
-        const formData = new FormData();
-        formData.append('document', file);
-        formData.append('document_type', documentType);
-        const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/upload_document/`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                Authorization: `Bearer ${this.getAccessToken()}`
-            }
+        const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/google_auth/`, {
+            access_token: accessToken
         });
-        return response.data;
+        const authData = response.data;
+        this.setTokens(authData.tokens.access, authData.tokens.refresh);
+        this.setUser(authData.user);
+        return authData;
     }
-    // Get current user
+    logout() {
+        this.removeTokens();
+    }
+    // ========== USER METHODS ==========
     async getCurrentUser() {
         const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get(`${API_URL}/users/me/`, {
             headers: {
                 Authorization: `Bearer ${this.getAccessToken()}`
             }
         });
-        this.setUser(response.data);
+        const user = response.data;
+        this.setUser(user);
+        return user;
+    }
+    async checkPreferences() {
+        const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get(`${API_URL}/users/check_preferences/`, {
+            headers: {
+                Authorization: `Bearer ${this.getAccessToken()}`
+            }
+        });
         return response.data;
     }
-    // Vérification email
-    async sendEmailVerification() {
-        await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/send_email_verification/`, {}, {
+    // ========== PREFERENCES ==========
+    async getPreferences() {
+        const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get(`${API_URL}/users/preferences/`, {
             headers: {
                 Authorization: `Bearer ${this.getAccessToken()}`
             }
         });
+        return response.data;
     }
-    async verifyEmail(code) {
-        await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/verify_email/`, {
-            code
+    async getUserPreferences() {
+        const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get(`${API_URL}/users/preferences/`, {
+            headers: {
+                Authorization: `Bearer ${this.getAccessToken()}`
+            }
+        });
+        return response.data;
+    }
+    async updatePreferences(preferenceIds) {
+        const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/preferences/`, {
+            preference_ids: preferenceIds
         }, {
             headers: {
                 Authorization: `Bearer ${this.getAccessToken()}`
             }
         });
+        const user = this.getStoredUser();
+        if (user) {
+            user.has_preferences = true;
+            user.preferences_count = preferenceIds.length;
+            this.setUser(user);
+        }
+        return response.data;
     }
-    // Vérification téléphone
-    async sendPhoneVerification() {
-        await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/send_phone_verification/`, {}, {
+    // ========== DOCUMENTS ==========
+    async uploadDocument(file, documentType) {
+        const formData = new FormData();
+        formData.append('file_path', file);
+        formData.append('document_type', documentType);
+        const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/upload_document/`, formData, {
             headers: {
-                Authorization: `Bearer ${this.getAccessToken()}`
+                Authorization: `Bearer ${this.getAccessToken()}`,
+                'Content-Type': 'multipart/form-data'
             }
         });
+        return response.data;
     }
-    async verifyPhone(code) {
-        await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/verify_phone/`, {
-            code
-        }, {
-            headers: {
-                Authorization: `Bearer ${this.getAccessToken()}`
-            }
+    // ========== TOKEN REFRESH ==========
+    async refreshToken() {
+        const refreshToken = this.getRefreshToken();
+        if (!refreshToken) {
+            throw new Error('No refresh token available');
+        }
+        const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/token/refresh/`, {
+            refresh: refreshToken
         });
-    }
-    // Helpers
-    setTokens(tokens) {
-        localStorage.setItem('access_token', tokens.access);
-        localStorage.setItem('refresh_token', tokens.refresh);
-    }
-    setUser(user) {
-        localStorage.setItem('user', JSON.stringify(user));
-    }
-    getAccessToken() {
-        return localStorage.getItem('access_token');
-    }
-    getStoredUser() {
-        const userStr = localStorage.getItem('user');
-        return userStr ? JSON.parse(userStr) : null;
-    }
-    isAuthenticated() {
-        return !!this.getAccessToken();
+        const newAccessToken = response.data.access;
+        localStorage.setItem(this.tokenKey, newAccessToken);
+        return newAccessToken;
     }
 }
-const __TURBOPACK__default__export__ = new AuthService();
+const authService = new AuthService();
+const __TURBOPACK__default__export__ = authService;
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }

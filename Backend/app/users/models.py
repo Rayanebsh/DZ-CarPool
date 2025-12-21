@@ -32,18 +32,43 @@ class Role(models.Model):
 
 
 class Preference(models.Model):
-    """Modèle pour les préférences de trajet"""
+    """Modèle pour les préférences de trajet avec support multilingue"""
 
-    name = models.CharField(max_length=100, unique=True)
+    CATEGORY_CHOICES = [
+        ("interests", "Centres d'intérêt"),
+        ("habits", "Habitudes"),
+        ("driving", "Préférences de conduite"),
+    ]
+
+    name = models.CharField(
+        max_length=100, unique=True
+    )  # Garde pour compatibilité (sera name_fr)
     description = models.TextField(blank=True)
+
+    # Nouveaux champs pour le multilingue
+    name_fr = models.CharField(max_length=100, blank=True)
+    name_en = models.CharField(max_length=100, blank=True)
+    category = models.CharField(
+        max_length=20, choices=CATEGORY_CHOICES, default="interests"
+    )
+    icon = models.CharField(max_length=10, blank=True)
 
     class Meta:
         db_table = "preferences"
         verbose_name = "Préférence"
         verbose_name_plural = "Préférences"
+        ordering = ["category", "id"]
 
     def __str__(self):
-        return self.name
+        return self.name_fr or self.name
+
+    def save(self, *args, **kwargs):
+        # Synchroniser name avec name_fr pour compatibilité
+        if self.name_fr and not self.name:
+            self.name = self.name_fr
+        elif not self.name_fr and self.name:
+            self.name_fr = self.name
+        super().save(*args, **kwargs)
 
 
 class UserManager(BaseUserManager):

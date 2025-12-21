@@ -1,65 +1,114 @@
+// app/preferences/page.tsx
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/auth-context';
+import authService from '@/services/auth.service';
 import { Button } from "@/components/ui/button"
 import { Check } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import Image from "next/image"
 
 interface Preference {
-  id: string
-  label: string
-  labelFr: string
-  icon: string
-}
-
-const preferenceCategories = {
-  interests: [
-    { id: "sport", label: "Sport", labelFr: "Sport", icon: "⚽" },
-    { id: "reading", label: "Reading", labelFr: "Lecture", icon: "📚" },
-    { id: "science", label: "Science", labelFr: "Science", icon: "🔬" },
-    { id: "philosophy", label: "Philosophy", labelFr: "Philosophie", icon: "🤔" },
-    { id: "music", label: "Music", labelFr: "Musique", icon: "🎵" },
-    { id: "movies", label: "Movies", labelFr: "Cinéma", icon: "🎬" },
-    { id: "travel", label: "Travel", labelFr: "Voyage", icon: "✈️" },
-    { id: "technology", label: "Technology", labelFr: "Technologie", icon: "💻" },
-  ],
-  habits: [
-    { id: "smoker", label: "Smoker", labelFr: "Fumeur", icon: "🚬" },
-    { id: "non_smoker", label: "Non-Smoker", labelFr: "Non-fumeur", icon: "🚭" },
-    { id: "pets_lover", label: "Pets Lover", labelFr: "Amateur d'animaux", icon: "🐾" },
-    { id: "quiet", label: "Quiet", labelFr: "Silencieux", icon: "🤫" },
-    { id: "chatty", label: "Chatty", labelFr: "Bavard", icon: "💬" },
-  ],
-  driving: [
-    { id: "fast_driver", label: "Fast Driver", labelFr: "Conducteur rapide", icon: "⚡" },
-    { id: "careful_driver", label: "Careful Driver", labelFr: "Conducteur prudent", icon: "🛡️" },
-    { id: "music_on", label: "Music On", labelFr: "Musique", icon: "🎶" },
-    { id: "silence", label: "Silence", labelFr: "Silence", icon: "🔇" },
-  ],
+  id: number;
+  name_fr: string;
+  name_en: string;
+  category: string;
+  icon: string;
+  description: string;
 }
 
 export default function PreferencesPage() {
-  const { t, language, setLanguage } = useLanguage()
-  const router = useRouter()
-  const [selectedPreferences, setSelectedPreferences] = useState<string[]>([])
+  const router = useRouter();
+  const { user } = useAuth();
+  const { t, language, setLanguage } = useLanguage();
+  const [allPreferences, setAllPreferences] = useState<Preference[]>([]);
+  const [selectedPreferences, setSelectedPreferences] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const togglePreference = (id: string) => {
-    setSelectedPreferences((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]))
-  }
+  useEffect(() => {
+    fetchPreferences();
+  }, []);
+
+  const fetchPreferences = async () => {
+    try {
+      const data: any = await authService.getPreferences();
+      
+      console.log('✅ Préférences récupérées:', data);
+      
+      if (Array.isArray(data)) {
+        setAllPreferences(data);
+      } else if (data && typeof data === 'object' && data.preferences && Array.isArray(data.preferences)) {
+        setAllPreferences(data.preferences);
+      } else {
+        console.warn('⚠️ Format de réponse inattendu:', data);
+        setError('Format de données invalide');
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Erreur récupération préférences:', error);
+      setError('Impossible de charger les préférences');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const togglePreference = (preferenceId: number) => {
+    setSelectedPreferences(prev => {
+      if (prev.includes(preferenceId)) {
+        return prev.filter(id => id !== preferenceId);
+      } else {
+        return [...prev, preferenceId];
+      }
+    });
+  };
 
   const handleSubmit = async () => {
-    // TODO: Save preferences to database
-    console.log("[v0] Selected preferences:", selectedPreferences)
+    if (selectedPreferences.length === 0) {
+      setError(language === "en" ? 'Please select at least one preference' : 'Veuillez sélectionner au moins une préférence');
+      return;
+    }
 
-    // Redirect to home page
-    router.push("/")
-  }
+    setSaving(true);
+    setError(null);
 
-  const handleSkip = () => {
-    router.push("/")
+    try {
+      await authService.updatePreferences(selectedPreferences);
+      console.log('✅ Préférences sauvegardées');
+      router.push('/#hero');
+      
+    } catch (error: any) {
+      console.error('❌ Erreur sauvegarde préférences:', error);
+      setError(language === "en" ? 'Error saving preferences' : 'Erreur lors de la sauvegarde des préférences');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Grouper les préférences par catégorie
+  const groupedPreferences = allPreferences.reduce((acc, pref) => {
+    if (!acc[pref.category]) {
+      acc[pref.category] = [];
+    }
+    acc[pref.category].push(pref);
+    return acc;
+  }, {} as Record<string, Preference[]>);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF5722] mx-auto"></div>
+          <p className="mt-4 text-gray-600">
+            {language === "en" ? "Loading preferences..." : "Chargement des préférences..."}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -69,17 +118,14 @@ export default function PreferencesPage() {
         <div className="container mx-auto px-4 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center">
-            <div className="relative h-25 w-25">
               <Image
-              src="/images/logo.png"
-              alt="DZ-CarPool"
-              fill
-              className="object-contain"
-              priority
+                src="/images/logo.png"
+                alt="DZ-CarPool"
+                width={200}
+                height={72}
+                className="h-14 w-auto"
               />
-            </div>
             </Link>
-
 
             <button
               onClick={() => setLanguage(language === "en" ? "fr" : "en")}
@@ -112,102 +158,136 @@ export default function PreferencesPage() {
           </p>
         </div>
 
-        {/* Interests */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            {language === "en" ? "Interests" : "Centres d'intérêt"}
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {preferenceCategories.interests.map((pref) => (
-              <button
-                key={pref.id}
-                onClick={() => togglePreference(pref.id)}
-                className={`relative p-4 rounded-xl border-2 transition-all ${
-                  selectedPreferences.includes(pref.id)
-                    ? "border-[#FF5722] bg-[#FF5722]/5"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                {selectedPreferences.includes(pref.id) && (
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FF5722] flex items-center justify-center">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                )}
-                <div className="text-3xl mb-2">{pref.icon}</div>
-                <div className="text-sm font-medium text-gray-900">{language === "en" ? pref.label : pref.labelFr}</div>
-              </button>
-            ))}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-center">
+            {error}
           </div>
-        </div>
+        )}
 
-        {/* Habits */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">{language === "en" ? "Habits" : "Habitudes"}</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {preferenceCategories.habits.map((pref) => (
-              <button
-                key={pref.id}
-                onClick={() => togglePreference(pref.id)}
-                className={`relative p-4 rounded-xl border-2 transition-all ${
-                  selectedPreferences.includes(pref.id)
-                    ? "border-[#FF5722] bg-[#FF5722]/5"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                {selectedPreferences.includes(pref.id) && (
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FF5722] flex items-center justify-center">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                )}
-                <div className="text-3xl mb-2">{pref.icon}</div>
-                <div className="text-sm font-medium text-gray-900">{language === "en" ? pref.label : pref.labelFr}</div>
-              </button>
-            ))}
+        {allPreferences.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">
+              {language === "en" ? "No preferences available" : "Aucune préférence disponible"}
+            </p>
+            <p className="text-sm text-gray-400 mt-2">
+              {language === "en" 
+                ? "Check that preferences exist in the database"
+                : "Vérifiez que des préférences existent dans la base de données"}
+            </p>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Interests */}
+            {groupedPreferences['interests'] && (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  {language === "en" ? "Interests" : "Centres d'intérêt"}
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {groupedPreferences['interests'].map((pref) => (
+                    <button
+                      key={pref.id}
+                      onClick={() => togglePreference(pref.id)}
+                      className={`relative p-4 rounded-xl border-2 transition-all ${
+                        selectedPreferences.includes(pref.id)
+                          ? "border-[#FF5722] bg-[#FF5722]/5"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      {selectedPreferences.includes(pref.id) && (
+                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FF5722] flex items-center justify-center">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                      )}
+                      <div className="text-3xl mb-2">{pref.icon}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {language === "en" ? pref.name_en : pref.name_fr}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {/* Driving Preferences */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            {language === "en" ? "Driving Preferences" : "Préférences de conduite"}
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {preferenceCategories.driving.map((pref) => (
-              <button
-                key={pref.id}
-                onClick={() => togglePreference(pref.id)}
-                className={`relative p-4 rounded-xl border-2 transition-all ${
-                  selectedPreferences.includes(pref.id)
-                    ? "border-[#FF5722] bg-[#FF5722]/5"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                {selectedPreferences.includes(pref.id) && (
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FF5722] flex items-center justify-center">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                )}
-                <div className="text-3xl mb-2">{pref.icon}</div>
-                <div className="text-sm font-medium text-gray-900">{language === "en" ? pref.label : pref.labelFr}</div>
-              </button>
-            ))}
-          </div>
-        </div>
+            {/* Habits */}
+            {groupedPreferences['habits'] && (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  {language === "en" ? "Habits" : "Habitudes"}
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  {groupedPreferences['habits'].map((pref) => (
+                    <button
+                      key={pref.id}
+                      onClick={() => togglePreference(pref.id)}
+                      className={`relative p-4 rounded-xl border-2 transition-all ${
+                        selectedPreferences.includes(pref.id)
+                          ? "border-[#FF5722] bg-[#FF5722]/5"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      {selectedPreferences.includes(pref.id) && (
+                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FF5722] flex items-center justify-center">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                      )}
+                      <div className="text-3xl mb-2">{pref.icon}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {language === "en" ? pref.name_en : pref.name_fr}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Driving Preferences */}
+            {groupedPreferences['driving'] && (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  {language === "en" ? "Driving Preferences" : "Préférences de conduite"}
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {groupedPreferences['driving'].map((pref) => (
+                    <button
+                      key={pref.id}
+                      onClick={() => togglePreference(pref.id)}
+                      className={`relative p-4 rounded-xl border-2 transition-all ${
+                        selectedPreferences.includes(pref.id)
+                          ? "border-[#FF5722] bg-[#FF5722]/5"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      {selectedPreferences.includes(pref.id) && (
+                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FF5722] flex items-center justify-center">
+                          <Check className="w-3 h-3 text-white" />
+                        </div>
+                      )}
+                      <div className="text-3xl mb-2">{pref.icon}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {language === "en" ? pref.name_en : pref.name_fr}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
 
         {/* Actions */}
-        <div className="flex gap-4">
-          <Button
-            onClick={handleSkip}
-            variant="outline"
-            className="flex-1 h-12 bg-white border-gray-300 hover:bg-gray-50"
+        <div className="flex justify-center">
+          <Button 
+            onClick={handleSubmit} 
+            disabled={saving || selectedPreferences.length === 0}
+            className="w-full md:w-1/2 h-12 bg-[#FF5722] hover:bg-[#E64A19] text-white disabled:opacity-50"
           >
-            {language === "en" ? "Skip for now" : "Passer pour l'instant"}
-          </Button>
-          <Button onClick={handleSubmit} className="flex-1 h-12 bg-[#FF5722] hover:bg-[#E64A19] text-white">
-            {language === "en" ? "Continue" : "Continuer"}
+            {saving 
+              ? (language === "en" ? "Saving..." : "Sauvegarde...") 
+              : (language === "en" ? "Continue" : "Continuer")}
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
