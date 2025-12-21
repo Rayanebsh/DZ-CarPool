@@ -62,3 +62,4 @@ whitenoise==6.6.0
 # Monitoring (optionnel)
 sentry-sdk==1.39.2
 django-redis>=5.0.0
+coverage>=7.0.0
