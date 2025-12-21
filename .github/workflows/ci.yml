@@ -28,9 +28,9 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-pip-lint-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
+          ${{ runner.os }}-pip-lint-
     
     - name: Install linting tools
       run: |
@@ -69,6 +69,16 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     
     steps:
     - name: Checkout code
@@ -83,7 +93,9 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        key: ${{ runner.os }}-pip-test-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-test-
     
     - name: Install system dependencies
       run: |
@@ -125,6 +137,10 @@ jobs:
         mkdir -p Backend/media/documents
         mkdir -p Backend/staticfiles
     
+    - name: Verify PostgreSQL connection
+      run: |
+        PGPASSWORD=postgres psql -h localhost -U postgres -d test_db -c "SELECT version();"
+    
     - name: Check Django configuration
       working-directory: Backend
       run: |
@@ -133,10 +149,10 @@ jobs:
     
     - name: Run migrations
       working-directory: Backend
-      run: python manage.py migrate --noinput --settings=config.settings
+      run: |
+        python manage.py migrate --noinput --settings=config.settings --verbosity=1
     
     - name: Clean old test database
-      working-directory: Backend
       run: |
         PGPASSWORD=postgres psql -h localhost -U postgres -c "DROP DATABASE IF EXISTS test_test_db;" || true
       continue-on-error: true
@@ -147,16 +163,22 @@ jobs:
         coverage run --source='app' manage.py test app.users.tests \
           --settings=config.settings \
           --verbosity=2 \
-          --noinput
+          --noinput \
+          --parallel
+        
+        echo "=== Coverage Report ==="
+        coverage report --skip-covered
+        
+        echo "=== Generating Coverage Files ==="
         coverage xml
         coverage html
-        coverage report
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
         file: ./Backend/coverage.xml
         flags: unittests
+        name: codecov-umbrella
         fail_ci_if_error: false
     
     - name: Archive coverage report
@@ -164,6 +186,7 @@ jobs:
       with:
         name: coverage-report
         path: Backend/htmlcov/
+        retention-days: 7
       if: always()
     
     - name: Archive test logs
@@ -171,7 +194,15 @@ jobs:
       with:
         name: test-logs
         path: Backend/logs/
+        retention-days: 7
       if: failure()
+    
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: py-cov-action/python-coverage-comment-action@v3
+      with:
+        GITHUB_TOKEN: ${{ github.token }}
+      continue-on-error: true
 
   # Job 3: Security
   security:
@@ -188,24 +219,41 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
+    - name: Cache pip
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-security-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-security-
+    
     - name: Install security tools
       run: |
         python -m pip install --upgrade pip
         pip install safety bandit
     
     - name: Run Safety check
-      run: safety check --json || true
+      run: |
+        echo "=== Checking for known security vulnerabilities ==="
+        safety check --json > safety-report.json || true
+        safety check || true
       continue-on-error: true
     
     - name: Run Bandit
-      run: bandit -r Backend/ -f json -o bandit-report.json || true
+      run: |
+        echo "=== Scanning code for security issues ==="
+        bandit -r Backend/ -f json -o bandit-report.json || true
+        bandit -r Backend/ -ll || true
       continue-on-error: true
     
     - name: Upload security reports
       uses: actions/upload-artifact@v4
       with:
         name: security-reports
-        path: bandit-report.json
+        path: |
+          safety-report.json
+          bandit-report.json
+        retention-days: 30
       if: always()
 
   # Job 4: Build Docker (optionnel)
@@ -227,12 +275,17 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+      if: github.event_name == 'push'
       continue-on-error: true
     
-    - name: Build Docker image
+    - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
         context: Backend/
-        push: false
-        tags: dzcarpool:${{ github.sha }}
+        push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        tags: |
+          ${{ secrets.DOCKER_USERNAME }}/dzcarpool:latest
+          ${{ secrets.DOCKER_USERNAME }}/dzcarpool:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
       continue-on-error: true
