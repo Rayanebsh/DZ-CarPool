@@ -100,7 +100,7 @@ jobs:
     
     - name: Create environment file
       run: |
-        cat > Backend/.env << 'EOF'
+        cat > Backend/.env.test << 'EOF'
         SECRET_KEY=test-secret-key-for-ci-pipeline-12345678
         DEBUG=False
         DJANGO_ENV=test
