@@ -5,10 +5,11 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 import django
+from django.contrib.auth import get_user_model
+
 from app.reservations.models import Reservation
 from app.trajets.models import FuelPrice, Trajet
 from app.users.models import Preference, Role
-from django.contrib.auth import get_user_model
 
 # Configuration Django
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -3,7 +3,12 @@ apps/users/conftest.py
 Fixtures réutilisables pour les tests d'authentification
 """
 
+from django.contrib.auth import get_user_model
+
 import pytest
+from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from app.users.models import (
     EmailVerification,
     PhoneVerification,
@@ -11,9 +16,6 @@ from app.users.models import (
     Role,
     UserDocument,
 )
-from django.contrib.auth import get_user_model
-from rest_framework.test import APIClient
-from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 

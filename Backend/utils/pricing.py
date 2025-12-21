@@ -126,8 +126,9 @@ def load_fuel_prices_from_json(json_path="prix_carburants.json"):
     Returns:
         dict: Dictionnaire des prix par wilaya
     """
-    from app.trajets.models import FuelPrice
     from django.utils import timezone
+
+    from app.trajets.models import FuelPrice
 
     if not os.path.exists(json_path):
         return {}

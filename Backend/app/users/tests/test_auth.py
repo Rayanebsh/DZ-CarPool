@@ -3,8 +3,9 @@ apps/users/tests/test_auth.py
 Tests pour l'authentification (register, login, google_auth)
 """
 
-import pytest
 from django.contrib.auth import get_user_model
+
+import pytest
 from rest_framework import status
 
 User = get_user_model()

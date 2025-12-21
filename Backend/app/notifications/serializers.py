@@ -1,5 +1,6 @@
-from app.users.serializers import UserSerializer
 from rest_framework import serializers
+
+from app.users.serializers import UserSerializer
 
 from .models import Notification
 

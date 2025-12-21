@@ -5,9 +5,10 @@ Placer dans: app/users/tests/test_models.py
 
 from datetime import timedelta
 
-from app.users.models import EmailVerification, PhoneVerification, User
 from django.test import TestCase
 from django.utils import timezone
+
+from app.users.models import EmailVerification, PhoneVerification, User
 
 
 class UserModelTests(TestCase):

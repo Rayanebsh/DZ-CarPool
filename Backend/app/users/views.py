@@ -3,9 +3,10 @@ Views pour la gestion des utilisateurs
 AVEC GOOGLE OAUTH - VERSION CORRIGÉE
 """
 
+from django.utils import timezone
+
 import requests
 from allauth.socialaccount.models import SocialAccount
-from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated

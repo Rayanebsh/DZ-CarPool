@@ -2,8 +2,9 @@
 # apps/notifications/admin.py - Administration des notifications
 # ============================================================================
 
-from app.notifications.models import Notification
 from django.contrib import admin
+
+from app.notifications.models import Notification
 
 
 @admin.register(Notification)
