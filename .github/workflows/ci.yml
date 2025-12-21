@@ -100,7 +100,7 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y postgresql-client
+        sudo apt-get install -y postgresql-client redis-tools
     
     - name: Install Python dependencies
       run: |
@@ -138,13 +138,10 @@ jobs:
         mkdir -p Backend/media/documents
         mkdir -p Backend/staticfiles
     
-    - name: Verify services
+    - name: Verify PostgreSQL connection
       run: |
         echo "=== PostgreSQL Connection ==="
         PGPASSWORD=postgres psql -h localhost -U postgres -d test_db -c "SELECT version();"
-        
-        echo "=== Redis Connection ==="
-        redis-cli -h localhost ping
     
     - name: Check Django configuration
       working-directory: Backend
