@@ -1,44 +1,38 @@
-import os
 import random
-import sys
 from datetime import date, timedelta
 from decimal import Decimal
 
 import django
-from django.contrib.auth import get_user_model
 
-from app.reservations.models import Reservation
-from app.trajets.models import FuelPrice, Trajet
-from app.users.models import Preference, Role
+from app.trips.models import FuelPrice, Reservation, Trajet
+from app.users.models import Preference, Role, User
 
-# Configuration Django
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 
-User = get_user_model()
-
-
-def create_fixtures():
-    print("Génération des fixtures de test...")
-
-    # Créer les rôles
+def create_roles():
+    """Crée les rôles utilisateur de base"""
     user_role, _ = Role.objects.get_or_create(name="USER")
     admin_role, _ = Role.objects.get_or_create(name="ADMIN")
     print("✓ Rôles créés")
+    return user_role, admin_role
 
-    # Créer des préférences
+
+def create_preferences():
+    """Crée les préférences de covoiturage"""
     prefs = []
     pref_names = ["Musique", "Silence", "Discussion", "Non-fumeur", "Climatisation"]
     for name in pref_names:
         pref, _ = Preference.objects.get_or_create(name=name)
         prefs.append(pref)
     print("✓ Préférences créées")
+    return prefs
 
-    # Créer des utilisateurs
+
+def create_users(user_role, prefs, count=20):
+    """Crée des utilisateurs de test"""
     users = []
-    for i in range(20):
+    for i in range(count):
         user, created = User.objects.get_or_create(
             email=f"user{i}@dzcarpool.com",
             defaults={
@@ -53,8 +47,11 @@ def create_fixtures():
             user.save()
         users.append(user)
     print(f"✓ {len(users)} utilisateurs créés")
+    return users
 
-    # Créer des prix de carburant
+
+def create_fuel_prices():
+    """Crée les prix du carburant par wilaya"""
     wilayas = ["Alger", "Oran", "Constantine", "Annaba", "Béjaïa"]
     for wilaya in wilayas:
         FuelPrice.objects.get_or_create(
@@ -69,10 +66,13 @@ def create_fixtures():
         )
     print("✓ Prix du carburant créés")
 
-    # Créer des trajets
+
+def create_trips(users, count=50):
+    """Crée des trajets de test"""
     villes = ["Alger", "Oran", "Constantine", "Annaba", "Béjaïa", "Sétif"]
     trajets = []
-    for i in range(50):
+
+    for i in range(count):
         depart, arrivee = random.sample(villes, 2)
         trajet_date = date.today() + timedelta(days=random.randint(1, 30))
 
@@ -91,28 +91,63 @@ def create_fixtures():
         )
         if created:
             trajets.append(trajet)
-    print(f"✓ {len(trajets)} trajets créés")
 
-    # Créer des réservations
+    print(f"✓ {len(trajets)} trajets créés")
+    return trajets
+
+
+def create_reservations(trajets, users, max_count=30):
+    """Crée des réservations de test"""
     reservations_count = 0
-    for trajet in random.sample(trajets, min(30, len(trajets))):
-        passager = random.choice([u for u in users if u != trajet.conducteur])
+    sample_size = min(max_count, len(trajets))
+
+    for trajet in random.sample(trajets, sample_size):
+        # Choisir un passager différent du conducteur
+        available_passengers = [u for u in users if u != trajet.conducteur]
+        if not available_passengers:
+            continue
+
+        passager = random.choice(available_passengers)
+        max_places = min(2, trajet.places_disponibles)
+
+        if max_places <= 0:
+            continue
+
         try:
             reservation, created = Reservation.objects.get_or_create(
                 trajet=trajet,
                 passager=passager,
                 defaults={
-                    "nbr_places": random.randint(1, min(2, trajet.places_disponibles)),
+                    "nbr_places": random.randint(1, max_places),
                     "status": random.choice(["PENDING", "CONFIRMED"]),
                 },
             )
             if created:
                 reservations_count += 1
         except Exception:
-            pass
-    print(f"✓ {reservations_count} réservations créées")
+            continue
 
-    print("\n✅ Fixtures générées avec succès!")
+    print(f"✓ {reservations_count} réservations créées")
+    return reservations_count
+
+
+def create_fixtures():
+    """Fonction principale de génération des fixtures"""
+    print("Génération des fixtures de test...")
+    print("=" * 50)
+
+    # Créer les données de base
+    user_role, admin_role = create_roles()
+    prefs = create_preferences()
+    users = create_users(user_role, prefs, count=20)
+    create_fuel_prices()
+
+    # Créer les données transactionnelles
+    trajets = create_trips(users, count=50)
+    create_reservations(trajets, users, max_count=30)
+
+    print("=" * 50)
+    print("✅ Fixtures générées avec succès!")
 
 
 if __name__ == "__main__":

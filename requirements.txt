@@ -1,147 +1,51 @@
-# ==========================================
-# FRAMEWORK DJANGO
-# ==========================================
+# Django Core
 Django>=4.2,<5.0
 djangorestframework>=3.14.0
-
-# ==========================================
-# BASE DE DONNÉES
-# ==========================================
-psycopg2-binary>=2.9.0
-
-# ==========================================
-# AUTHENTIFICATION & SÉCURITÉ
-# ==========================================
-djangorestframework-simplejwt>=5.3.0
-bcrypt>=4.1.0
-argon2-cffi>=23.1.0
-
-# ==========================================
-# VALIDATION & SÉRIALISATION
-# ==========================================
-pydantic>=2.5.0
-django-filter>=23.5
-
-# ==========================================
-# GESTION DES VARIABLES D'ENVIRONNEMENT
-# ==========================================
-python-dotenv>=1.0.0
-
-# ==========================================
-# CORS (pour React frontend)
-# ==========================================
-django-cors-headers>=4.3.0
-
-# ==========================================
-# DOCUMENTATION API (Swagger/OpenAPI)
-# ==========================================
-drf-spectacular>=0.27.0
-
-# ==========================================
-# GESTION DES IMAGES (photos de profil)
-# ==========================================
-Pillow>=10.1.0
-
-# ==========================================
-# INTERNATIONALISATION (Arabe/Français)
-# ==========================================
-django-modeltranslation>=0.18.0
-
-# ==========================================
-# TESTS
-# ==========================================
-pytest>=7.4.0
-pytest-django>=4.7.0
-pytest-cov>=4.1.0
-factory-boy>=3.3.0
-faker>=22.0.0
-
-# ==========================================
-# QUALITÉ DU CODE (Linting & Formatting)
-# ==========================================
-black>=23.12.0
-flake8>=7.0.0
-ruff>=0.1.0
-pylint>=3.0.0
-isort>=5.13.0
-
-# ==========================================
-# UTILITAIRES
-# ==========================================
-pytz>=2023.3
-python-dateutil>=2.8.2
-requests>=2.31.0
-
-# ==========================================
-# CALCUL DE DISTANCE (pour trajets)
-# ==========================================
-geopy>=2.4.0
-
-# ==========================================
-# GESTION DES TÂCHES ASYNCHRONES (optionnel mais recommandé)
-# ==========================================
-celery>=5.3.0
-redis>=5.0.0
-
-# ==========================================
-# MONITORING & LOGS (optionnel)
-# ==========================================
-sentry-sdk>=1.40.0
-
-# ==========================================
-# MIGRATIONS BASE DE DONNÉES
-# ==========================================
-# Django inclut déjà son système de migrations
-
-# ==========================================
-# POUR LES NOTIFICATIONS (optionnel)
-# ==========================================
-django-notifications-hq>=1.8.0
-
-Django>=4.2,<5.0
-djangorestframework>=3.14.0
-djangorestframework-simplejwt>=5.3.0
-django-cors-headers>=4.3.0
-django-filter>=23.5
-drf-spectacular>=0.27.0
+django-cors-headers>=4.0.0
+django-environ>=0.10.0
 
 # Database
-psycopg2-binary>=2.9.9
+psycopg2-binary>=2.9.6
 
-# Configuration
-python-decouple>=3.8
+# Authentication & Authorization
+djangorestframework-simplejwt>=5.2.2
+django-allauth>=0.54.0
+PyJWT>=2.8.0
 
-# Images & Files
-Pillow>=10.1.0
+# API Documentation
+drf-spectacular>=0.26.2
 
-# Cache & Celery (optionnel)
-redis>=5.0.0
-django-redis>=5.4.0
-# celery>=5.3.4
-# django-celery-beat>=2.5.0
+# Phone Number Validation
+phonenumbers>=8.13.0
+
+# Password Validation
+argon2-cffi>=21.3.0
 
 # Testing
-pytest>=7.4.3
-pytest-django>=4.7.0
+pytest>=7.3.1
+pytest-django>=4.5.2
 pytest-cov>=4.1.0
-factory-boy>=3.3.0
+coverage>=7.2.5
+factory-boy>=3.2.1
 
 # Code Quality
-black>=23.12.0
-flake8>=6.1.0
-isort>=5.13.0
+black>=23.3.0
+flake8>=6.0.0
+isort>=5.12.0
+pylint>=2.17.4
 
 # Security
-django-guardian>=2.4.0
+bandit>=1.7.5
+safety>=2.3.5
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.31.0
+Pillow>=10.0.0
 
 # Production
-gunicorn>=21.2.0
-whitenoise>=6.6.0
+gunicorn>=20.1.0
+whitenoise>=6.4.0
 
-# Monitoring (optionnel)
-# sentry-sdk>=1.39.0
-# django-prometheus>=2.3.1
-
-# Development
-django-extensions>=3.2.3
-# django-debug-toolbar>=4.2.0
+# Monitoring (optional)
+sentry-sdk>=1.25.0
