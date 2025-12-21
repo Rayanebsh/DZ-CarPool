@@ -24,7 +24,8 @@ class VerificationService {
     } catch (error: any) {
       // Gérer le cas où l'email est déjà vérifié
       if (error.response?.status === 400) {
-        const message = error.response?.data?.message || error.response?.data?.error;
+        const message =
+          error.response?.data?.message || error.response?.data?.error;
         if (message?.includes('déjà vérifié')) {
           console.log('ℹ️ Email déjà vérifié');
           throw new Error('EMAIL_ALREADY_VERIFIED');
@@ -37,7 +38,9 @@ class VerificationService {
   /**
    * Vérifie le code email
    */
-  async verifyEmail(code: string): Promise<{ message: string; email_verified: boolean }> {
+  async verifyEmail(
+    code: string,
+  ): Promise<{ message: string; email_verified: boolean }> {
     const response = await apiClient.post('/users/verify_email/', { code });
     return response.data;
   }
@@ -52,7 +55,8 @@ class VerificationService {
     } catch (error: any) {
       // Gérer le cas où le téléphone est déjà vérifié
       if (error.response?.status === 400) {
-        const message = error.response?.data?.message || error.response?.data?.error;
+        const message =
+          error.response?.data?.message || error.response?.data?.error;
         if (message?.includes('déjà vérifié')) {
           console.log('ℹ️ Téléphone déjà vérifié');
           throw new Error('PHONE_ALREADY_VERIFIED');
@@ -69,7 +73,9 @@ class VerificationService {
   /**
    * Vérifie le code téléphone
    */
-  async verifyPhone(code: string): Promise<{ message: string; phone_verified: boolean }> {
+  async verifyPhone(
+    code: string,
+  ): Promise<{ message: string; phone_verified: boolean }> {
     const response = await apiClient.post('/users/verify_phone/', { code });
     return response.data;
   }

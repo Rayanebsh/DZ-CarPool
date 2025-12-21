@@ -1,28 +1,28 @@
-"use client"
+'use client';
 
-import type React from "react"
-import { useState, useEffect, useRef } from "react"
-import { MapPin, Loader2, Navigation } from "lucide-react"
+import type React from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { MapPin, Loader2, Navigation } from 'lucide-react';
 
 interface Location {
-  place_id: string
-  display_name: string
-  lat: string
-  lon: string
+  place_id: string;
+  display_name: string;
+  lat: string;
+  lon: string;
   address?: {
-    city?: string
-    town?: string
-    village?: string
-    state?: string
-  }
+    city?: string;
+    town?: string;
+    village?: string;
+    state?: string;
+  };
 }
 
 interface LocationAutocompleteProps {
-  value: string
-  onChange: (value: string, location?: Location) => void
-  placeholder: string
-  icon?: React.ReactNode
-  className?: string
+  value: string;
+  onChange: (value: string, location?: Location) => void;
+  placeholder: string;
+  icon?: React.ReactNode;
+  className?: string;
 }
 
 export function LocationAutocomplete({
@@ -30,34 +30,37 @@ export function LocationAutocomplete({
   onChange,
   placeholder,
   icon,
-  className = "",
+  className = '',
 }: LocationAutocompleteProps) {
-  const [suggestions, setSuggestions] = useState<Location[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const wrapperRef = useRef<HTMLDivElement>(null)
+  const [suggestions, setSuggestions] = useState<Location[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false)
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (value.length < 2) {
-        setSuggestions([])
-        setError(null)
-        return
+        setSuggestions([]);
+        setError(null);
+        return;
       }
 
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
       try {
         // Using Nominatim API for Algeria (Yassir-like experience)
         const response = await fetch(
@@ -70,48 +73,53 @@ export function LocationAutocomplete({
             `accept-language=fr`,
           {
             headers: {
-              "User-Agent": "DZ-CarPool/1.0",
+              'User-Agent': 'DZ-CarPool/1.0',
             },
           },
-        )
+        );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch locations")
+          throw new Error('Failed to fetch locations');
         }
 
-        const data = await response.json()
-        setSuggestions(data)
-        setShowSuggestions(data.length > 0)
+        const data = await response.json();
+        setSuggestions(data);
+        setShowSuggestions(data.length > 0);
       } catch (error) {
-        console.error("[v0] Error fetching location suggestions:", error)
-        setError("Impossible de charger les suggestions")
-        setSuggestions([])
+        console.error('[v0] Error fetching location suggestions:', error);
+        setError('Impossible de charger les suggestions');
+        setSuggestions([]);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    const debounce = setTimeout(fetchSuggestions, 400)
-    return () => clearTimeout(debounce)
-  }, [value])
+    const debounce = setTimeout(fetchSuggestions, 400);
+    return () => clearTimeout(debounce);
+  }, [value]);
 
   const handleSelect = (location: Location) => {
     // Format display name to show city/town first
-    const cityName = location.address?.city || location.address?.town || location.address?.village
-    const displayName = cityName ? `${cityName}, ${location.address?.state || "Algeria"}` : location.display_name
+    const cityName =
+      location.address?.city ||
+      location.address?.town ||
+      location.address?.village;
+    const displayName = cityName
+      ? `${cityName}, ${location.address?.state || 'Algeria'}`
+      : location.display_name;
 
-    onChange(displayName, location)
-    setShowSuggestions(false)
-    setSuggestions([])
-  }
+    onChange(displayName, location);
+    setShowSuggestions(false);
+    setSuggestions([]);
+  };
 
   const handleCurrentLocation = () => {
     if (navigator.geolocation) {
-      setIsLoading(true)
+      setIsLoading(true);
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
-            const { latitude, longitude } = position.coords
+            const { latitude, longitude } = position.coords;
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?` +
                 `lat=${latitude}&` +
@@ -121,29 +129,32 @@ export function LocationAutocomplete({
                 `accept-language=fr`,
               {
                 headers: {
-                  "User-Agent": "DZ-CarPool/1.0",
+                  'User-Agent': 'DZ-CarPool/1.0',
                 },
               },
-            )
-            const data = await response.json()
-            const cityName = data.address?.city || data.address?.town || data.address?.village
-            const displayName = cityName ? `${cityName}, ${data.address?.state || "Algeria"}` : data.display_name
-            onChange(displayName, data)
+            );
+            const data = await response.json();
+            const cityName =
+              data.address?.city || data.address?.town || data.address?.village;
+            const displayName = cityName
+              ? `${cityName}, ${data.address?.state || 'Algeria'}`
+              : data.display_name;
+            onChange(displayName, data);
           } catch (error) {
-            console.error("[v0] Error getting current location:", error)
-            setError("Impossible d'obtenir votre position")
+            console.error('[v0] Error getting current location:', error);
+            setError("Impossible d'obtenir votre position");
           } finally {
-            setIsLoading(false)
+            setIsLoading(false);
           }
         },
         (error) => {
-          console.error("[v0] Geolocation error:", error)
-          setError("Accès à la localisation refusé")
-          setIsLoading(false)
+          console.error('[v0] Geolocation error:', error);
+          setError('Accès à la localisation refusé');
+          setIsLoading(false);
         },
-      )
+      );
     }
-  }
+  };
 
   return (
     <div ref={wrapperRef} className={`relative flex-1 ${className}`}>
@@ -158,7 +169,9 @@ export function LocationAutocomplete({
           className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
           autoComplete="off"
         />
-        {isLoading && <Loader2 className="w-4 h-4 animate-spin text-[#FF5722]" />}
+        {isLoading && (
+          <Loader2 className="w-4 h-4 animate-spin text-[#FF5722]" />
+        )}
         {!isLoading && !value && (
           <button
             type="button"
@@ -174,9 +187,12 @@ export function LocationAutocomplete({
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute z-50 w-full mt-2 bg-background border border-border rounded-xl shadow-xl max-h-80 overflow-y-auto">
           {suggestions.map((location) => {
-            const cityName = location.address?.city || location.address?.town || location.address?.village
-            const mainText = cityName || location.display_name.split(",")[0]
-            const secondaryText = location.address?.state || "Algeria"
+            const cityName =
+              location.address?.city ||
+              location.address?.town ||
+              location.address?.village;
+            const mainText = cityName || location.display_name.split(',')[0];
+            const secondaryText = location.address?.state || 'Algeria';
 
             return (
               <button
@@ -188,11 +204,15 @@ export function LocationAutocomplete({
                   <MapPin className="w-4 h-4 text-[#FF5722]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm text-foreground truncate">{mainText}</div>
-                  <div className="text-xs text-muted-foreground truncate">{secondaryText}</div>
+                  <div className="font-medium text-sm text-foreground truncate">
+                    {mainText}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {secondaryText}
+                  </div>
                 </div>
               </button>
-            )
+            );
           })}
         </div>
       )}
@@ -203,11 +223,17 @@ export function LocationAutocomplete({
         </div>
       )}
 
-      {showSuggestions && !isLoading && suggestions.length === 0 && value.length >= 2 && !error && (
-        <div className="absolute z-50 w-full mt-2 bg-background border border-border rounded-lg p-4 shadow-lg">
-          <p className="text-sm text-muted-foreground text-center">Aucune localisation trouvée</p>
-        </div>
-      )}
+      {showSuggestions &&
+        !isLoading &&
+        suggestions.length === 0 &&
+        value.length >= 2 &&
+        !error && (
+          <div className="absolute z-50 w-full mt-2 bg-background border border-border rounded-lg p-4 shadow-lg">
+            <p className="text-sm text-muted-foreground text-center">
+              Aucune localisation trouvée
+            </p>
+          </div>
+        )}
     </div>
-  )
+  );
 }

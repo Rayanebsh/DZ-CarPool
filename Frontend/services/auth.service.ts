@@ -1,7 +1,8 @@
 // services/auth.service.ts
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export interface User {
   id: number;
@@ -129,7 +130,7 @@ class AuthService {
         Authorization: `Bearer ${this.getAccessToken()}`,
       },
     });
-    
+
     const user = response.data;
     this.setUser(user);
     return user;
@@ -179,16 +180,16 @@ class AuthService {
         headers: {
           Authorization: `Bearer ${this.getAccessToken()}`,
         },
-      }
+      },
     );
-    
+
     const user = this.getStoredUser();
     if (user) {
       user.has_preferences = true;
       user.preferences_count = preferenceIds.length;
       this.setUser(user);
     }
-    
+
     return response.data;
   }
 
@@ -206,7 +207,7 @@ class AuthService {
           Authorization: `Bearer ${this.getAccessToken()}`,
           'Content-Type': 'multipart/form-data',
         },
-      }
+      },
     );
     return response.data;
   }
@@ -214,7 +215,7 @@ class AuthService {
   // ========== TOKEN REFRESH ==========
   async refreshToken(): Promise<string> {
     const refreshToken = this.getRefreshToken();
-    
+
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }

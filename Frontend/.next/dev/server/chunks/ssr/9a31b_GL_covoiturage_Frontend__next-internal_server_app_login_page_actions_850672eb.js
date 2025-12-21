@@ -1,6 +1,8 @@
 module.exports = [
-"[project]/Desktop/Projet_GL/covoiturage/Frontend/.next-internal/server/app/login/page/actions.js [app-rsc] (server actions loader, ecmascript)", ((__turbopack_context__, module, exports) => {
+"[project]/Desktop/Projet_GL/covoiturage/Frontend/.next-internal/server/app/login/page/actions.js [app-rsc] (server actions loader, ecmascript)", ((__turbopack_context__) => {
+"use strict";
 
+__turbopack_context__.s([]);
 }),
 ];
 

@@ -2,7 +2,8 @@
 import axios from 'axios';
 
 // URL du backend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 // Instance Axios avec configuration
 const apiClient = axios.create({
@@ -24,7 +25,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Intercepteur pour gérer le refresh token
@@ -39,18 +40,21 @@ apiClient.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem('refresh_token');
-        
+
         if (!refreshToken) {
           throw new Error('No refresh token');
         }
 
         // Appeler l'endpoint de refresh
-        const response = await axios.post(`${API_BASE_URL}/users/token/refresh/`, {
-          refresh: refreshToken,
-        });
+        const response = await axios.post(
+          `${API_BASE_URL}/users/token/refresh/`,
+          {
+            refresh: refreshToken,
+          },
+        );
 
         const { access } = response.data;
-        
+
         // Sauvegarder le nouveau token
         localStorage.setItem('access_token', access);
 
@@ -68,7 +72,7 @@ apiClient.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

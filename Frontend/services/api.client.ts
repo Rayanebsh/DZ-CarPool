@@ -1,7 +1,12 @@
 // services/api.client.ts
-import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
+import axios, {
+  AxiosInstance,
+  InternalAxiosRequestConfig,
+  AxiosError,
+} from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 /**
  * Instance Axios configurée avec authentification automatique
@@ -31,7 +36,7 @@ apiClient.interceptors.request.use(
   },
   (error: AxiosError) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 /**
@@ -42,7 +47,9 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
 
     // Si erreur 401 (token expiré) et pas déjà tenté de refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -91,7 +98,7 @@ apiClient.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

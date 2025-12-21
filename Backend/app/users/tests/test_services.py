@@ -5,11 +5,12 @@ Placer dans: app/users/tests/test_services.py
 
 from unittest.mock import patch
 
-from app.users.models import User
-from app.users.services import EmailService, SMSService
 from django.conf import settings
 from django.core import mail
 from django.test import TestCase, override_settings
+
+from app.users.models import User
+from app.users.services import EmailService, SMSService
 
 
 class EmailServiceTests(TestCase):

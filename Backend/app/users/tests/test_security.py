@@ -151,8 +151,9 @@ class TestPermissionsSecurity:
         self, authenticated_client, user, user_document
     ):
         """Test que l'utilisateur ne voit que ses propres documents"""
-        from app.users.models import User, UserDocument
         from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from app.users.models import User, UserDocument
 
         # Créer un autre utilisateur avec des documents
         other_user = User.objects.create_user(

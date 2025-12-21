@@ -1,37 +1,37 @@
-"use client"
+'use client';
 
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { Star, MapPin, Calendar, Users, Check, X } from "lucide-react"
-import Image from "next/image"
+import { Header } from '@/components/header';
+import { Footer } from '@/components/footer';
+import { Button } from '@/components/ui/button';
+import { Star, MapPin, Calendar, Users, Check, X } from 'lucide-react';
+import Image from 'next/image';
 
 // Mock trip data
 const tripData = {
   id: 1,
   driver: {
-    name: "Karim Lamin",
+    name: 'Karim Lamin',
     rating: 4.8,
     trips: 192,
-    memberSince: "June 2021",
+    memberSince: 'June 2021',
     verified: true,
-    image: "/driver-profile.png",
+    image: '/driver-profile.png',
   },
   vehicle: {
-    model: "Volkswagen Golf 7",
-    year: "2019",
-    color: "Yellow",
+    model: 'Volkswagen Golf 7',
+    year: '2019',
+    color: 'Yellow',
     seats: 4,
     airConditioning: true,
-    image: "/images/pexels-pixabay-63324.jpg",
+    image: '/images/pexels-pixabay-63324.jpg',
   },
   trip: {
-    from: "Algiers",
-    to: "Oran",
-    date: "Monday, 28 December at 8:00",
-    departure: "08:00",
-    arrival: "12:30",
-    duration: "4h 30m",
+    from: 'Algiers',
+    to: 'Oran',
+    date: 'Monday, 28 December at 8:00',
+    departure: '08:00',
+    arrival: '12:30',
+    duration: '4h 30m',
     price: 1200,
     seatsLeft: 2,
   },
@@ -42,10 +42,10 @@ const tripData = {
     conversation: true,
   },
   passengers: [
-    { name: "Ahmed A.", image: "/passenger-1.jpg" },
-    { name: "Fatima Z.", image: "/passenger-2.jpg" },
+    { name: 'Ahmed A.', image: '/passenger-1.jpg' },
+    { name: 'Fatima Z.', image: '/passenger-2.jpg' },
   ],
-}
+};
 
 export default function TripDetailsPage() {
   return (
@@ -54,7 +54,8 @@ export default function TripDetailsPage() {
       <main className="container mx-auto px-4 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="text-sm text-gray-500 mb-6">
-          <span>Home</span> / <span>Search Results</span> / <span className="text-gray-900">Algiers to Oran</span>
+          <span>Home</span> / <span>Search Results</span> /{' '}
+          <span className="text-gray-900">Algiers to Oran</span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -62,7 +63,9 @@ export default function TripDetailsPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Trip Header */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Trip From Algiers to Oran</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Trip From Algiers to Oran
+              </h1>
               <p className="text-gray-600">{tripData.trip.date}</p>
             </div>
 
@@ -70,7 +73,7 @@ export default function TripDetailsPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-start gap-4">
                 <Image
-                  src={tripData.driver.image || "/placeholder.svg"}
+                  src={tripData.driver.image || '/placeholder.svg'}
                   alt={tripData.driver.name}
                   width={80}
                   height={80}
@@ -78,7 +81,9 @@ export default function TripDetailsPage() {
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h2 className="text-xl font-semibold text-gray-900">{tripData.driver.name}</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      {tripData.driver.name}
+                    </h2>
                     {tripData.driver.verified && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                         Verified
@@ -94,7 +99,10 @@ export default function TripDetailsPage() {
                     </div>
                     <span>Member since {tripData.driver.memberSince}</span>
                   </div>
-                  <Button variant="link" className="text-[#FF5722] hover:text-[#E64A19] p-0 h-auto mt-2">
+                  <Button
+                    variant="link"
+                    className="text-[#FF5722] hover:text-[#E64A19] p-0 h-auto mt-2"
+                  >
                     Verified Profile
                   </Button>
                 </div>
@@ -103,11 +111,13 @@ export default function TripDetailsPage() {
 
             {/* Vehicle Information */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Vehicle Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Vehicle Information
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative aspect-video rounded-lg overflow-hidden">
                   <Image
-                    src={tripData.vehicle.image || "/placeholder.svg"}
+                    src={tripData.vehicle.image || '/placeholder.svg'}
                     alt={tripData.vehicle.model}
                     fill
                     className="object-cover"
@@ -115,7 +125,9 @@ export default function TripDetailsPage() {
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <h4 className="font-semibold text-gray-900">{tripData.vehicle.model}</h4>
+                    <h4 className="font-semibold text-gray-900">
+                      {tripData.vehicle.model}
+                    </h4>
                     <p className="text-sm text-gray-600">
                       {tripData.vehicle.year} • {tripData.vehicle.color}
                     </p>
@@ -138,7 +150,9 @@ export default function TripDetailsPage() {
 
             {/* Trip Features & Rules */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Trip Features & Rules</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Trip Features & Rules
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3">
                   {tripData.features.nonSmoking ? (
@@ -154,7 +168,9 @@ export default function TripDetailsPage() {
                   ) : (
                     <X className="w-5 h-5 text-red-600" />
                   )}
-                  <span className="text-sm text-gray-700">Music Preference</span>
+                  <span className="text-sm text-gray-700">
+                    Music Preference
+                  </span>
                 </div>
                 <div className="flex items-center gap-3">
                   {tripData.features.petsAllowed ? (
@@ -177,18 +193,22 @@ export default function TripDetailsPage() {
 
             {/* Passengers */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Passengers</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Passengers
+              </h3>
               <div className="flex items-center gap-4">
                 {tripData.passengers.map((passenger, index) => (
                   <div key={index} className="flex flex-col items-center">
                     <Image
-                      src={passenger.image || "/placeholder.svg"}
+                      src={passenger.image || '/placeholder.svg'}
                       alt={passenger.name}
                       width={48}
                       height={48}
                       className="rounded-full mb-1"
                     />
-                    <span className="text-xs text-gray-600">{passenger.name}</span>
+                    <span className="text-xs text-gray-600">
+                      {passenger.name}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -201,9 +221,13 @@ export default function TripDetailsPage() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm text-gray-600">Price per seat</span>
-                  <span className="text-3xl font-bold text-gray-900">{tripData.trip.price} DZD</span>
+                  <span className="text-3xl font-bold text-gray-900">
+                    {tripData.trip.price} DZD
+                  </span>
                 </div>
-                <div className="text-sm text-green-600 font-medium">{tripData.trip.seatsLeft} seats available</div>
+                <div className="text-sm text-green-600 font-medium">
+                  {tripData.trip.seatsLeft} seats available
+                </div>
               </div>
 
               {/* Trip Summary */}
@@ -211,15 +235,23 @@ export default function TripDetailsPage() {
                 <div className="flex items-center gap-3 text-sm">
                   <MapPin className="w-5 h-5 text-gray-400" />
                   <div>
-                    <div className="font-medium text-gray-900">{tripData.trip.from}</div>
-                    <div className="text-xs text-gray-500">{tripData.trip.departure}</div>
+                    <div className="font-medium text-gray-900">
+                      {tripData.trip.from}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {tripData.trip.departure}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                   <MapPin className="w-5 h-5 text-gray-400" />
                   <div>
-                    <div className="font-medium text-gray-900">{tripData.trip.to}</div>
-                    <div className="text-xs text-gray-500">{tripData.trip.arrival}</div>
+                    <div className="font-medium text-gray-900">
+                      {tripData.trip.to}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {tripData.trip.arrival}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
@@ -232,12 +264,14 @@ export default function TripDetailsPage() {
                 Book Now
               </Button>
 
-              <p className="text-xs text-center text-gray-500">You won't be charged yet</p>
+              <p className="text-xs text-center text-gray-500">
+                You won't be charged yet
+              </p>
             </div>
           </div>
         </div>
       </main>
       <Footer />
     </div>
-  )
+  );
 }

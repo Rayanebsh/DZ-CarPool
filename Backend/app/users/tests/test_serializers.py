@@ -3,6 +3,11 @@ Tests pour app/users/serializers.py - VERSION CORRIGÉE
 Placer dans: app/users/tests/test_serializers.py
 """
 
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+
+from rest_framework.test import APIRequestFactory
+
 from app.users.models import Preference, Role, UserDocument
 from app.users.serializers import (
     ChangePasswordSerializer,
@@ -16,9 +21,6 @@ from app.users.serializers import (
     VerifyEmailSerializer,
     VerifyPhoneSerializer,
 )
-from django.contrib.auth import get_user_model
-from django.test import TestCase
-from rest_framework.test import APIRequestFactory
 
 User = get_user_model()
 

@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "target": "ES6",
     "skipLibCheck": true,
@@ -18,15 +14,14 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
   "include": [
@@ -36,7 +31,9 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"],
+  "lib": ["DOM", "DOM.Iterable", "ESNext"],
+  "jsx": "react-jsx",
+  "module": "ESNext",
+  "target": "ESNext"
 }

@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
 import { useGoogleLogin } from '@react-oauth/google';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import authService from '@/services/auth.service';
 import { useState } from 'react';
 
@@ -11,7 +11,10 @@ interface GoogleLoginButtonProps {
   onError?: (error: string) => void;
 }
 
-export default function GoogleLoginButton({ text, onError }: GoogleLoginButtonProps) {
+export default function GoogleLoginButton({
+  text,
+  onError,
+}: GoogleLoginButtonProps) {
   const router = useRouter();
   const { setUser, setIsAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -19,13 +22,15 @@ export default function GoogleLoginButton({ text, onError }: GoogleLoginButtonPr
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setLoading(true);
-      
+
       try {
         console.log('✅ Token Google reçu:', tokenResponse.access_token);
-        
+
         // Envoyer le token au backend
-        const authResponse = await authService.googleAuth(tokenResponse.access_token);
-        
+        const authResponse = await authService.googleAuth(
+          tokenResponse.access_token,
+        );
+
         console.log('✅ Authentification réussie:', authResponse);
 
         // Mettre à jour le contexte
@@ -35,14 +40,13 @@ export default function GoogleLoginButton({ text, onError }: GoogleLoginButtonPr
         // Redirection
         const redirectUrl = authResponse.redirect_url || '/#hero';
         console.log('🔄 Redirection vers:', redirectUrl);
-        
+
         router.push(redirectUrl);
-        
       } catch (error: any) {
         console.error('❌ Erreur Google Auth:', error);
-        
+
         let errorMsg = 'Erreur de connexion avec Google';
-        
+
         if (error.response?.status === 401) {
           errorMsg = 'Authentification Google refusée';
         } else if (error.response?.status === 400) {
@@ -52,7 +56,7 @@ export default function GoogleLoginButton({ text, onError }: GoogleLoginButtonPr
         } else if (error.message) {
           errorMsg = error.message;
         }
-        
+
         if (onError) {
           onError(errorMsg);
         }

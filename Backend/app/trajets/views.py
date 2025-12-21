@@ -1,10 +1,12 @@
-from app.core.filters import TrajetFilter
 from django.db.models import Q
 from django.utils import timezone
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from app.core.filters import TrajetFilter
 
 from .models import FuelPrice, Trajet
 from .permissions import (

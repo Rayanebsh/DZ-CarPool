@@ -5,11 +5,13 @@ Frontend React pour la plateforme de covoiturage DZ-CarPool.
 ## Démarrage
 
 ### Avec Docker
+
 ```bash
 docker-compose up frontend
 ```
 
 ### Sans Docker
+
 ```bash
 npm install
 npm start

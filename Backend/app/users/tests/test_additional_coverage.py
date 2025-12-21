@@ -6,11 +6,13 @@ Placer dans: app/users/tests/test_additional_coverage.py
 from datetime import timedelta
 from unittest.mock import patch
 
-from app.users.models import EmailVerification, PhoneVerification, User
 from django.test import override_settings
 from django.utils import timezone
+
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
+
+from app.users.models import EmailVerification, PhoneVerification, User
 
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
