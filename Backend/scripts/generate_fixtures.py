@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import django
 
-from app.trips.models import FuelPrice, Reservation, Trajet
+from app.trajets.models import FuelPrice, Reservation, Trajet
 from app.users.models import Preference, Role, User
 
 django.setup()
