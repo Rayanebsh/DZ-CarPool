@@ -6,7 +6,6 @@ import os
 
 from .settings import DATABASES, MIDDLEWARE
 
-
 # Désactiver le mode debug en test (sauf si explicitement activé)
 DEBUG = os.getenv("DEBUG", "False") == "True"
 # TOUJOURS utiliser le cache en mémoire pour les tests

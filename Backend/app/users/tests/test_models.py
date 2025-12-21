@@ -194,8 +194,17 @@ class VerificationModelIntegrationTests(TestCase):
 
     def test_user_can_have_both_verifications(self):
         """Test qu'un utilisateur peut avoir email et SMS"""
+        # ✅ CORRECTION : Créer les vérifications avant de les compter
+        email_verification = EmailVerification.objects.create(user=self.user)
+        phone_verification = PhoneVerification.objects.create(user=self.user)
+
+        # Maintenant on peut vérifier qu'elles existent
         self.assertEqual(EmailVerification.objects.filter(user=self.user).count(), 1)
         self.assertEqual(PhoneVerification.objects.filter(user=self.user).count(), 1)
+
+        # Vérifier que ce sont les bonnes instances
+        self.assertEqual(email_verification.user, self.user)
+        self.assertEqual(phone_verification.user, self.user)
 
     def test_verification_cascade_delete(self):
         """Test suppression en cascade"""
