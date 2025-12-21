@@ -101,6 +101,9 @@ jobs:
         DB_PORT=5432
         ALLOWED_HOSTS=localhost,127.0.0.1
         EOF
+
+    - name: Create logs folder
+      run: mkdir -p Backend/logs
     
     - name: Run migrations
       run: python Backend/manage.py migrate --noinput
