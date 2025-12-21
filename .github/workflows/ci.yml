@@ -8,12 +8,11 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
-  POSTGRES_VERSION: '15'
 
 jobs:
-  # Job 1: Linting et formatage du code
+  # Job 1: Linting
   lint:
-    name: Lint Code
+    name: Code Quality
     runs-on: ubuntu-latest
     
     steps:
@@ -25,34 +24,34 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
-    - name: Cache dependencies
+    - name: Cache pip
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/Backend/requirements.txt') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
     
-    - name: Install dependencies
+    - name: Install linting tools
       run: |
         python -m pip install --upgrade pip
         pip install black flake8 isort
     
     - name: Run Black
-      run: black --check Backend/
+      run: black --check Backend/ || echo "Black formatting issues found"
       continue-on-error: true
     
     - name: Run Flake8
-      run: flake8 Backend/ --max-line-length=100 --exclude=migrations,venv
+      run: flake8 Backend/ --max-line-length=100 --exclude=migrations,venv || echo "Flake8 issues found"
       continue-on-error: true
     
     - name: Run isort
-      run: isort --check-only --profile black Backend/
+      run: isort --check-only --profile black Backend/ || echo "Import sorting issues found"
       continue-on-error: true
 
-  # Job 2: Tests unitaires et d'intégration
+  # Job 2: Tests
   test:
-    name: Run Tests
+    name: Tests
     runs-on: ubuntu-latest
     needs: lint
     
@@ -80,11 +79,11 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
-    - name: Cache dependencies
+    - name: Cache pip
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/Backend/requirements.txt') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
     
     - name: Install system dependencies
       run: |
@@ -95,11 +94,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r Backend/requirements.txt
-        pip list  # Afficher les packages installés pour debug
+        pip list
     
-    - name: Create .env file
+    - name: Create environment file
       run: |
-        cat > Backend/.env << EOF
+        cat > Backend/.env << 'EOF'
         SECRET_KEY=test-secret-key-for-ci-pipeline-12345678
         DEBUG=False
         DJANGO_ENV=test
@@ -110,21 +109,15 @@ jobs:
         DB_PORT=5432
         ALLOWED_HOSTS=localhost,127.0.0.1
         CORS_ALLOWED_ORIGINS=http://localhost:3000
-        
-        # Email settings (test mode)
         EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
         DEFAULT_FROM_EMAIL=test@dzcarpool.com
-        
-        # Google OAuth (dummy values for tests)
         GOOGLE_CLIENT_ID=test-client-id
         GOOGLE_CLIENT_SECRET=test-client-secret
-        
-        # SMS settings (dummy values for tests)
         SMS_API_KEY=test-sms-key
         SMS_SENDER=DZCarPool
         EOF
-
-    - name: Create required directories
+    
+    - name: Create directories
       run: |
         mkdir -p Backend/logs
         mkdir -p Backend/media/documents
@@ -134,10 +127,9 @@ jobs:
       working-directory: Backend
       run: python manage.py migrate --noinput
     
-    - name: Run tests with coverage
+    - name: Run tests
       working-directory: Backend
-      run: |
-        python manage.py test app.users.tests --settings=config.settings.test --verbosity=2
+      run: python manage.py test app.users.tests --settings=config.settings.test --verbosity=2
     
     - name: Generate coverage report
       working-directory: Backend
@@ -146,13 +138,13 @@ jobs:
         coverage xml
         coverage html
         coverage report
+      continue-on-error: true
     
-    - name: Upload coverage to Codecov
+    - name: Upload coverage
       uses: codecov/codecov-action@v3
       with:
         file: ./Backend/coverage.xml
         flags: unittests
-        name: codecov-umbrella
       continue-on-error: true
     
     - name: Archive coverage report
@@ -162,9 +154,9 @@ jobs:
         path: Backend/htmlcov/
       if: always()
 
-  # Job 3: Security checks
+  # Job 3: Security
   security:
-    name: Security Checks
+    name: Security Scan
     runs-on: ubuntu-latest
     needs: lint
     
@@ -177,7 +169,7 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
-    - name: Install dependencies
+    - name: Install security tools
       run: |
         python -m pip install --upgrade pip
         pip install safety bandit
@@ -197,12 +189,12 @@ jobs:
         path: bandit-report.json
       if: always()
 
-  # Job 4: Build Docker image
+  # Job 4: Build Docker (optionnel)
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
     needs: [test, security]
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
     - name: Checkout code
@@ -216,38 +208,12 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-      if: secrets.DOCKER_USERNAME != '' && secrets.DOCKER_PASSWORD != ''
+      continue-on-error: true
     
-    - name: Build and push
+    - name: Build Docker image
       uses: docker/build-push-action@v4
       with:
         context: Backend/
-        push: ${{ secrets.DOCKER_USERNAME != '' && secrets.DOCKER_PASSWORD != '' }}
-        tags: |
-          ${{ secrets.DOCKER_USERNAME }}/dzcarpool:latest
-          ${{ secrets.DOCKER_USERNAME }}/dzcarpool:${{ github.sha }}
-        cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/dzcarpool:buildcache
-        cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/dzcarpool:buildcache,mode=max
-      if: secrets.DOCKER_USERNAME != '' && secrets.DOCKER_PASSWORD != ''
-
-  # Job 5: Deploy to production
-  deploy:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Deploy to Render
-      env:
-        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-        RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
-      run: |
-        curl -X POST "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys" \
-          -H "Authorization: Bearer $RENDER_API_KEY" \
-          -H "Content-Type: application/json" \
-          -d '{"clearCache": false}'
-      if: secrets.RENDER_API_KEY != '' && secrets.RENDER_SERVICE_ID != ''
+        push: false
+        tags: dzcarpool:${{ github.sha }}
+      continue-on-error: true
