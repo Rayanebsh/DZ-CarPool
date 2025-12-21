@@ -134,7 +134,7 @@ jobs:
     - name: Generate coverage report
       working-directory: Backend
       run: |
-        coverage run --source='app.users' manage.py test app.users.tests --settings=config.settings.test
+        python manage.py test app.users.tests --settings=config.settings
         coverage xml
         coverage html
         coverage report
