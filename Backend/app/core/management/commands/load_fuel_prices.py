@@ -1,10 +1,9 @@
 import json
 from decimal import Decimal
 
+from app.trajets.models import FuelPrice
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-
-from app.trajets.models import FuelPrice
 
 
 class Command(BaseCommand):

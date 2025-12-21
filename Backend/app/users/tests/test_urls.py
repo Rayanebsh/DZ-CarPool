@@ -3,12 +3,10 @@ Tests pour app/users/urls.py
 Placer dans: app/users/tests/test_urls.py
 """
 
+from app.users.views import PreferenceViewSet, RoleViewSet, UserViewSet
 from django.test import TestCase
 from django.urls import resolve, reverse
-
 from rest_framework.test import APIClient
-
-from app.users.views import PreferenceViewSet, RoleViewSet, UserViewSet
 
 
 class URLResolutionTests(TestCase):

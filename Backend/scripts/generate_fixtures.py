@@ -3,7 +3,6 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 import django
-
 from app.trajets.models import FuelPrice, Reservation, Trajet
 from app.users.models import Preference, Role, User
 

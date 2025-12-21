@@ -2,9 +2,8 @@
 # apps/messaging/admin.py - Administration de la messagerie
 # ============================================================================
 
-from django.contrib import admin
-
 from app.messaging.models import Conversation, Message
+from django.contrib import admin
 
 
 @admin.register(Message)

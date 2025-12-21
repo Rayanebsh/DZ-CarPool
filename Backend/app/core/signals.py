@@ -1,10 +1,9 @@
-from django.contrib.auth import get_user_model
-from django.db.models.signals import post_save, pre_delete
-from django.dispatch import receiver
-
 from app.notifications.models import Notification
 from app.reservations.models import Rating, Reservation
 from app.trajets.models import Trajet
+from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save, pre_delete
+from django.dispatch import receiver
 
 User = get_user_model()
 

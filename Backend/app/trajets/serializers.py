@@ -4,9 +4,8 @@ Serializers pour la gestion des trajets
 
 from decimal import Decimal
 
-from rest_framework import serializers
-
 from app.users.serializers import UserSerializer
+from rest_framework import serializers
 from utils.pricing import calculate_suggested_price
 
 from .models import FuelPrice, Trajet, TrajetEtape

@@ -1,5 +1,4 @@
 import django_filters
-
 from app.trajets.models import Trajet
 
 

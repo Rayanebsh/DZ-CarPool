@@ -6,14 +6,12 @@ Placer dans: app/users/tests/test_views.py
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
+from app.users.models import EmailVerification, PhoneVerification
 from django.contrib.auth import get_user_model
 from django.test import override_settings
 from django.utils import timezone
-
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
-
-from app.users.models import EmailVerification, PhoneVerification
 
 User = get_user_model()
 

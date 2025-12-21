@@ -1,17 +1,20 @@
 # ============================================================================
-# REQUIREMENTS.TXT - DZ CarPool Backend
+# REQUIREMENTS.TXT - DZ CarPool Backend - Compatible Windows & Linux
 # ============================================================================
 
-# Django Core & REST Framework
+# Django Core
 Django==4.2.11
+
+# Django REST Framework & Extensions
 djangorestframework==3.14.0
+django-filter==23.5
 django-cors-headers==4.3.1
 
 # Environment & Configuration
 python-decouple==3.8
 python-dotenv==1.0.1
 
-# Database
+# Database (version compatible Windows)
 psycopg2-binary==2.9.9
 
 # Authentication & Authorization
@@ -28,35 +31,33 @@ phonenumbers==8.13.29
 # Password Hashing
 argon2-cffi==23.1.0
 
-# Image Processing
-Pillow==10.2.0
+# Image Processing (version pré-compilée pour Windows)
+Pillow==10.0.1
 
 # HTTP Requests
 requests==2.31.0
 
+# Date & Time
+pytz==2024.1
+
 # Testing
-pytest==8.0.0
-pytest-django==4.8.0
+pytest==7.4.3
+pytest-django==4.7.0
 pytest-cov==4.1.0
-coverage==7.4.1
+coverage==7.3.2
 factory-boy==3.3.0
 
-# Code Quality & Linting
-black==24.1.1
-flake8==7.0.0
+# Code Quality & Linting (optionnel pour prod)
+black==23.12.1
+flake8==6.1.0
 isort==5.13.2
-pylint==3.0.3
 
-# Security Scanning
+# Security Scanning (optionnel pour prod)
 bandit==1.7.6
-safety==3.0.1
 
 # Production Server
 gunicorn==21.2.0
 whitenoise==6.6.0
 
-# Monitoring & Error Tracking (optional)
-sentry-sdk==1.40.0
-
-# Utilities
-pytz==2024.1
+# Monitoring (optionnel)
+sentry-sdk==1.39.2
