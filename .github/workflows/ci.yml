@@ -49,8 +49,7 @@ jobs:
       run: isort --check-only --profile black Backend/ || echo "Import sorting issues found"
       continue-on-error: true
 
-  # Job 2: Tests
-  # Job 2: Tests (Version optimisée)
+  # Job 2: Tests (avec débogage complet)
   test:
     name: Tests
     runs-on: ubuntu-latest
@@ -95,14 +94,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r Backend/requirements.txt
-        pip install coverage  # Pour les rapports de couverture
         pip list
     
     - name: Create environment file
       run: |
-        cat > Backend/.env.test << 'EOF'
+        cat > Backend/.env << 'EOF'
         SECRET_KEY=test-secret-key-for-ci-pipeline-12345678
-        DEBUG=False
+        DEBUG=True
         DJANGO_ENV=test
         DB_NAME=test_db
         DB_USER=postgres
@@ -117,6 +115,7 @@ jobs:
         GOOGLE_CLIENT_SECRET=test-client-secret
         SMS_API_KEY=test-sms-key
         SMS_SENDER=DZCarPool
+        USE_REDIS=False
         EOF
     
     - name: Create directories
@@ -125,44 +124,84 @@ jobs:
         mkdir -p Backend/media/documents
         mkdir -p Backend/staticfiles
     
-    - name: Check Django configuration
+    - name: Health check
       working-directory: Backend
       run: |
+        echo "=== Django Check ==="
         python manage.py check --settings=config.settings
-        python manage.py check --deploy --settings=config.settings || true
+        
+        echo "=== Test Database Connection ==="
+        python -c "
+        import psycopg2
+        conn = psycopg2.connect(
+            dbname='test_db',
+            user='postgres',
+            password='postgres',
+            host='localhost',
+            port=5432
+        )
+        print('✅ PostgreSQL connection successful')
+        conn.close()
+        "
+        
+        echo "=== Django Configuration ==="
+        python manage.py diffsettings --settings=config.settings | head -n 20
     
     - name: Run migrations
       working-directory: Backend
-      run: python manage.py migrate --noinput --settings=config.settings
+      run: |
+        python manage.py migrate --noinput --settings=config.settings --verbosity=2
     
-    - name: Run tests with coverage
+    - name: Run tests with detailed output
       working-directory: Backend
       run: |
-        coverage run --source='app' manage.py test app.users.tests --settings=config.settings --verbosity=2
+        python manage.py test app.users.tests \
+          --settings=config.settings \
+          --verbosity=2 \
+          --keepdb \
+          --failfast \
+          2>&1 | tee test_output.log
+      continue-on-error: true
+    
+    - name: Show error details on failure
+      if: failure()
+      working-directory: Backend
+      run: |
+        echo "=== Last 200 lines of test output ==="
+        tail -n 200 test_output.log || true
+        
+        echo "=== Django logs ==="
+        cat logs/*.log 2>/dev/null || echo "No logs found"
+    
+    - name: Run tests with coverage (if basic tests passed)
+      if: success()
+      working-directory: Backend
+      run: |
+        pip install coverage
+        coverage run --source='app' manage.py test app.users.tests \
+          --settings=config.settings \
+          --verbosity=2
         coverage xml
         coverage html
         coverage report
     
-    - name: Upload coverage to Codecov
+    - name: Upload coverage
+      if: success()
       uses: codecov/codecov-action@v3
       with:
         file: ./Backend/coverage.xml
         flags: unittests
         fail_ci_if_error: false
     
-    - name: Archive coverage report
+    - name: Archive test artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-report
-        path: Backend/htmlcov/
+        name: test-artifacts
+        path: |
+          Backend/test_output.log
+          Backend/logs/
+          Backend/htmlcov/
       if: always()
-    
-    - name: Archive test logs
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-logs
-        path: Backend/logs/
-      if: failure()  # Seulement si les tests échouent
 
   # Job 3: Security
   security:
