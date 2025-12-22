@@ -6,7 +6,9 @@ from django.contrib.auth.password_validation import validate_password
 
 from rest_framework import serializers
 
-from .models import Preference, Role, User, UserDocument
+from app.users.models import UserDocument as Document
+
+from .models import Preference, Role, User
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -65,7 +67,7 @@ class UserDocumentSerializer(serializers.ModelSerializer):
     """Serializer pour les documents utilisateurs"""
 
     class Meta:
-        model = UserDocument
+        model = Document
         fields = [
             "id",
             "document_type",
@@ -87,6 +89,9 @@ class UserSerializer(serializers.ModelSerializer):
         source="preferences", many=True, read_only=True
     )
     documents = UserDocumentSerializer(many=True, read_only=True)
+
+    # ✅ AJOUT : Retourner l'URL complète de la photo
+    profile_picture = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -121,6 +126,15 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "email": {"required": True},
         }
+
+    def get_profile_picture(self, obj):
+        """Retourne l'URL complète de la photo de profil"""
+        if obj.profile_picture:
+            request = self.context.get("request")
+            if request:
+                return request.build_absolute_uri(obj.profile_picture.url)
+            return obj.profile_picture.url
+        return None
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -217,6 +231,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
     )
     documents = UserDocumentSerializer(many=True, read_only=True)
 
+    # ✅ MODIFICATION : Retourner l'URL complète de la photo
+    profile_picture = serializers.SerializerMethodField()
+
     # Statistiques supplémentaires
     total_trips = serializers.SerializerMethodField()
 
@@ -243,6 +260,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "date_joined",
         ]
         read_only_fields = ["id", "email", "date_joined"]
+
+    def get_profile_picture(self, obj):
+        """Retourne l'URL complète de la photo de profil"""
+        if obj.profile_picture:
+            request = self.context.get("request")
+            if request:
+                # Retourne l'URL absolue (http://localhost:8000/media/profiles/...)
+                return request.build_absolute_uri(obj.profile_picture.url)
+            # Fallback : retourne juste le chemin relatif
+            return obj.profile_picture.url
+        return None
 
     def get_total_trips(self, obj):
         """Calcule le nombre total de trajets"""

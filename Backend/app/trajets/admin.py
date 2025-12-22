@@ -120,7 +120,12 @@ class TrajetEtapeAdmin(admin.ModelAdmin):
 
 @admin.register(FuelPrice)
 class FuelPriceAdmin(admin.ModelAdmin):
-    list_display = ["wilaya", "fuel_type", "price_per_liter", "effective_date"]
-    list_filter = ["fuel_type", "effective_date", "wilaya"]
-    search_fields = ["wilaya"]
+    # Vérifiez les vrais noms de champs dans votre modèle FuelPrice
+    list_display = [
+        "fuel_type",
+        "price_per_liter",
+        "effective_date",
+    ]  # Retirez 'wilaya' si n'existe pas
+    list_filter = ["fuel_type", "effective_date"]  # Retirez 'wilaya' si n'existe pas
+    search_fields = ["fuel_type"]  # Changez selon vos besoins
     date_hierarchy = "effective_date"

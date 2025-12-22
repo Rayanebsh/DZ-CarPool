@@ -27,9 +27,9 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
-    "corsheaders",
     "django_filters",
     "drf_spectacular",
+    "corsheaders",
     # Allauth pour social authentication
     "allauth",
     "allauth.account",
@@ -42,9 +42,11 @@ INSTALLED_APPS = [
     "app.reservations",
     "app.messaging",
     "app.notifications",
+    "django_extensions",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -118,7 +120,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type

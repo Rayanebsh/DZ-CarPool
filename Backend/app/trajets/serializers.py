@@ -1,24 +1,129 @@
-"""
-Serializers pour la gestion des trajets
-"""
-
 from decimal import Decimal
 
 from rest_framework import serializers
 
+from app.users.models import Preference, UserDocument
 from app.users.serializers import UserSerializer
-from utils.pricing import calculate_suggested_price
+from utils.pricing import calculate_suggested_price, extract_wilaya_from_location
 
 from .models import FuelPrice, Trajet, TrajetEtape
 
 
 class TrajetEtapeSerializer(serializers.ModelSerializer):
-    """Serializer pour les étapes de trajet"""
-
     class Meta:
         model = TrajetEtape
         fields = ["id", "ville", "adresse", "heure_arrivee", "ordre"]
         read_only_fields = ["id"]
+
+
+class TrajetCreateSerializer(serializers.ModelSerializer):
+    """Serializer pour la création d'un trajet avec calcul automatique du prix conseillé"""
+
+    etapes = TrajetEtapeSerializer(many=True, required=False, write_only=True)
+    preference_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False, write_only=True
+    )
+
+    class Meta:
+        model = Trajet
+        fields = [
+            "ville_depart",
+            "ville_arrivee",
+            "adresse_depart",
+            "adresse_arrivee",
+            "date",
+            "heure_depart",
+            "nbr_places",
+            "price",
+            "distance",
+            "is_confort",
+            "fuel_type",
+            "fuel_consumption",
+            "description",
+            "luggage_allowed",
+            "etapes",
+            "preference_ids",
+        ]
+        read_only_fields = []
+
+    def validate(self, attrs):
+        request = self.context.get("request")
+        if not request or not request.user:
+            raise serializers.ValidationError("Utilisateur connecté requis")
+
+        has_verified_doc = UserDocument.objects.filter(
+            user=request.user, verified=True
+        ).exists()
+        if not has_verified_doc:
+            raise serializers.ValidationError("CNI vérifié requis")
+        return attrs
+
+    def validate_date(self, value):
+        from django.utils import timezone
+
+        if value < timezone.now().date():
+            raise serializers.ValidationError(
+                "La date du trajet ne peut pas être dans le passé."
+            )
+        return value
+
+    def validate_nbr_places(self, value):
+        if value < 1 or value > 8:
+            raise serializers.ValidationError(
+                "Le nombre de places doit être entre 1 et 8."
+            )
+        return value
+
+    def validate_distance(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("La distance doit être positive.")
+        return value
+
+    def create(self, validated_data):
+        etapes_data = validated_data.pop("etapes", [])
+        preference_ids = validated_data.pop("preference_ids", [])
+
+        request = self.context.get("request")
+        conducteur = request.user
+
+        # Extraire la wilaya
+        validated_data["wilaya_depart"] = (
+            extract_wilaya_from_location(validated_data["ville_depart"]) or "Alger"
+        )
+
+        # Calculer le prix conseillé
+        suggested_price_data = calculate_suggested_price(
+            distance=float(validated_data["distance"]),
+            ville_depart=validated_data["ville_depart"],
+            fuel_type=validated_data.get("fuel_type", "gasoil"),
+            fuel_consumption=float(validated_data.get("fuel_consumption", 8.0)),
+            nbr_places=validated_data["nbr_places"],
+        )
+
+        # S'assurer que suggested_price est un Decimal
+        if isinstance(suggested_price_data, dict):
+            suggested_price = suggested_price_data.get(
+                "suggested_price_per_seat", Decimal("0")
+            )
+        else:
+            # Si calculate_suggested_price renvoie déjà un Decimal
+            suggested_price = Decimal(suggested_price_data)
+
+        validated_data["suggested_price"] = suggested_price
+
+        # Créer le trajet
+        trajet = Trajet.objects.create(conducteur=conducteur, **validated_data)
+
+        # Associer les préférences
+        if preference_ids:
+            preferences = Preference.objects.filter(id__in=preference_ids)
+            trajet.preferences.set(preferences)
+
+        # Créer les étapes
+        for ordre, etape_data in enumerate(etapes_data, start=1):
+            TrajetEtape.objects.create(trajet=trajet, ordre=ordre, **etape_data)
+
+        return trajet
 
 
 class TrajetListSerializer(serializers.ModelSerializer):
@@ -55,6 +160,10 @@ class TrajetListSerializer(serializers.ModelSerializer):
             "distance",
             "is_confort",
             "pause_required",
+            "fuel_type",
+            "no_smoking",
+            "music_allowed",
+            "small_luggage_only",
             "status",
             "created_at",
         ]
@@ -77,6 +186,7 @@ class TrajetDetailSerializer(serializers.ModelSerializer):
             "ville_arrivee",
             "adresse_depart",
             "adresse_arrivee",
+            "wilaya_depart",
             "date",
             "heure_depart",
             "nbr_places",
@@ -88,6 +198,11 @@ class TrajetDetailSerializer(serializers.ModelSerializer):
             "distance",
             "is_confort",
             "pause_required",
+            "fuel_type",
+            "fuel_consumption",
+            "no_smoking",
+            "music_allowed",
+            "small_luggage_only",
             "status",
             "description",
             "luggage_allowed",
@@ -103,6 +218,7 @@ class TrajetDetailSerializer(serializers.ModelSerializer):
             "price_driver",
             "places_disponibles",
             "pause_required",
+            "wilaya_depart",
             "created_at",
             "updated_at",
         ]
@@ -112,78 +228,10 @@ class TrajetDetailSerializer(serializers.ModelSerializer):
         return obj.reservations.filter(status="CONFIRMED").count()
 
 
-class TrajetCreateSerializer(serializers.ModelSerializer):
-    """Serializer pour la création d'un trajet"""
+# app/trajets/serializers.py
 
-    etapes = TrajetEtapeSerializer(many=True, required=False)
 
-    class Meta:
-        model = Trajet
-        fields = [
-            "ville_depart",
-            "ville_arrivee",
-            "adresse_depart",
-            "adresse_arrivee",
-            "date",
-            "heure_depart",
-            "nbr_places",
-            "price",
-            "distance",
-            "is_confort",
-            "description",
-            "luggage_allowed",
-            "etapes",
-        ]
-
-    def validate_date(self, value):
-        """Valide que la date n'est pas dans le passé"""
-        from django.utils import timezone
-
-        if value < timezone.now().date():
-            raise serializers.ValidationError("La date ne peut pas être dans le passé.")
-        return value
-
-    def validate_nbr_places(self, value):
-        """Valide le nombre de places"""
-        if value < 1 or value > 8:
-            raise serializers.ValidationError(
-                "Le nombre de places doit être entre 1 et 8."
-            )
-        return value
-
-    def validate_distance(self, value):
-        """Valide la distance"""
-        if value < 1:
-            raise serializers.ValidationError(
-                "La distance doit être supérieure à 0 km."
-            )
-        return value
-
-    def create(self, validated_data):
-        """Crée un nouveau trajet avec calcul du prix suggéré"""
-        etapes_data = validated_data.pop("etapes", [])
-
-        # Récupérer l'utilisateur connecté comme conducteur
-        request = self.context.get("request")
-        conducteur = request.user
-
-        # Calculer le prix suggéré basé sur le carburant
-        suggested_price = calculate_suggested_price(
-            distance=validated_data["distance"],
-            ville_depart=validated_data["ville_depart"],
-            nbr_places=validated_data["nbr_places"],
-        )
-
-        # Créer le trajet
-        trajet = Trajet.objects.create(
-            conducteur=conducteur, suggested_price=suggested_price, **validated_data
-        )
-
-        # Créer les étapes si fournies
-        for ordre, etape_data in enumerate(etapes_data, start=1):
-            TrajetEtape.objects.create(trajet=trajet, ordre=ordre, **etape_data)
-
-        return trajet
+# app/trajets/serializers.py → Ligne validate()
 
 
 class TrajetUpdateSerializer(serializers.ModelSerializer):
@@ -199,6 +247,11 @@ class TrajetUpdateSerializer(serializers.ModelSerializer):
             "nbr_places",
             "price",
             "is_confort",
+            "fuel_type",
+            "fuel_consumption",
+            "no_smoking",
+            "music_allowed",
+            "small_luggage_only",
             "description",
             "luggage_allowed",
             "status",
@@ -235,6 +288,12 @@ class TrajetSearchSerializer(serializers.Serializer):
         required=False, max_digits=10, decimal_places=2, min_value=Decimal("0.01")
     )
     is_confort = serializers.BooleanField(required=False)
+    fuel_type = serializers.ChoiceField(
+        choices=["essence_sans_plomb", "gasoil", "gpl", "electrique"],
+        required=False,
+    )
+    no_smoking = serializers.BooleanField(required=False)
+    music_allowed = serializers.BooleanField(required=False)
 
 
 class FuelPriceSerializer(serializers.ModelSerializer):
@@ -242,5 +301,12 @@ class FuelPriceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FuelPrice
-        fields = ["id", "wilaya", "fuel_type", "price_per_liter", "effective_date"]
+        fields = [
+            "id",
+            "wilaya_code",
+            "wilaya_name",
+            "fuel_type",
+            "price_per_liter",
+            "effective_date",
+        ]
         read_only_fields = ["id", "effective_date"]

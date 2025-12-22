@@ -93,7 +93,6 @@ __turbopack_context__.s([
 var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Desktop/Projet_GL/covoiturage/Frontend/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Desktop/Projet_GL/covoiturage/Frontend/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Desktop/Projet_GL/covoiturage/Frontend/node_modules/next/navigation.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$contexts$2f$auth$2d$context$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Desktop/Projet_GL/covoiturage/Frontend/contexts/auth-context.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$services$2f$auth$2e$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Desktop/Projet_GL/covoiturage/Frontend/services/auth.service.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Desktop/Projet_GL/covoiturage/Frontend/components/ui/button.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Check$3e$__ = __turbopack_context__.i("[project]/Desktop/Projet_GL/covoiturage/Frontend/node_modules/lucide-react/dist/esm/icons/check.js [app-client] (ecmascript) <export default as Check>");
@@ -102,8 +101,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covo
 var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Desktop/Projet_GL/covoiturage/Frontend/node_modules/next/image.js [app-client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature();
-"use client";
-;
+'use client';
 ;
 ;
 ;
@@ -115,8 +113,7 @@ var _s = __turbopack_context__.k.signature();
 function PreferencesPage() {
     _s();
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
-    const { user } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$contexts$2f$auth$2d$context$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useAuth"])();
-    const { t, language, setLanguage } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$contexts$2f$language$2d$context$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useLanguage"])();
+    const { language, setLanguage } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$contexts$2f$language$2d$context$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useLanguage"])();
     const [allPreferences, setAllPreferences] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [selectedPreferences, setSelectedPreferences] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(true);
@@ -160,7 +157,7 @@ function PreferencesPage() {
     };
     const handleSubmit = async ()=>{
         if (selectedPreferences.length === 0) {
-            setError(language === "en" ? 'Please select at least one preference' : 'Veuillez sélectionner au moins une préférence');
+            setError(language === 'en' ? 'Please select at least one preference' : 'Veuillez sélectionner au moins une préférence');
             return;
         }
         setSaving(true);
@@ -171,7 +168,7 @@ function PreferencesPage() {
             router.push('/#hero');
         } catch (error) {
             console.error('❌ Erreur sauvegarde préférences:', error);
-            setError(language === "en" ? 'Error saving preferences' : 'Erreur lors de la sauvegarde des préférences');
+            setError(language === 'en' ? 'Error saving preferences' : 'Erreur lors de la sauvegarde des préférences');
         } finally{
             setSaving(false);
         }
@@ -194,26 +191,26 @@ function PreferencesPage() {
                         className: "animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF5722] mx-auto"
                     }, void 0, false, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                        lineNumber: 105,
+                        lineNumber: 117,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                         className: "mt-4 text-gray-600",
-                        children: language === "en" ? "Loading preferences..." : "Chargement des préférences..."
+                        children: language === 'en' ? 'Loading preferences...' : 'Chargement des préférences...'
                     }, void 0, false, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                        lineNumber: 106,
+                        lineNumber: 118,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                lineNumber: 104,
+                lineNumber: 116,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-            lineNumber: 103,
+            lineNumber: 115,
             columnNumber: 7
         }, this);
     }
@@ -238,16 +235,16 @@ function PreferencesPage() {
                                     className: "h-14 w-auto"
                                 }, void 0, false, {
                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                    lineNumber: 121,
+                                    lineNumber: 135,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                lineNumber: 120,
+                                lineNumber: 134,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                onClick: ()=>setLanguage(language === "en" ? "fr" : "en"),
+                                onClick: ()=>setLanguage(language === 'en' ? 'fr' : 'en'),
                                 className: "flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
@@ -262,42 +259,42 @@ function PreferencesPage() {
                                             d: "M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
                                         }, void 0, false, {
                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                            lineNumber: 135,
+                                            lineNumber: 154,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                        lineNumber: 134,
+                                        lineNumber: 148,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         className: "font-medium",
-                                        children: language === "en" ? "EN" : "FR"
+                                        children: language === 'en' ? 'EN' : 'FR'
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                        lineNumber: 142,
+                                        lineNumber: 161,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                lineNumber: 130,
+                                lineNumber: 144,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                        lineNumber: 119,
+                        lineNumber: 133,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                    lineNumber: 118,
+                    lineNumber: 132,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                lineNumber: 117,
+                lineNumber: 131,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -308,24 +305,24 @@ function PreferencesPage() {
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
                                 className: "text-3xl md:text-4xl font-bold text-gray-900 mb-4",
-                                children: language === "en" ? "Tell us about yourself" : "Parlez-nous de vous"
+                                children: language === 'en' ? 'Tell us about yourself' : 'Parlez-nous de vous'
                             }, void 0, false, {
                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                lineNumber: 151,
+                                lineNumber: 172,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 className: "text-lg text-gray-600",
-                                children: language === "en" ? "Select your preferences to help us match you with the right travel companions" : "Sélectionnez vos préférences pour nous aider à vous mettre en relation avec les bons compagnons de voyage"
+                                children: language === 'en' ? 'Select your preferences to help us match you with the right travel companions' : 'Sélectionnez vos préférences pour nous aider à vous mettre en relation avec les bons compagnons de voyage'
                             }, void 0, false, {
                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                lineNumber: 154,
+                                lineNumber: 177,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                        lineNumber: 150,
+                        lineNumber: 171,
                         columnNumber: 9
                     }, this),
                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -333,7 +330,7 @@ function PreferencesPage() {
                         children: error
                     }, void 0, false, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                        lineNumber: 162,
+                        lineNumber: 185,
                         columnNumber: 11
                     }, this),
                     allPreferences.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -341,24 +338,24 @@ function PreferencesPage() {
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 className: "text-gray-500",
-                                children: language === "en" ? "No preferences available" : "Aucune préférence disponible"
+                                children: language === 'en' ? 'No preferences available' : 'Aucune préférence disponible'
                             }, void 0, false, {
                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                lineNumber: 169,
+                                lineNumber: 192,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 className: "text-sm text-gray-400 mt-2",
-                                children: language === "en" ? "Check that preferences exist in the database" : "Vérifiez que des préférences existent dans la base de données"
+                                children: language === 'en' ? 'Check that preferences exist in the database' : 'Vérifiez que des préférences existent dans la base de données'
                             }, void 0, false, {
                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                lineNumber: 172,
+                                lineNumber: 197,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                        lineNumber: 168,
+                        lineNumber: 191,
                         columnNumber: 11
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
                         children: [
@@ -367,17 +364,17 @@ function PreferencesPage() {
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
                                         className: "text-xl font-semibold text-gray-900 mb-4",
-                                        children: language === "en" ? "Interests" : "Centres d'intérêt"
+                                        children: language === 'en' ? 'Interests' : "Centres d'intérêt"
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                        lineNumber: 183,
+                                        lineNumber: 208,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "grid grid-cols-2 md:grid-cols-4 gap-3",
                                         children: groupedPreferences['interests'].map((pref)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                 onClick: ()=>togglePreference(pref.id),
-                                                className: `relative p-4 rounded-xl border-2 transition-all ${selectedPreferences.includes(pref.id) ? "border-[#FF5722] bg-[#FF5722]/5" : "border-gray-200 hover:border-gray-300"}`,
+                                                className: `relative p-4 rounded-xl border-2 transition-all ${selectedPreferences.includes(pref.id) ? 'border-[#FF5722] bg-[#FF5722]/5' : 'border-gray-200 hover:border-gray-300'}`,
                                                 children: [
                                                     selectedPreferences.includes(pref.id) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FF5722] flex items-center justify-center",
@@ -385,12 +382,12 @@ function PreferencesPage() {
                                                             className: "w-3 h-3 text-white"
                                                         }, void 0, false, {
                                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                            lineNumber: 199,
+                                                            lineNumber: 224,
                                                             columnNumber: 27
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                        lineNumber: 198,
+                                                        lineNumber: 223,
                                                         columnNumber: 25
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -398,32 +395,32 @@ function PreferencesPage() {
                                                         children: pref.icon
                                                     }, void 0, false, {
                                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                        lineNumber: 202,
+                                                        lineNumber: 227,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "text-sm font-medium text-gray-900",
-                                                        children: language === "en" ? pref.name_en : pref.name_fr
+                                                        children: language === 'en' ? pref.name_en : pref.name_fr
                                                     }, void 0, false, {
                                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                        lineNumber: 203,
+                                                        lineNumber: 228,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, pref.id, true, {
                                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                lineNumber: 188,
+                                                lineNumber: 213,
                                                 columnNumber: 21
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                        lineNumber: 186,
+                                        lineNumber: 211,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                lineNumber: 182,
+                                lineNumber: 207,
                                 columnNumber: 15
                             }, this),
                             groupedPreferences['habits'] && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -431,17 +428,17 @@ function PreferencesPage() {
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
                                         className: "text-xl font-semibold text-gray-900 mb-4",
-                                        children: language === "en" ? "Habits" : "Habitudes"
+                                        children: language === 'en' ? 'Habits' : 'Habitudes'
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                        lineNumber: 215,
+                                        lineNumber: 240,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "grid grid-cols-2 md:grid-cols-5 gap-3",
                                         children: groupedPreferences['habits'].map((pref)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                 onClick: ()=>togglePreference(pref.id),
-                                                className: `relative p-4 rounded-xl border-2 transition-all ${selectedPreferences.includes(pref.id) ? "border-[#FF5722] bg-[#FF5722]/5" : "border-gray-200 hover:border-gray-300"}`,
+                                                className: `relative p-4 rounded-xl border-2 transition-all ${selectedPreferences.includes(pref.id) ? 'border-[#FF5722] bg-[#FF5722]/5' : 'border-gray-200 hover:border-gray-300'}`,
                                                 children: [
                                                     selectedPreferences.includes(pref.id) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FF5722] flex items-center justify-center",
@@ -449,12 +446,12 @@ function PreferencesPage() {
                                                             className: "w-3 h-3 text-white"
                                                         }, void 0, false, {
                                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                            lineNumber: 231,
+                                                            lineNumber: 256,
                                                             columnNumber: 27
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                        lineNumber: 230,
+                                                        lineNumber: 255,
                                                         columnNumber: 25
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -462,32 +459,32 @@ function PreferencesPage() {
                                                         children: pref.icon
                                                     }, void 0, false, {
                                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                        lineNumber: 234,
+                                                        lineNumber: 259,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "text-sm font-medium text-gray-900",
-                                                        children: language === "en" ? pref.name_en : pref.name_fr
+                                                        children: language === 'en' ? pref.name_en : pref.name_fr
                                                     }, void 0, false, {
                                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                        lineNumber: 235,
+                                                        lineNumber: 260,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, pref.id, true, {
                                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                lineNumber: 220,
+                                                lineNumber: 245,
                                                 columnNumber: 21
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                        lineNumber: 218,
+                                        lineNumber: 243,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                lineNumber: 214,
+                                lineNumber: 239,
                                 columnNumber: 15
                             }, this),
                             groupedPreferences['driving'] && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -495,17 +492,17 @@ function PreferencesPage() {
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
                                         className: "text-xl font-semibold text-gray-900 mb-4",
-                                        children: language === "en" ? "Driving Preferences" : "Préférences de conduite"
+                                        children: language === 'en' ? 'Driving Preferences' : 'Préférences de conduite'
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                        lineNumber: 247,
+                                        lineNumber: 272,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "grid grid-cols-2 md:grid-cols-4 gap-3",
                                         children: groupedPreferences['driving'].map((pref)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                 onClick: ()=>togglePreference(pref.id),
-                                                className: `relative p-4 rounded-xl border-2 transition-all ${selectedPreferences.includes(pref.id) ? "border-[#FF5722] bg-[#FF5722]/5" : "border-gray-200 hover:border-gray-300"}`,
+                                                className: `relative p-4 rounded-xl border-2 transition-all ${selectedPreferences.includes(pref.id) ? 'border-[#FF5722] bg-[#FF5722]/5' : 'border-gray-200 hover:border-gray-300'}`,
                                                 children: [
                                                     selectedPreferences.includes(pref.id) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FF5722] flex items-center justify-center",
@@ -513,12 +510,12 @@ function PreferencesPage() {
                                                             className: "w-3 h-3 text-white"
                                                         }, void 0, false, {
                                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                            lineNumber: 263,
+                                                            lineNumber: 290,
                                                             columnNumber: 27
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                        lineNumber: 262,
+                                                        lineNumber: 289,
                                                         columnNumber: 25
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -526,32 +523,32 @@ function PreferencesPage() {
                                                         children: pref.icon
                                                     }, void 0, false, {
                                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                        lineNumber: 266,
+                                                        lineNumber: 293,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "text-sm font-medium text-gray-900",
-                                                        children: language === "en" ? pref.name_en : pref.name_fr
+                                                        children: language === 'en' ? pref.name_en : pref.name_fr
                                                     }, void 0, false, {
                                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                        lineNumber: 267,
+                                                        lineNumber: 294,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, pref.id, true, {
                                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                                lineNumber: 252,
+                                                lineNumber: 279,
                                                 columnNumber: 21
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                        lineNumber: 250,
+                                        lineNumber: 277,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                                lineNumber: 246,
+                                lineNumber: 271,
                                 columnNumber: 15
                             }, this)
                         ]
@@ -562,34 +559,33 @@ function PreferencesPage() {
                             onClick: handleSubmit,
                             disabled: saving || selectedPreferences.length === 0,
                             className: "w-full md:w-1/2 h-12 bg-[#FF5722] hover:bg-[#E64A19] text-white disabled:opacity-50",
-                            children: saving ? language === "en" ? "Saving..." : "Sauvegarde..." : language === "en" ? "Continue" : "Continuer"
+                            children: saving ? language === 'en' ? 'Saving...' : 'Sauvegarde...' : language === 'en' ? 'Continue' : 'Continuer'
                         }, void 0, false, {
                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                            lineNumber: 280,
+                            lineNumber: 307,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                        lineNumber: 279,
+                        lineNumber: 306,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-                lineNumber: 149,
+                lineNumber: 170,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/preferences/page.tsx",
-        lineNumber: 115,
+        lineNumber: 129,
         columnNumber: 5
     }, this);
 }
-_s(PreferencesPage, "v/8mHybwltfsKMKiLgIaRMVpXkM=", false, function() {
+_s(PreferencesPage, "IDgK/8Fz/CQfaLhlCBezGW4ttt4=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"],
-        __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$contexts$2f$auth$2d$context$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useAuth"],
         __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$contexts$2f$language$2d$context$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useLanguage"]
     ];
 });

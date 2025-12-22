@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Bell, User, ChevronDown, Globe } from 'lucide-react';
 import { useLanguage } from '@/contexts/language-context';
-import { useAuth } from '@/hooks/use-auth'; // 👈 Même API qu'avant!
+import { useAuth } from '@/hooks/use-auth';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
@@ -20,12 +20,22 @@ interface HeaderProps {
   onNotificationsClick?: () => void;
 }
 
-export function Header({ onNotificationsClick }: HeaderProps) {
+function Header({ onNotificationsClick }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { language, setLanguage } = useLanguage();
-  const { user, logout } = useAuth(); // 👈 Exactement pareil qu'avant!
+  const { user, logout } = useAuth();
   const [unreadNotifications] = useState(3);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+
+  // 🔍 DEBUG COMPLET
+  useEffect(() => {
+    console.log('=== HEADER DEBUG ===');
+    console.log('User object:', user);
+    console.log('User keys:', user ? Object.keys(user) : 'No user');
+    console.log('Profile picture value:', user?.profile_picture);
+    console.log('Type of profile_picture:', typeof user?.profile_picture);
+    console.log('===================');
+  }, [user]);
 
   const navigation = [
     { name: language === 'en' ? 'Find a ride' : 'Trajets', href: '/#hero' },
@@ -41,6 +51,69 @@ export function Header({ onNotificationsClick }: HeaderProps) {
   const toggleLanguage = (lang: 'en' | 'fr') => {
     setLanguage(lang);
     setLangMenuOpen(false);
+  };
+
+  // Fonction pour construire l'URL de la photo
+  const getProfileImageUrl = () => {
+    if (!user || !user.profile_picture) {
+      console.log('❌ No profile picture');
+      return null;
+    }
+
+    const profilePic = user.profile_picture;
+    console.log('📸 Raw profile_picture:', profilePic);
+
+    // Si l'URL est complète
+    if (profilePic.startsWith('http')) {
+      console.log('✅ Full URL:', profilePic);
+      return profilePic;
+    }
+
+    // Si l'URL est relative
+    const fullUrl = `http://localhost:8000${profilePic.startsWith('/') ? '' : '/'}${profilePic}`;
+    console.log('✅ Constructed URL:', fullUrl);
+    return fullUrl;
+  };
+
+  const profileImageUrl = getProfileImageUrl();
+
+  // TEST: Avatar simple avec beaucoup de debug
+  const TestAvatar = () => {
+    const [imageError, setImageError] = useState(false);
+
+    const initial =
+      user?.first_name?.charAt(0)?.toUpperCase() ||
+      user?.email?.charAt(0)?.toUpperCase() ||
+      'U';
+
+    console.log('🎨 Rendering avatar with URL:', profileImageUrl);
+    console.log('🎨 Image error state:', imageError);
+
+    if (!profileImageUrl || imageError) {
+      console.log('🟠 Showing initial:', initial);
+      return (
+        <div className="w-8 h-8 rounded-full bg-[#FF5722] flex items-center justify-center text-white font-semibold text-sm">
+          {initial}
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+        <img
+          src={profileImageUrl}
+          alt="Profile"
+          className="w-full h-full object-cover"
+          onError={() => {
+            console.error('❌ Image failed to load:', profileImageUrl);
+            setImageError(true);
+          }}
+          onLoad={() => {
+            console.log('✅ Image loaded successfully:', profileImageUrl);
+          }}
+        />
+      </div>
+    );
   };
 
   return (
@@ -153,10 +226,11 @@ export function Header({ onNotificationsClick }: HeaderProps) {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-[#FF5722] flex items-center justify-center">
-                        <User className="w-4 h-4 text-white" />
-                      </div>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2 hover:bg-accent"
+                    >
+                      <TestAvatar />
                       <span className="text-sm font-medium">
                         {user.first_name || user.email}
                       </span>
@@ -243,9 +317,12 @@ export function Header({ onNotificationsClick }: HeaderProps) {
             <div className="flex flex-col gap-2 pt-4 mt-4 border-t border-border">
               {user ? (
                 <>
-                  <span className="text-sm font-medium px-3 py-2">
-                    {user.first_name || user.email}
-                  </span>
+                  <div className="flex items-center gap-3 px-3 py-2">
+                    <TestAvatar />
+                    <span className="text-sm font-medium">
+                      {user.first_name || user.email}
+                    </span>
+                  </div>
                   <Link
                     href="/profile"
                     className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors text-left px-3 py-2"
@@ -308,3 +385,6 @@ export function Header({ onNotificationsClick }: HeaderProps) {
     </header>
   );
 }
+
+// ✅ Export nommé pour correspondre à l'import
+export { Header };

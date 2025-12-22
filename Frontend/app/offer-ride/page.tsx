@@ -1,7 +1,5 @@
 'use client';
-
-import type React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,9 +16,22 @@ import {
   AlertTriangle,
   MapIcon,
   Calendar,
+  Coffee,
+  Loader2,
+  Check,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MapModal } from '@/components/map-modal';
+import authService from '@/services/auth.service';
+import { useRouter } from 'next/navigation';
+interface PreferenceType {
+  id: number;
+  name: string;
+  name_fr: string;
+  name_en: string;
+  category: string;
+  icon?: string;
+}
 
 interface LocationData {
   place_id: string;
@@ -35,7 +46,53 @@ interface LocationData {
   };
 }
 
+interface WilayaInfo {
+  name: string;
+  prices: {
+    essence_sans_plomb: number;
+    gasoil: number;
+    gpl: number;
+    electrique?: number;
+  };
+}
+
+interface FuelPricesData {
+  last_updated: string;
+  wilayas: {
+    [code: string]: WilayaInfo;
+  };
+  consommation_moyenne: {
+    essence_sans_plomb: number;
+    gasoil: number;
+    gpl: number;
+    electrique: number;
+  };
+}
+
+type FuelType = 'gasoil' | 'essence_sans_plomb' | 'gpl' | 'electrique';
+
+const wilayaMapping: { [key: string]: string } = {
+  alger: 'Alger',
+  algiers: 'Alger',
+  birkhadem: 'Alger',
+  oran: 'Oran',
+  constantine: 'Constantine',
+  annaba: 'Annaba',
+  blida: 'Blida',
+  setif: 'Sétif',
+  sétif: 'Sétif',
+  tlemcen: 'Tlemcen',
+  bejaia: 'Béjaïa',
+  béjaïa: 'Béjaïa',
+  bouira: 'Bouira',
+  tamanrasset: 'Tamanrasset',
+  ouargla: 'Ouargla',
+  ghardaia: 'Ghardaïa',
+  ghardaïa: 'Ghardaïa',
+};
+
 export default function OfferRidePage() {
+  const router = useRouter();
   const { language } = useLanguage();
   const [departure, setDeparture] = useState('');
   const [arrival, setArrival] = useState('');
@@ -55,11 +112,118 @@ export default function OfferRidePage() {
   const [price, setPrice] = useState(1200);
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [comfortOption, setComfortOption] = useState(false);
-  const [noSmoking, setNoSmoking] = useState(false);
-  const [musicAllowed, setMusicAllowed] = useState(true);
-  const [smallLuggage, setSmallLuggage] = useState(false);
+  const [noSmoking] = useState(false);
+  const [musicAllowed] = useState(true);
+  const [smallLuggage] = useState(false);
   const [isLoadingRoute, setIsLoadingRoute] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+
+  // États pour le carburant
+  const [fuelType, setFuelType] = useState<FuelType>('gasoil');
+  const [fuelConsumption, setFuelConsumption] = useState<number>(8.0);
+  const [fuelPricesData, setFuelPricesData] = useState<FuelPricesData | null>(
+    null,
+  );
+  const [suggestedPrice, setSuggestedPrice] = useState<number | null>(null);
+
+  // États pour la soumission
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [availablePreferences, setAllPreferences] = useState<PreferenceType[]>(
+    [],
+  );
+  const [selectedPreferences, setSelectedPreferences] = useState<number[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Charger les prix du carburant au montage
+  useEffect(() => {
+    loadFuelPrices();
+  }, []);
+
+  const loadFuelPrices = async () => {
+    try {
+      const response = await fetch(
+        'http://localhost:8000/api/v1/trajets/fuel-prices-static/',
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: FuelPricesData = await response.json();
+      setFuelPricesData(data);
+      console.log('✅ Prix carburants chargés:', data);
+    } catch (error) {
+      console.error('❌ Erreur chargement fuel prices:', error);
+    }
+  };
+
+  // Calculer le prix suggéré
+  useEffect(() => {
+    if (distance && departure && fuelPricesData) {
+      calculateSuggestedPrice();
+    }
+  }, [distance, departure, fuelType, fuelConsumption, fuelPricesData, seats]);
+
+  const extractWilaya = (locationName: string): string | null => {
+    if (!locationName) return null;
+    const normalized = locationName.toLowerCase().trim().split(',')[0];
+    return wilayaMapping[normalized] || 'Alger';
+  };
+
+  const getFuelPriceForWilaya = (
+    wilayaName: string,
+    fuelType: FuelType,
+  ): number | null => {
+    if (!fuelPricesData) return null;
+
+    for (const [, info] of Object.entries(fuelPricesData.wilayas)) {
+      if (info.name === wilayaName) {
+        return info.prices[fuelType] ?? null;
+      }
+    }
+
+    const prices = Object.values(fuelPricesData.wilayas)
+      .map((w) => w.prices[fuelType])
+      .filter((p): p is number => p !== undefined && p !== null);
+
+    return prices.length > 0
+      ? prices.reduce((a, b) => a + b, 0) / prices.length
+      : 40;
+  };
+
+  const calculateSuggestedPrice = () => {
+    if (!distance || !fuelPricesData) return;
+
+    const wilaya = extractWilaya(departure);
+    if (!wilaya) return;
+
+    const fuelPrice = getFuelPriceForWilaya(wilaya, fuelType);
+    if (!fuelPrice) return;
+
+    const totalFuelCost = (distance * fuelConsumption * fuelPrice) / 100;
+    const totalCost = totalFuelCost * 1.5;
+    const pricePerSeat = Math.round(totalCost / seats / 10) * 10;
+
+    setSuggestedPrice(pricePerSeat);
+  };
+
+  const calculateBreaks = (distanceKm: number): number => {
+    if (distanceKm < 300) return 0;
+    return Math.floor(distanceKm / 300);
+  };
+
+  const calculateTotalDuration = (
+    baseMinutes: number,
+    breaks: number,
+  ): string => {
+    const totalMinutes = baseMinutes + breaks * 15;
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}h ${minutes.toString().padStart(2, '0')}m`;
+  };
 
   useEffect(() => {
     if (departureCoords && arrivalCoords) {
@@ -88,8 +252,6 @@ export default function OfferRidePage() {
         const hours = Math.floor(durationMinutes / 60);
         const minutes = durationMinutes % 60;
         setDuration(`${hours}h ${minutes.toString().padStart(2, '0')}m`);
-
-        console.log('Route calculated:', { distanceKm, durationMinutes });
       }
     } catch (error) {
       console.error('Error calculating route:', error);
@@ -144,24 +306,141 @@ export default function OfferRidePage() {
 
   const platformFee = Math.round(price * 0.15);
   const passengerPays = price + platformFee;
-  const suggestedPrice = distance ? Math.round(distance * 2.5) : 1200;
+  const numberOfBreaks = distance ? calculateBreaks(distance) : 0;
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Publishing ride:', {
+      // ✅ 1. DOCS : Skip si erreur (anti-crash)
+      try {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+          const docResponse = await fetch(
+            'http://localhost:8000/api/v1/users/check-document-status/',
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
+
+          if (docResponse.ok) {
+            const docData = await docResponse.json();
+            console.log('📋 DOCS OK:', docData);
+            if (!docData.can_publish_trip) {
+              alert(docData.message || 'Documents non validés');
+              router.push('/documents');
+              return;
+            }
+          } else {
+            console.log('⚠️ DOCS endpoint HS, skip vérification');
+          }
+        }
+      } catch {
+        console.log('⚠️ DOCS check skip');
+      }
+
+      // ✅ 2. TRAJETS : Données corrigées + anti-crash
+      setIsSubmitting(true);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) throw new Error('Token manquant');
+
+        const trajetData = {
+          ville_depart: departure || 'Alger', // ✅ Fallback
+          ville_arrivee: arrival || 'Oran', // ✅ Fallback
+          adresse_depart: departure || 'Alger',
+          adresse_arrivee: arrival || 'Oran',
+          date: date || '2025-12-25', // ✅ YYYY-MM-DD
+          heure_depart: time || '14:00', // ✅ HH:MM
+          nbr_places: seats || 1,
+          price: price || 1000,
+          distance: distance || 300,
+          is_confort: comfortOption || false,
+          fuel_type: fuelType || 'gasoil',
+          fuel_consumption: fuelConsumption || 8.0,
+          no_smoking: noSmoking || false,
+          music_allowed: musicAllowed || true,
+          small_luggage_only: smallLuggage || false,
+          description: additionalDetails || '',
+          luggage_allowed: !smallLuggage,
+          preference_ids: selectedPreferences || [],
+        };
+
+        console.log('📤 TRAJET DATA:', trajetData);
+
+        const response = await fetch('http://localhost:8000/api/v1/trajets/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(trajetData),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(
+            '❌ TRAJETS ERROR:',
+            response.status,
+            errorText.substring(0, 300),
+          );
+          throw new Error(
+            `Erreur ${response.status}: ${errorText.substring(0, 100)}`,
+          );
+        }
+
+        const createdTrajet = await response.json();
+        console.log('✅ Trajet créé:', createdTrajet);
+        setSubmitSuccess(true);
+
+        setTimeout(() => {
+          router.push('/#hero');
+        }, 2000);
+      } catch (error: any) {
+        console.error('❌ Erreur:', error);
+        setSubmitError(error.message);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [
       departure,
       arrival,
       date,
       time,
       seats,
       price,
-      distance,
-      duration,
-      preferences: { comfortOption, noSmoking, musicAllowed, smallLuggage },
       additionalDetails,
-    });
-  };
+      comfortOption,
+      noSmoking,
+      musicAllowed,
+      router,
+    ],
+  );
 
+  // ... TOUS vos autres useEffect (loadPreferences, etc.)
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const prefs = await authService.getAllPreferences();
+        setAllPreferences(prefs);
+        console.log('✅ Préférences récupérées:', prefs);
+      } catch (err: any) {
+        console.error('❌ Erreur fetch preferences:', err);
+        setError('Impossible de charger les préférences');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPreferences();
+  }, []);
+
+  if (loading) return <p>Chargement...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -228,24 +507,39 @@ export default function OfferRidePage() {
                 )}
 
                 {distance && duration && !isLoadingRoute && (
-                  <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <span className="font-semibold text-foreground">
-                          {distance} km
-                        </span>
-                        <p className="text-xs text-muted-foreground">
-                          {language === 'en' ? 'Est. Duration:' : 'Durée est.:'}{' '}
-                          {duration}
-                        </p>
+                  <div className="space-y-3 pt-2 border-t border-border">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                        <div>
+                          <span className="font-semibold text-foreground">
+                            {distance} km
+                          </span>
+                          <p className="text-xs text-muted-foreground">
+                            {language === 'en'
+                              ? 'Driving time:'
+                              : 'Temps de conduite:'}{' '}
+                            {duration}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    {distance && distance > 300 && (
-                      <div className="text-xs text-[#0EA5E9] bg-[#0EA5E9]/10 px-3 py-1 rounded-full">
-                        {language === 'en'
-                          ? '15-min break included'
-                          : 'Pause de 15 min incluse'}
+
+                    {numberOfBreaks > 0 && (
+                      <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
+                        <Coffee className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                            {language === 'en'
+                              ? `${numberOfBreaks} break${numberOfBreaks > 1 ? 's' : ''} included`
+                              : `${numberOfBreaks} pause${numberOfBreaks > 1 ? 's' : ''} incluse${numberOfBreaks > 1 ? 's' : ''}`}
+                          </p>
+                          <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+                            {language === 'en'
+                              ? `15 min every 300 km (${numberOfBreaks * 15} min total) • Total duration: ${calculateTotalDuration(parseInt(duration.split('h')[0]) * 60 + parseInt(duration.split('h')[1]), numberOfBreaks)}`
+                              : `15 min toutes les 300 km (${numberOfBreaks * 15} min au total) • Durée totale: ${calculateTotalDuration(parseInt(duration.split('h')[0]) * 60 + parseInt(duration.split('h')[1]), numberOfBreaks)}`}
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -316,6 +610,74 @@ export default function OfferRidePage() {
               </div>
             </div>
 
+            {/* Véhicule et Carburant */}
+            <div className="bg-card rounded-xl border border-border p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <svg
+                  className="w-5 h-5 text-[#FF5722]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <h2 className="text-lg font-semibold">
+                  {language === 'en'
+                    ? 'Vehicle Information'
+                    : 'Informations véhicule'}
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">
+                    {language === 'en' ? 'FUEL TYPE' : 'TYPE DE CARBURANT'}
+                  </Label>
+                  <select
+                    value={fuelType}
+                    onChange={(e) => setFuelType(e.target.value as FuelType)}
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg"
+                  >
+                    <option value="gasoil">
+                      {language === 'en' ? 'Diesel' : 'Gasoil'}
+                    </option>
+                    <option value="essence_sans_plomb">
+                      {language === 'en'
+                        ? 'Unleaded Petrol'
+                        : 'Essence Sans Plomb'}
+                    </option>
+                    <option value="gpl">GPL</option>
+                    <option value="electrique">
+                      {language === 'en' ? 'Electric' : 'Électrique'}
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground mb-2 block">
+                    {language === 'en' ? 'CONSUMPTION' : 'CONSOMMATION'} (
+                    {fuelType === 'electrique' ? 'kWh/100km' : 'L/100km'})
+                  </Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="1"
+                    max="20"
+                    value={fuelConsumption}
+                    onChange={(e) =>
+                      setFuelConsumption(parseFloat(e.target.value))
+                    }
+                    className="h-12"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Price & Options */}
             <div className="bg-card rounded-xl border border-border p-6">
               <div className="flex items-center gap-2 mb-4">
@@ -381,8 +743,9 @@ export default function OfferRidePage() {
                     />
                     <span className="text-muted-foreground">DZD</span>
                   </div>
-                  {distance && (
+                  {suggestedPrice && distance && (
                     <p className="text-xs text-[#0EA5E9] mt-2">
+                      💡{' '}
                       {language === 'en'
                         ? `Suggested price based on fuel: ${suggestedPrice.toLocaleString()} DZD`
                         : `Prix suggéré basé sur le carburant: ${suggestedPrice.toLocaleString()} DZD`}
@@ -432,79 +795,120 @@ export default function OfferRidePage() {
 
             {/* Trip Preferences */}
             <div className="bg-card rounded-xl border border-border p-6">
-              <h2 className="text-lg font-semibold mb-4">
-                {language === 'en'
-                  ? 'Trip Preferences'
-                  : 'Préférences du trajet'}
-              </h2>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    id="no-smoking"
-                    checked={noSmoking}
-                    onCheckedChange={(checked) =>
-                      setNoSmoking(checked as boolean)
-                    }
+              <div className="flex items-center gap-2 mb-4">
+                <svg
+                  className="w-5 h-5 text-[#FF5722]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
-                  <Label htmlFor="no-smoking" className="cursor-pointer">
-                    {language === 'en' ? 'No Smoking' : 'Non fumeur'}
-                  </Label>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    id="music"
-                    checked={musicAllowed}
-                    onCheckedChange={(checked) =>
-                      setMusicAllowed(checked as boolean)
-                    }
-                  />
-                  <Label htmlFor="music" className="cursor-pointer">
-                    {language === 'en' ? 'Music Allowed' : 'Musique autorisée'}
-                  </Label>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    id="luggage"
-                    checked={smallLuggage}
-                    onCheckedChange={(checked) =>
-                      setSmallLuggage(checked as boolean)
-                    }
-                  />
-                  <Label htmlFor="luggage" className="cursor-pointer">
-                    {language === 'en'
-                      ? 'Small Luggage Only'
-                      : 'Petits bagages uniquement'}
-                  </Label>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <Label className="text-sm font-medium text-muted-foreground mb-2 block">
+                </svg>
+                <h2 className="text-lg font-semibold">
                   {language === 'en'
-                    ? 'ADDITIONAL DETAILS (OPTIONAL)'
-                    : 'DÉTAILS SUPPLÉMENTAIRES (OPTIONNEL)'}
-                </Label>
-                <Textarea
-                  value={additionalDetails}
-                  onChange={(e) => setAdditionalDetails(e.target.value)}
-                  placeholder={
-                    language === 'en'
-                      ? 'Meeting point details, car model, etc.'
-                      : 'Détails du point de rencontre, modèle de voiture, etc.'
-                  }
-                  rows={4}
-                  className="resize-none"
-                />
+                    ? 'Trip Preferences'
+                    : 'Préférences de trajet'}
+                </h2>
               </div>
+
+              {availablePreferences.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  {language === 'en'
+                    ? 'No preferences available. You can add them in your profile settings.'
+                    : 'Aucune préférence disponible. Vous pouvez les ajouter dans les paramètres de votre profil.'}
+                </p>
+              ) : (
+                <>
+                  {Object.entries(
+                    availablePreferences.reduce(
+                      (acc: Record<string, PreferenceType[]>, pref) => {
+                        if (!acc[pref.category]) acc[pref.category] = [];
+                        acc[pref.category].push(pref);
+                        return acc;
+                      },
+                      {},
+                    ),
+                  ).map(([category, prefs]) => (
+                    <div key={category} className="mb-6">
+                      <h3 className="text-lg font-medium mb-3">
+                        {category === 'interests'
+                          ? language === 'en'
+                            ? 'Interests'
+                            : "Centres d'intérêt"
+                          : category === 'habits'
+                            ? language === 'en'
+                              ? 'Habits'
+                              : 'Habitudes'
+                            : language === 'en'
+                              ? 'Driving Preferences'
+                              : 'Préférences de conduite'}
+                      </h3>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {prefs.map((pref) => (
+                          <button
+                            key={pref.id}
+                            onClick={(e) => {
+                              e.preventDefault(); // <-- empêche le scroll/submit
+                              setSelectedPreferences((prev) =>
+                                prev.includes(pref.id)
+                                  ? prev.filter((id) => id !== pref.id)
+                                  : [...prev, pref.id],
+                              );
+                            }}
+                            className={`relative p-4 rounded-xl border-2 transition-all ${
+                              selectedPreferences.includes(pref.id)
+                                ? 'border-[#FF5722] bg-[#FF5722]/5'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            {selectedPreferences.includes(pref.id) && (
+                              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#FF5722] flex items-center justify-center">
+                                <Check className="w-3 h-3 text-white" />
+                              </div>
+                            )}
+                            <div className="text-3xl mb-2">{pref.icon}</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {language === 'en' ? pref.name_en : pref.name_fr}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+
+            <div className="bg-card rounded-xl border border-border p-6">
+              <Label className="text-sm font-medium text-muted-foreground mb-2 block">
+                {language === 'en'
+                  ? 'ADDITIONAL DETAILS (OPTIONAL)'
+                  : 'DÉTAILS SUPPLÉMENTAIRES (OPTIONNEL)'}
+              </Label>
+              <Textarea
+                value={additionalDetails}
+                onChange={(e) => setAdditionalDetails(e.target.value)}
+                placeholder={
+                  language === 'en'
+                    ? 'Meeting point details, car model, etc.'
+                    : 'Détails du point de rencontre, modèle de voiture, etc.'
+                }
+                rows={4}
+                className="resize-none"
+              />
             </div>
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar Summary with Map */}
           <div className="lg:col-span-1">
             <div className="sticky top-6 space-y-4">
               <div className="bg-card rounded-xl border border-border overflow-hidden">
-                {/* Interactive Map */}
                 <div className="relative h-64 bg-gray-100 dark:bg-gray-900 group">
                   {departureCoords && arrivalCoords ? (
                     <>
@@ -517,7 +921,6 @@ export default function OfferRidePage() {
                         style={{ border: 0 }}
                         title="Route Map"
                       />
-                      {/* Overlay with action buttons */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                         <div className="absolute bottom-4 left-4 right-4 flex gap-2 pointer-events-auto">
                           <button
@@ -540,13 +943,19 @@ export default function OfferRidePage() {
                           </a>
                         </div>
                       </div>
-                      {/* Quick info badge */}
                       <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md">
                         <div className="flex items-center gap-2 text-xs">
                           <MapPin className="w-3.5 h-3.5 text-[#FF5722]" />
                           <span className="font-semibold">{distance} km</span>
-                          <span className="text-gray-400">•</span>
-                          <span className="text-gray-600">{duration}</span>
+                          {numberOfBreaks > 0 && (
+                            <>
+                              <span className="text-gray-400">•</span>
+                              <Coffee className="w-3.5 h-3.5 text-blue-600" />
+                              <span className="text-gray-600">
+                                {numberOfBreaks}×15min
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </>
@@ -578,10 +987,7 @@ export default function OfferRidePage() {
                           <p className="text-xs text-muted-foreground">
                             {new Date(`${date}T${time}`).toLocaleDateString(
                               language === 'en' ? 'en-US' : 'fr-FR',
-                              {
-                                month: 'short',
-                                day: 'numeric',
-                              },
+                              { month: 'short', day: 'numeric' },
                             )}
                             , {time}
                           </p>
@@ -605,13 +1011,11 @@ export default function OfferRidePage() {
                                   1000 +
                                 Number.parseInt(duration.split('h')[1]) *
                                   60 *
-                                  1000,
+                                  1000 +
+                                numberOfBreaks * 15 * 60 * 1000,
                             ).toLocaleDateString(
                               language === 'en' ? 'en-US' : 'fr-FR',
-                              {
-                                month: 'short',
-                                day: 'numeric',
-                              },
+                              { month: 'short', day: 'numeric' },
                             )}
                           </p>
                         )}
@@ -628,13 +1032,49 @@ export default function OfferRidePage() {
                     </p>
                   </div>
 
+                  {submitError && (
+                    <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg p-3">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                        <p className="text-xs text-red-600 dark:text-red-400">
+                          {submitError}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {submitSuccess && (
+                    <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-3">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+                        <p className="text-xs text-green-600 dark:text-green-400">
+                          {language === 'en'
+                            ? 'Trip published successfully!'
+                            : 'Trajet publié avec succès !'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   <Button
                     type="submit"
                     className="w-full h-12 bg-[#FF5722] hover:bg-[#FF5722]/90 text-white font-semibold"
+                    disabled={
+                      isSubmitting || !departure || !arrival || !date || !time
+                    }
                   >
-                    {language === 'en'
-                      ? 'Publish Trip →'
-                      : 'Publier le trajet →'}
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        {language === 'en' ? 'Publishing...' : 'Publication...'}
+                      </>
+                    ) : (
+                      <>
+                        {language === 'en'
+                          ? 'Publish Trip →'
+                          : 'Publier le trajet →'}
+                      </>
+                    )}
                   </Button>
 
                   <Button
@@ -651,9 +1091,9 @@ export default function OfferRidePage() {
           </div>
         </form>
       </main>
+
       <Footer />
 
-      {/* Map Modal */}
       <MapModal
         isOpen={isMapModalOpen}
         onClose={() => setIsMapModalOpen(false)}

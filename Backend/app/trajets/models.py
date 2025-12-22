@@ -1,7 +1,3 @@
-"""
-Modèles pour la gestion des trajets du projet DZ-CarPool
-"""
-
 from decimal import Decimal
 
 from django.conf import settings
@@ -16,6 +12,13 @@ class Trajet(models.Model):
         ("ACTIVE", "Actif"),
         ("COMPLETED", "Terminé"),
         ("CANCELLED", "Annulé"),
+    ]
+
+    FUEL_TYPE_CHOICES = [
+        ("essence_sans_plomb", "Essence Sans Plomb"),
+        ("gasoil", "Gasoil"),
+        ("gpl", "GPL"),
+        ("electrique", "Électrique"),
     ]
 
     conducteur = models.ForeignKey(
@@ -67,7 +70,7 @@ class Trajet(models.Model):
         decimal_places=2,
         null=True,
         blank=True,
-        help_text="Prix conseillé basé sur le coût du carburant",
+        help_text="Prix conseillé basé sur le coût du carburant (cahier des charges)",
     )
 
     # Distance et options
@@ -82,6 +85,31 @@ class Trajet(models.Model):
     )
     pause_required = models.BooleanField(
         default=False, help_text="Pause obligatoire pour trajets > 300km"
+    )
+
+    # Informations véhicule et carburant
+    fuel_type = models.CharField(
+        max_length=20,
+        choices=FUEL_TYPE_CHOICES,
+        default="gasoil",
+        help_text="Type de carburant utilisé par le véhicule",
+    )
+    fuel_consumption = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=Decimal("8.00"),
+        validators=[MinValueValidator(Decimal("0.01"))],
+        help_text="Consommation du véhicule (L/100km ou kWh/100km pour électrique)",
+    )
+
+    wilaya_depart = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Wilaya de départ extraite automatiquement de l'adresse",
+    )
+    # ✅ NOUVEAU : Relation many-to-many avec les préférences
+    preferences = models.ManyToManyField(
+        "users.Preference", blank=True, related_name="trajets"
     )
 
     # Statut et métadonnées
@@ -102,6 +130,8 @@ class Trajet(models.Model):
             models.Index(fields=["ville_depart", "ville_arrivee", "date"]),
             models.Index(fields=["conducteur", "status"]),
             models.Index(fields=["date", "status"]),
+            models.Index(fields=["fuel_type"]),
+            models.Index(fields=["wilaya_depart"]),
         ]
 
     def __str__(self):
@@ -109,12 +139,10 @@ class Trajet(models.Model):
 
     def save(self, *args, **kwargs):
         """Override save pour calculer automatiquement les prix et la pause"""
-        # Calcul de la commission et du prix conducteur
         commission = self.price * Decimal(str(settings.PLATFORM_COMMISSION_RATE))
         self.price_platform = commission
         self.price_driver = self.price - commission
 
-        # Si Trajet Confort, ajouter le supplément
         if self.is_confort:
             supplement = self.price * Decimal(str(settings.CONFORT_SUPPLEMENT_RATE))
             self.price = self.price + supplement
@@ -123,11 +151,9 @@ class Trajet(models.Model):
             )
             self.price_driver = self.price - self.price_platform
 
-        # Pause obligatoire pour trajets > 300km
         if self.distance > settings.LONG_DISTANCE_THRESHOLD_KM:
             self.pause_required = True
 
-        # Initialiser places_disponibles si c'est une création
         if not self.pk:
             self.places_disponibles = self.nbr_places
 
@@ -185,14 +211,20 @@ class TrajetEtape(models.Model):
 
 
 class FuelPrice(models.Model):
-    """Modèle pour stocker les prix du carburant par wilaya"""
+    """
+    Modèle pour stocker les prix du carburant par wilaya
+    Synchronisé avec prix_carburants.json (cahier des charges)
+    """
 
     FUEL_TYPES = [
-        ("ESSENCE", "Essence"),
-        ("DIESEL", "Diesel"),
+        ("essence_sans_plomb", "Essence Sans Plomb"),
+        ("gasoil", "Gasoil"),
+        ("gpl", "GPL"),
+        ("electrique", "Électrique"),
     ]
 
-    wilaya = models.CharField(max_length=100, db_index=True)
+    wilaya_code = models.CharField(max_length=2, db_index=True, default="")
+    wilaya_name = models.CharField(max_length=100, default="")
     fuel_type = models.CharField(max_length=20, choices=FUEL_TYPES)
     price_per_liter = models.DecimalField(
         max_digits=6, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))]
@@ -203,8 +235,11 @@ class FuelPrice(models.Model):
         db_table = "fuel_prices"
         verbose_name = "Prix Carburant"
         verbose_name_plural = "Prix Carburants"
-        unique_together = ["wilaya", "fuel_type", "effective_date"]
-        ordering = ["-effective_date", "wilaya"]
+        unique_together = ["wilaya_code", "fuel_type", "effective_date"]
+        ordering = ["-effective_date", "wilaya_name"]
+        indexes = [
+            models.Index(fields=["wilaya_name", "fuel_type"]),
+        ]
 
     def __str__(self):
-        return f"{self.wilaya} - {self.fuel_type}: {self.price_per_liter} DA/L"
+        return f"{self.wilaya_name} - {self.get_fuel_type_display()}: {self.price_per_liter} DA/L"

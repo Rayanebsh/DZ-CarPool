@@ -52,7 +52,9 @@ export default [
       'prettier/prettier': 'error',
       'react/react-in-jsx-scope': 'off',
 
-      // On laisse TS gérer ça
+      // ⛔️ IMPORTANT : no-undef casse TypeScript
+      'no-undef': 'off',
+
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',

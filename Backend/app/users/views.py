@@ -13,6 +13,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from app.users.models import UserDocument
+
 from .models import EmailVerification, PhoneVerification, Preference, Role, User
 from .serializers import (
     ChangePasswordSerializer,
@@ -266,13 +268,13 @@ class UserViewSet(viewsets.ModelViewSet):
         Récupère les informations de l'utilisateur connecté avec statut des préférences
         """
         user = request.user
-        serializer = UserProfileSerializer(user)
+        # ✅ MODIFICATION : Passer le contexte pour avoir l'URL complète de la photo
+        serializer = UserProfileSerializer(user, context={"request": request})
         data = serializer.data
 
         # Ajouter le statut des préférences
         data["has_preferences"] = self._check_user_preferences(user)
         data["preferences_count"] = user.preferences.count()
-
         return Response(data)
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
@@ -292,12 +294,22 @@ class UserViewSet(viewsets.ModelViewSet):
             }
         )
 
-    @action(detail=False, methods=["put"])
+    @action(detail=False, methods=["put", "patch"])
     def update_profile(self, request):
-        serializer = UserUpdateSerializer(request.user, data=request.data, partial=True)
+        """
+        Mise à jour du profil avec support des fichiers
+        """
+        # ✅ MODIFICATION : Passer le contexte pour construire l'URL
+        serializer = UserUpdateSerializer(
+            request.user, data=request.data, partial=True, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(UserProfileSerializer(request.user).data)
+
+        # Retourner le profil complet avec l'URL de la photo
+        return Response(
+            UserProfileSerializer(request.user, context={"request": request}).data
+        )
 
     # ---------- GESTION DES PRÉFÉRENCES ----------
     @action(detail=False, methods=["get", "post"], permission_classes=[IsAuthenticated])
@@ -554,6 +566,39 @@ class UserViewSet(viewsets.ModelViewSet):
                 "phone_verified": user.phone_verified,
                 "email": user.email,
                 "phone_number": user.phone_number,
+            }
+        )
+
+    @action(
+        detail=False,
+        methods=["get"],
+        permission_classes=[IsAuthenticated],
+        url_path="check-document-status",
+    )
+    def check_document_status(self, request):
+        user = request.user
+
+        verified_docs = UserDocument.objects.filter(user=user, verified=True)
+        pending_docs = UserDocument.objects.filter(user=user, verified=False)
+
+        has_verified_document = verified_docs.exists()
+
+        serializer = UserDocumentSerializer(
+            verified_docs, many=True, context={"request": request}
+        )
+
+        return Response(
+            {
+                "can_publish_trip": has_verified_document,
+                "has_verified_document": has_verified_document,
+                "verified_documents_count": verified_docs.count(),
+                "pending_documents_count": pending_docs.count(),
+                "verified_documents": serializer.data,
+                "message": (
+                    "Vous pouvez publier des trajets"
+                    if has_verified_document
+                    else "Vous devez télécharger et faire vérifier votre carte d'identité (CNI)"
+                ),
             }
         )
 

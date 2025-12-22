@@ -27,7 +27,7 @@ type NotificationsPersist = PersistOptions<NotificationsState>;
 
 export const useNotificationsStore = create<NotificationsState>()(
   persist<NotificationsState>(
-    (set, get) => ({
+    (set) => ({
       notifications: [],
       unreadCount: 0,
 

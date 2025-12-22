@@ -1,0 +1,5 @@
+. Documentation de l'API RESTful :
+o Documentation générée automatiquement (via FastAPI/Swagger ou drf-spectacular
+pour Django) et accessible via un endpoint (ex: /docs)
+Cette documentation doit lister tous les endpoints, les verbes HTTP, les paramètres
+attendus, les corps de requête et les formats de réponse possibles (succès et erreur)

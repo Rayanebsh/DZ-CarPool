@@ -7,6 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from app.core.filters import TrajetFilter
+from utils.pricing import get_fuel_prices_summary
 
 from .models import FuelPrice, Trajet
 from .permissions import (
@@ -87,7 +88,7 @@ class TrajetViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Crée un trajet avec le conducteur authentifié"""
-        serializer.save(conducteur=self.request.user)
+        serializer.save()
 
     @action(detail=False, methods=["post"])
     def search(self, request):
@@ -113,6 +114,15 @@ class TrajetViewSet(viewsets.ModelViewSet):
 
         if "is_confort" in data:
             queryset = queryset.filter(is_confort=data["is_confort"])
+
+        if "fuel_type" in data:
+            queryset = queryset.filter(fuel_type=data["fuel_type"])
+
+        if "no_smoking" in data:
+            queryset = queryset.filter(no_smoking=data["no_smoking"])
+
+        if "music_allowed" in data:
+            queryset = queryset.filter(music_allowed=data["music_allowed"])
 
         # Exclure les trajets de l'utilisateur connecté
         if request.user.is_authenticated:
@@ -268,9 +278,57 @@ class TrajetViewSet(viewsets.ModelViewSet):
 
         return Response(stats)
 
+    @action(detail=False, methods=["get"], permission_classes=[permissions.AllowAny])
+    def fuel_prices(self, request):
+        """
+        ✅ NOUVEAU : Endpoint pour récupérer les prix du carburant
+        Retourne le contenu du fichier prix_carburants.json
+        Conforme au cahier des charges
+
+        GET /api/v1/trajets/fuel_prices/
+        """
+        data = get_fuel_prices_summary()
+
+        if data:
+            return Response(data)
+        else:
+            return Response(
+                {
+                    "error": "Impossible de charger les prix du carburant",
+                    "message": "Le fichier prix_carburants.json est introuvable",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(
+        detail=False,
+        methods=["get"],
+        permission_classes=[permissions.AllowAny],
+        url_path="fuel-prices-static",
+    )
+    def fuel_prices_static(self, request):
+        """
+        Alternative endpoint with kebab-case URL
+        Same as fuel_prices but with URL: /api/v1/trajets/trajets/fuel-prices-static/
+
+        GET /api/v1/trajets/trajets/fuel-prices-static/
+        """
+        data = get_fuel_prices_summary()
+
+        if data:
+            return Response(data)
+        else:
+            return Response(
+                {
+                    "error": "Impossible de charger les prix du carburant",
+                    "message": "Le fichier prix_carburants.json est introuvable",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
 
 class FuelPriceViewSet(viewsets.ModelViewSet):
-    """ViewSet pour la gestion des prix du carburant"""
+    """ViewSet pour la gestion des prix du carburant en base de données (optionnel)"""
 
     queryset = FuelPrice.objects.all()
     serializer_class = FuelPriceSerializer

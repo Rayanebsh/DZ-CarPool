@@ -1,12 +1,1 @@
-{
-  "/about/page": "app/about/page.js",
-  "/careers/page": "app/careers/page.js",
-  "/contact/page": "app/contact/page.js",
-  "/login/page": "app/login/page.js",
-  "/messages/page": "app/messages/page.js",
-  "/page": "app/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/search-results/page": "app/search-results/page.js",
-  "/signup/page": "app/signup/page.js",
-  "/trips/page": "app/trips/page.js"
-}
+{}

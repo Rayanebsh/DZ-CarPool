@@ -27,14 +27,16 @@ urlpatterns = [
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     # Health check endpoint
     path("health/", lambda request: JsonResponse({"status": "healthy"})),
-    # ✅ CHANGÉ : Ajouter le préfixe v1/
-    path("api/v1/users/", include("app.users.urls")),  # ← Enlevé namespace
+    # API v1 - Toutes vos apps
+    path("api/v1/users/", include("app.users.urls")),
     path("api/v1/trajets/", include("app.trajets.urls")),
     path("api/v1/reservations/", include("app.reservations.urls")),
     path("api/v1/messaging/", include("app.messaging.urls")),
     path("api/v1/notifications/", include("app.notifications.urls")),
     # Allauth URLs (pour Google Auth)
     path("accounts/", include("allauth.urls")),
+    # ❌ SUPPRIMEZ CETTE LIGNE - elle cherche app.urls qui n'existe pas
+    # path('api/v1/', include('app.urls')),
 ]
 
 if settings.DEBUG:

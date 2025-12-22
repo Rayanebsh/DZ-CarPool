@@ -35,7 +35,7 @@ interface TripsState {
   searchTrips: (filters: any) => Promise<void>;
 }
 
-export const useTripsStore = create<TripsState>((set, get) => ({
+export const useTripsStore = create<TripsState>((set) => ({
   // État initial
   driverTrips: [],
   passengerTrips: [],
@@ -76,7 +76,7 @@ export const useTripsStore = create<TripsState>((set, get) => ({
     })),
 
   // Rechercher des trajets
-  searchTrips: async (filters) => {
+  searchTrips: async () => {
     try {
       set({ loading: true, error: null });
       // Appel API ici

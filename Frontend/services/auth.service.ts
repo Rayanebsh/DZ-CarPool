@@ -1,4 +1,4 @@
-// services/auth.service.ts
+// services/auth.service.ts - VERSION COMPLÈTE
 import axios from 'axios';
 
 const API_URL =
@@ -17,6 +17,15 @@ export interface User {
   preferences?: number[];
   has_preferences?: boolean;
   preferences_count?: number;
+}
+
+export interface Preference {
+  id: number;
+  name: string;
+  name_fr: string;
+  name_en: string;
+  category: string;
+  icon?: string;
 }
 
 export interface LoginData {
@@ -54,7 +63,7 @@ class AuthService {
   private userKey = 'user';
 
   // ========== STORAGE ==========
-  setTokens(access: string, refresh: string) {
+  setTokens(access: string, refresh: string): void {
     localStorage.setItem(this.tokenKey, access);
     localStorage.setItem(this.refreshKey, refresh);
   }
@@ -67,13 +76,13 @@ class AuthService {
     return localStorage.getItem(this.refreshKey);
   }
 
-  removeTokens() {
+  removeTokens(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.refreshKey);
     localStorage.removeItem(this.userKey);
   }
 
-  setUser(user: User) {
+  setUser(user: User): void {
     localStorage.setItem(this.userKey, JSON.stringify(user));
   }
 
@@ -119,7 +128,7 @@ class AuthService {
     return authData;
   }
 
-  logout() {
+  logout(): void {
     this.removeTokens();
   }
 
@@ -128,6 +137,7 @@ class AuthService {
     const response = await axios.get(`${API_URL}/users/me/`, {
       headers: {
         Authorization: `Bearer ${this.getAccessToken()}`,
+        'Content-Type': 'application/json',
       },
     });
 
@@ -150,21 +160,43 @@ class AuthService {
   }
 
   // ========== PREFERENCES ==========
-  async getPreferences(): Promise<any[]> {
+
+  /**
+   * ✅ Récupère TOUTES les préférences disponibles dans le système
+   * Cette méthode est utilisée pour afficher la liste complète des préférences
+   * lors de la création d'un trajet ou la configuration du profil
+   */
+  async getPreferences(): Promise<Preference[]> {
     const response = await axios.get(`${API_URL}/users/preferences/`, {
       headers: {
         Authorization: `Bearer ${this.getAccessToken()}`,
+        'Content-Type': 'application/json',
       },
     });
-    return response.data;
+
+    // Le backend peut retourner soit un array direct, soit un objet avec preferences
+    return Array.isArray(response.data)
+      ? response.data
+      : response.data.preferences || [];
   }
 
+  /**
+   * ✅ Alias pour getPreferences() - pour la compatibilité avec l'ancien code
+   */
+  async getAllPreferences(): Promise<Preference[]> {
+    return this.getPreferences();
+  }
+
+  /**
+   * ✅ Récupère les préférences de l'utilisateur connecté uniquement
+   * Retourne les IDs et les objets complets des préférences
+   */
   async getUserPreferences(): Promise<{
     preference_ids: number[];
-    preferences: any[];
+    preferences: Preference[];
     count: number;
   }> {
-    const response = await axios.get(`${API_URL}/users/preferences/`, {
+    const response = await axios.get(`${API_URL}/users/my-preferences/`, {
       headers: {
         Authorization: `Bearer ${this.getAccessToken()}`,
       },
@@ -172,6 +204,10 @@ class AuthService {
     return response.data;
   }
 
+  /**
+   * ✅ Met à jour les préférences de l'utilisateur
+   * @param preferenceIds - Liste des IDs de préférences à associer
+   */
   async updatePreferences(preferenceIds: number[]): Promise<any> {
     const response = await axios.post(
       `${API_URL}/users/preferences/`,
@@ -183,10 +219,12 @@ class AuthService {
       },
     );
 
+    // Mettre à jour le cache local de l'utilisateur
     const user = this.getStoredUser();
     if (user) {
       user.has_preferences = true;
       user.preferences_count = preferenceIds.length;
+      user.preferences = preferenceIds;
       this.setUser(user);
     }
 
@@ -228,6 +266,69 @@ class AuthService {
     localStorage.setItem(this.tokenKey, newAccessToken);
 
     return newAccessToken;
+  }
+
+  // ========== CUSTOM HOOKS HELPERS ==========
+
+  /**
+   * ✅ HELPER : Pour simplifier le chargement de données avec gestion d'état
+   *
+   * Exemple d'utilisation :
+   * ```typescript
+   * const [preferences, setPreferences] = useState<Preference[]>([]);
+   * const [loading, setLoading] = useState(true);
+   * const [error, setError] = useState<string | null>(null);
+   *
+   * useEffect(() => {
+   *   authService.loadWithState(
+   *     () => authService.getPreferences(),
+   *     setPreferences,
+   *     setLoading,
+   *     setError
+   *   );
+   * }, []);
+   * ```
+   */
+  async loadWithState<T>(
+    fetchFn: () => Promise<T>,
+    setData: (data: T) => void,
+    setLoading?: (loading: boolean) => void,
+    setError?: (error: string | null) => void,
+  ): Promise<void> {
+    try {
+      if (setLoading) setLoading(true);
+      if (setError) setError(null);
+
+      const data = await fetchFn();
+      setData(data);
+    } catch (error: any) {
+      console.error('Error loading data:', error);
+      if (setError) {
+        setError(
+          error.response?.data?.message ||
+            error.message ||
+            'Une erreur est survenue',
+        );
+      }
+    } finally {
+      if (setLoading) setLoading(false);
+    }
+  }
+
+  /**
+   * ✅ HELPER : Version simplifiée sans gestion d'erreur
+   * Pour les cas où vous voulez juste charger des données
+   */
+  async load<T>(
+    fetchFn: () => Promise<T>,
+    setData: (data: T) => void,
+  ): Promise<void> {
+    try {
+      const data = await fetchFn();
+      setData(data);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
   }
 }
 

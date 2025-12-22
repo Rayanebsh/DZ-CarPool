@@ -12,8 +12,8 @@ interface MapModalProps {
   arrivalCoords: { lat: string; lon: string } | null;
   departure: string;
   arrival: string;
-  distance: number | null;
-  duration: string | null;
+  distance?: number | null;
+  duration?: string | null;
 }
 
 export function MapModal({

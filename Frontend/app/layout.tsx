@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import { LanguageProvider } from '@/contexts/language-context';
 import { GoogleOAuthProvider } from '@react-oauth/google';
