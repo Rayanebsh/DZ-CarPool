@@ -34,7 +34,7 @@ export default function PreferencesPage() {
 
   const fetchPreferences = async () => {
     try {
-      const data: any = await authService.getPreferences();
+      const data: any = await authService.getAllPreferences();
 
       console.log('✅ Préférences récupérées:', data);
 

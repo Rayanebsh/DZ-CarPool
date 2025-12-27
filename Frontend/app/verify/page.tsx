@@ -15,6 +15,7 @@ export default function VerifyPage() {
   const [phoneSent, setPhoneSent] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [hasPhoneNumber, setHasPhoneNumber] = useState(true); // ✅ Nouveau state
 
   useEffect(() => {
     checkVerificationStatus();
@@ -23,9 +24,9 @@ export default function VerifyPage() {
   // ✅ Redirection automatique quand tout est vérifié
   useEffect(() => {
     if (emailVerified && phoneVerified && !loading) {
-      console.log('✅ Tout est vérifié, redirection vers /preferences...');
+      console.log('✅ Tout est vérifié, redirection vers /documents...');
       setTimeout(() => {
-        router.push('/preferences');
+        router.push('/');
       }, 1500);
     }
   }, [emailVerified, phoneVerified, loading, router]);
@@ -41,7 +42,7 @@ export default function VerifyPage() {
       // Si tout est déjà vérifié, rediriger immédiatement
       if (status.email_verified && status.phone_verified) {
         console.log('✅ Déjà vérifié, redirection immédiate');
-        router.push('/preferences');
+        router.push('/');
         return;
       }
 
@@ -84,8 +85,10 @@ export default function VerifyPage() {
           setPhoneVerified(true);
           console.log('ℹ️ Téléphone déjà vérifié');
         } else if (err.message === 'NO_PHONE_NUMBER') {
-          console.log('ℹ️ Pas de téléphone, vérification ignorée');
-          setPhoneVerified(true);
+          // ❌ NE PAS mettre phoneVerified à true !
+          // ✅ Juste indiquer qu'il n'y a pas de numéro
+          setHasPhoneNumber(false);
+          console.log('ℹ️ Pas de téléphone enregistré');
         } else {
           console.error('❌ Erreur envoi code téléphone:', err);
         }
@@ -152,6 +155,7 @@ export default function VerifyPage() {
         setPhoneVerified(true);
         setSuccess('✅ Téléphone déjà vérifié !');
       } else if (err.message === 'NO_PHONE_NUMBER') {
+        setHasPhoneNumber(false);
         setError('Aucun numéro de téléphone enregistré');
       } else {
         setError("Erreur lors de l'envoi du code");
@@ -280,8 +284,8 @@ export default function VerifyPage() {
             </div>
           )}
 
-          {/* Phone Verification */}
-          {!phoneVerified && (
+          {/* ✅ Afficher la vérification téléphone SEULEMENT si un numéro existe */}
+          {!phoneVerified && hasPhoneNumber && (
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 📱 Vérification Téléphone
@@ -317,6 +321,31 @@ export default function VerifyPage() {
                 >
                   Renvoyer le code
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* ✅ Message si pas de numéro de téléphone */}
+          {!phoneVerified && !hasPhoneNumber && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-amber-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-amber-900 mb-1">
+                    Numéro de téléphone manquant
+                  </h4>
+                  <p className="text-sm text-amber-700 mb-3">
+                    Vous devez ajouter un numéro de téléphone à votre profil pour continuer
+                  </p>
+                  <button
+                    onClick={() => router.push('/profile')}
+                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Ajouter un numéro
+                  </button>
+                </div>
               </div>
             </div>
           )}

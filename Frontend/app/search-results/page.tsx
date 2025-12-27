@@ -1,128 +1,362 @@
 'use client';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Star, MapPin, Clock, Briefcase, Loader2, Globe } from 'lucide-react';
 
-import { useState } from 'react';
-import { Header } from '@/components/header';
-import { Footer } from '@/components/footer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Star, MapPin, Clock, Users, Ban, Briefcase } from 'lucide-react';
-import Link from 'next/link';
-import Image from 'next/image';
+const API_BASE_URL = 'http://localhost:8000';
 
-// Mock data for ride results
-const rideResults = [
-  {
-    id: 1,
-    driver: {
-      name: 'Karim L.',
-      rating: 4.9,
-      reviews: 120,
-      image: '/driver-profile-male.jpg',
-    },
-    departure: '08:00',
-    arrival: '12:30',
-    from: 'Algiers Center',
-    to: 'Oran City',
-    price: 1200,
-    seatsLeft: 2,
-    amenities: { noSmoking: true, petsAllowed: false, luggage: true },
+// 🌍 Traductions
+const translations = {
+  fr: {
+    title: "Résultats de recherche",
+    filters: "Filtres",
+    reset: "Réinitialiser",
+    date: "Date",
+    maxPrice: "Prix maximum",
+    departureTime: "Heure de départ",
+    morning: "Matin",
+    afternoon: "Après-midi",
+    evening: "Soir",
+    preferences: "Préférences",
+    selected: "sélectionnée",
+    selectedPlural: "sélectionnées",
+    options: "Options",
+    comfort: "Confort",
+    applyFilters: "Appliquer les filtres",
+    errorTitle: "Erreur de recherche",
+    retry: "Réessayer",
+    noResults: "Aucun trajet trouvé",
+    noResultsDesc: "Essayez de modifier vos critères de recherche ou les filtres",
+    tripsFound: "trajet trouvé",
+    tripsFoundPlural: "trajets trouvés",
+    match: "Correspondance",
+    luggage: "Bagages",
+    perSeat: "par place",
+    available: "place dispo",
+    availablePlural: "places dispo",
+    viewTrip: "Voir le trajet",
+    searchInfo: (from: string, to: string, date: string, places: number) => 
+      `${from} → ${to} • ${date} • ${places} place${places > 1 ? 's' : ''}`,
   },
-  {
-    id: 2,
-    driver: {
-      name: 'Fatima Z.',
-      rating: 5.0,
-      reviews: 88,
-      image: '/driver-profile-female.jpg',
-    },
-    departure: '09:30',
-    arrival: '14:00',
-    from: 'Algiers Airport',
-    to: 'Oran St. Hubert',
-    price: 1350,
-    seatsLeft: 1,
-    amenities: { noSmoking: true, petsAllowed: true, luggage: false },
-  },
-  {
-    id: 3,
-    driver: {
-      name: 'Yacine B.',
-      rating: 4.8,
-      reviews: 215,
-      image: '/driver-profile-young-male.jpg',
-    },
-    departure: '14:00',
-    arrival: '18:30',
-    from: 'Bab Ezzouar',
-    to: 'USTO, Oran',
-    price: 1100,
-    seatsLeft: 3,
-    amenities: { noSmoking: false, petsAllowed: true, luggage: true },
-  },
-];
+  en: {
+    title: "Search Results",
+    filters: "Filters",
+    reset: "Reset",
+    date: "Date",
+    maxPrice: "Maximum price",
+    departureTime: "Departure time",
+    morning: "Morning",
+    afternoon: "Afternoon",
+    evening: "Evening",
+    preferences: "Preferences",
+    selected: "selected",
+    selectedPlural: "selected",
+    options: "Options",
+    comfort: "Comfort",
+    applyFilters: "Apply filters",
+    errorTitle: "Search error",
+    retry: "Retry",
+    noResults: "No trips found",
+    noResultsDesc: "Try modifying your search criteria or filters",
+    tripsFound: "trip found",
+    tripsFoundPlural: "trips found",
+    match: "Match",
+    luggage: "Luggage",
+    perSeat: "per seat",
+    available: "seat available",
+    availablePlural: "seats available",
+    viewTrip: "View trip",
+    searchInfo: (from: string, to: string, date: string, places: number) => 
+      `${from} → ${to} • ${date} • ${places} seat${places > 1 ? 's' : ''}`,
+  }
+};
+
+interface Preference {
+  id: number;
+  name_fr: string;
+  name_en: string;
+}
+
+interface Filters {
+  date: string;
+  priceRange: number[];
+  departureTime: string;
+  preferences: number[];
+  isConfort: boolean;
+}
+
+interface SearchInfo {
+  depart: string;
+  arrivee: string;
+  date: string;
+  places: number;
+}
+
+interface Ride {
+  id: number;
+  conducteur_picture: string | null;
+  conducteur_name: string;
+  conducteur_rating: number;
+  match_score?: number;
+  heure_depart: string;
+  ville_depart: string;
+  ville_arrivee: string;
+  date: string;
+  is_confort: boolean;
+  price: number;
+  places_disponibles: number;
+  luggage_allowed: boolean;
+}
+
+interface SearchData {
+  ville_depart: string;
+  ville_arrivee: string;
+  date: string;
+  nbr_places: number;
+  price_max?: number;
+  departure_time?: string;
+  preference_ids?: number[];
+  is_confort?: boolean;
+}
 
 export default function SearchResultsPage() {
-  const [date, setDate] = useState('2024-06-25');
-  const [priceRange, setPriceRange] = useState([500]);
-  const [departureTime, setDepartureTime] = useState<
-    'morning' | 'afternoon' | 'evening'
-  >('morning');
-  const [preferences, setPreferences] = useState({
-    petsAllowed: false,
-    smokerFriendly: false,
-    music: false,
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  const [lang, setLang] = useState<'fr' | 'en'>('fr');
+  const t = translations[lang];
+  
+  const [loading, setLoading] = useState(true);
+  const [results, setResults] = useState<Ride[]>([]);
+  const [searchInfo, setSearchInfo] = useState<SearchInfo | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [filters, setFilters] = useState<Filters>({
+    date: searchParams.get('date') || '',
+    priceRange: [500, 5000],
+    departureTime: '',
+    preferences: [],
+    isConfort: false,
   });
-
-  const handlePreferenceChange = (pref: keyof typeof preferences) => {
-    setPreferences((prev) => ({ ...prev, [pref]: !prev[pref] }));
+  
+  const [availablePreferences, setAvailablePreferences] = useState<Preference[]>([]);
+  
+  // Charger la langue depuis localStorage
+  useEffect(() => {
+    const savedLang = localStorage.getItem('language') as 'fr' | 'en';
+    if (savedLang) setLang(savedLang);
+  }, []);
+  
+  const toggleLanguage = () => {
+    const newLang = lang === 'fr' ? 'en' : 'fr';
+    setLang(newLang);
+    localStorage.setItem('language', newLang);
   };
+  
+  // Charger les préférences
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      try {
+        console.log('🔄 Chargement des préférences...');
+        const response = await fetch(`${API_BASE_URL}/api/v1/users/preferences/`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
+        const data = await response.json();
+        console.log('✅ Préférences chargées:', data.length);
+        setAvailablePreferences(data);
+      } catch (error) {
+        console.error('❌ Erreur chargement préférences:', error);
+      }
+    };
+
+    fetchPreferences();
+  }, []);
+  
+  const performSearch = async (filterOverrides: Partial<Filters> = {}) => {
+    setLoading(true);
+    setError(null);
+    
+    const depart = searchParams.get('from') || '';
+    const arrivee = searchParams.get('to') || '';
+    const date = searchParams.get('date') || '';
+    const places = searchParams.get('passengers') || '1';
+    
+    if (!depart || !arrivee) {
+      setError('Paramètres de recherche manquants');
+      setLoading(false);
+      return;
+    }
+    
+    const currentFilters = { ...filters, ...filterOverrides };
+    
+    const searchData: SearchData = {
+      ville_depart: depart,
+      ville_arrivee: arrivee,
+      date: currentFilters.date || date,
+      nbr_places: parseInt(places),
+    };
+    
+    if (currentFilters.priceRange[1] < 5000) {
+      searchData.price_max = currentFilters.priceRange[1];
+    }
+    
+    if (currentFilters.departureTime) {
+      searchData.departure_time = currentFilters.departureTime;
+    }
+    
+    if (currentFilters.preferences.length > 0) {
+      searchData.preference_ids = currentFilters.preferences;
+    }
+    
+    if (currentFilters.isConfort) {
+      searchData.is_confort = true;
+    }
+    
+    try {
+      console.log('🔍 Recherche:', searchData);
+      
+      const response = await fetch(`${API_BASE_URL}/api/v1/trajets/intelligent_search/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(searchData),
+      });
+      
+      console.log('📡 Réponse:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Résultats:', data.count);
+        setResults(data.results || []);
+        setSearchInfo(data.search_params);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Erreur:', response.status, errorData);
+        setError(errorData.error || `Erreur ${response.status}`);
+      }
+    } catch (error) {
+      console.error('💥 Erreur réseau:', error);
+      setError("Impossible de contacter le serveur");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    performSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+  const applyFilters = () => {
+    performSearch();
+  };
+  
+  const resetFilters = () => {
+    const defaultFilters: Filters = {
+      date: searchParams.get('date') || '',
+      priceRange: [500, 5000],
+      departureTime: '',
+      preferences: [],
+      isConfort: false,
+    };
+    setFilters(defaultFilters);
+    performSearch(defaultFilters);
+  };
+  
+  const handlePreferenceToggle = (prefId: number) => {
+    setFilters(prev => ({
+      ...prev,
+      preferences: prev.preferences.includes(prefId)
+        ? prev.preferences.filter(id => id !== prefId)
+        : [...prev.preferences, prefId]
+    }));
+  };
+  
+  const getProfilePictureUrl = (picture: string | null): string => {
+    if (!picture) return '/placeholder.svg';
+    if (picture.startsWith('http')) return picture;
+    return `${API_BASE_URL}${picture.startsWith('/') ? '' : '/'}${picture}`;
+  };
+  
+  const formatRating = (rating: number | string | null | undefined): string => {
+    if (rating === null || rating === undefined) return '5.0';
+    const numRating = typeof rating === 'number' ? rating : parseFloat(rating);
+    return isNaN(numRating) ? '5.0' : numRating.toFixed(1);
+  };
+  
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+              {searchInfo && (
+                <p className="text-gray-600 mt-1">
+                  {t.searchInfo(searchInfo.depart, searchInfo.arrivee, searchInfo.date, searchInfo.places)}
+                </p>
+              )}
+            </div>
+            
+            {/* Bouton changement de langue */}
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              <Globe className="w-5 h-5" />
+              <span className="font-medium">{lang.toUpperCase()}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      
       <main className="container mx-auto px-4 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filters Sidebar */}
+          {/* Sidebar Filtres */}
           <aside className="lg:w-80 flex-shrink-0">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-gray-900">Filters</h3>
-                <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                  Reset
+                <h3 className="text-lg font-bold text-gray-900">{t.filters}</h3>
+                <button
+                  onClick={resetFilters}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  {t.reset}
                 </button>
               </div>
 
               <div className="space-y-6">
-                {/* Date Filter */}
+                {/* Date */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="date"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Date
-                  </Label>
-                  <Input
-                    id="date"
+                  <label className="text-sm font-medium text-gray-700">{t.date}</label>
+                  <input
                     type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="h-11"
+                    value={filters.date}
+                    onChange={(e) => setFilters(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full h-11 px-3 border border-gray-300 rounded-lg"
                   />
                 </div>
 
-                {/* Price Range */}
+                {/* Prix Maximum */}
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium text-gray-700">
-                    Price Range
-                  </Label>
-                  <Slider
-                    value={priceRange}
-                    onValueChange={setPriceRange}
-                    max={5000}
-                    min={500}
-                    step={100}
+                  <label className="text-sm font-medium text-gray-700">
+                    {t.maxPrice}: {filters.priceRange[1]} DA
+                  </label>
+                  <input
+                    type="range"
+                    min="500"
+                    max="5000"
+                    step="100"
+                    value={filters.priceRange[1]}
+                    onChange={(e) => setFilters(prev => ({
+                      ...prev,
+                      priceRange: [500, parseInt(e.target.value)]
+                    }))}
                     className="w-full"
                   />
                   <div className="flex justify-between text-xs text-gray-500">
@@ -131,199 +365,207 @@ export default function SearchResultsPage() {
                   </div>
                 </div>
 
-                {/* Departure Time */}
+                {/* Heure de départ */}
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium text-gray-700">
-                    Departure Time
-                  </Label>
+                  <label className="text-sm font-medium text-gray-700">
+                    {t.departureTime}
+                  </label>
                   <div className="grid grid-cols-3 gap-2">
-                    <Button
-                      type="button"
-                      variant={
-                        departureTime === 'morning' ? 'default' : 'outline'
-                      }
-                      size="sm"
-                      onClick={() => setDepartureTime('morning')}
-                      className={
-                        departureTime === 'morning'
-                          ? 'bg-blue-600 hover:bg-blue-700'
-                          : ''
-                      }
-                    >
-                      Morning
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={
-                        departureTime === 'afternoon' ? 'default' : 'outline'
-                      }
-                      size="sm"
-                      onClick={() => setDepartureTime('afternoon')}
-                      className={
-                        departureTime === 'afternoon'
-                          ? 'bg-blue-600 hover:bg-blue-700'
-                          : ''
-                      }
-                    >
-                      Afternoon
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={
-                        departureTime === 'evening' ? 'default' : 'outline'
-                      }
-                      size="sm"
-                      onClick={() => setDepartureTime('evening')}
-                      className={
-                        departureTime === 'evening'
-                          ? 'bg-blue-600 hover:bg-blue-700'
-                          : ''
-                      }
-                    >
-                      Evening
-                    </Button>
+                    {['morning', 'afternoon', 'evening'].map((period) => (
+                      <button
+                        key={period}
+                        onClick={() => setFilters(prev => ({
+                          ...prev,
+                          departureTime: prev.departureTime === period ? '' : period
+                        }))}
+                        className={`py-2 px-3 text-sm rounded-lg border transition-colors ${
+                          filters.departureTime === period
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
+                        }`}
+                      >
+                        {t[period as keyof typeof t] as string}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* Preferences */}
+                {/* Préférences */}
+                {availablePreferences.length > 0 && (
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-gray-700">
+                      {t.preferences} ({filters.preferences.length} {filters.preferences.length > 1 ? t.selectedPlural : t.selected})
+                    </label>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {availablePreferences.map((pref) => (
+                        <label key={pref.id} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={filters.preferences.includes(pref.id)}
+                            onChange={() => handlePreferenceToggle(pref.id)}
+                            className="w-4 h-4 rounded border-gray-300"
+                          />
+                          <span className="text-sm text-gray-700">
+                            {lang === 'fr' ? pref.name_fr : pref.name_en}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Options */}
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium text-gray-700">
-                    Preferences
-                  </Label>
+                  <label className="text-sm font-medium text-gray-700">{t.options}</label>
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={preferences.petsAllowed}
-                        onChange={() => handlePreferenceChange('petsAllowed')}
+                        checked={filters.isConfort}
+                        onChange={(e) => setFilters(prev => ({ ...prev, isConfort: e.target.checked }))}
                         className="w-4 h-4 rounded border-gray-300"
                       />
-                      <span className="text-sm text-gray-700">
-                        Pets allowed
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={preferences.smokerFriendly}
-                        onChange={() =>
-                          handlePreferenceChange('smokerFriendly')
-                        }
-                        className="w-4 h-4 rounded border-gray-300"
-                      />
-                      <span className="text-sm text-gray-700">
-                        Smoker friendly
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={preferences.music}
-                        onChange={() => handlePreferenceChange('music')}
-                        className="w-4 h-4 rounded border-gray-300"
-                      />
-                      <span className="text-sm text-gray-700">Music</span>
+                      <span className="text-sm text-gray-700">{t.comfort}</span>
                     </label>
                   </div>
                 </div>
 
-                <Button className="w-full h-11 bg-[#FF5722] hover:bg-[#E64A19] text-white font-medium">
-                  Apply Filters
-                </Button>
+                <button
+                  onClick={applyFilters}
+                  className="w-full h-11 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  {t.applyFilters}
+                </button>
               </div>
             </div>
           </aside>
 
-          {/* Results List */}
+          {/* Résultats */}
           <div className="flex-1 space-y-4">
-            {rideResults.map((ride) => (
-              <div
-                key={ride.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
-              >
-                <div className="flex flex-col md:flex-row md:items-center gap-6">
-                  {/* Driver Info */}
-                  <div className="flex items-center gap-4">
-                    <Image
-                      src={ride.driver.image || '/placeholder.svg'}
-                      alt={ride.driver.name}
-                      width={64}
-                      height={64}
-                      className="rounded-full"
-                    />
-                    <div>
-                      <h3 className="font-semibold text-gray-900">
-                        {ride.driver.name}
-                      </h3>
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span>
-                          {ride.driver.rating} ({ride.driver.reviews} reviews)
-                        </span>
-                      </div>
-                    </div>
+            {/* Message d'erreur */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                    <span className="text-red-600 font-bold">!</span>
                   </div>
-
-                  {/* Trip Details */}
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-2">
-                      <Clock className="w-5 h-5 text-gray-400" />
-                      <span>
-                        {ride.departure} → {ride.arrival}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <MapPin className="w-4 h-4 text-gray-400" />
-                      <span>
-                        {ride.from} → {ride.to}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-4 mt-3">
-                      {ride.amenities.noSmoking && (
-                        <Ban
-                          className="w-5 h-5 text-gray-400"
-                          title="No smoking"
-                        />
-                      )}
-                      {ride.amenities.petsAllowed && (
-                        <Users
-                          className="w-5 h-5 text-gray-400"
-                          title="Pets allowed"
-                        />
-                      )}
-                      {ride.amenities.luggage && (
-                        <Briefcase
-                          className="w-5 h-5 text-gray-400"
-                          title="Luggage space"
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Price & Action */}
-                  <div className="flex flex-col items-end gap-3">
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-gray-900">
-                        {ride.price} DA
-                      </div>
-                      <div className="text-sm text-gray-500">per seat</div>
-                    </div>
-                    <div className="text-sm text-green-600 font-medium">
-                      {ride.seatsLeft} seats left
-                    </div>
-                    <Link href={`/trip/${ride.id}`}>
-                      <Button className="bg-[#FF5722] hover:bg-[#E64A19] text-white px-8">
-                        View Trip
-                      </Button>
-                    </Link>
+                    <h3 className="font-semibold text-red-900 mb-1">{t.errorTitle}</h3>
+                    <p className="text-red-700 text-sm">{error}</p>
+                    <button
+                      onClick={() => {
+                        setError(null);
+                        performSearch();
+                      }}
+                      className="mt-3 text-sm text-red-600 hover:text-red-700 font-medium underline"
+                    >
+                      {t.retry}
+                    </button>
                   </div>
                 </div>
               </div>
-            ))}
+            )}
+            
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              </div>
+            ) : results.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                <p className="text-gray-600 text-lg">{t.noResults}</p>
+                <p className="text-gray-500 mt-2">{t.noResultsDesc}</p>
+              </div>
+            ) : (
+              <>
+                <div className="text-sm text-gray-600 mb-4">
+                  {results.length} {results.length > 1 ? t.tripsFoundPlural : t.tripsFound}
+                </div>
+                {results.map((ride) => (
+                  <div
+                    key={ride.id}
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center gap-6">
+                      {/* Info conducteur */}
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={getProfilePictureUrl(ride.conducteur_picture)}
+                          alt={ride.conducteur_name}
+                          className="w-16 h-16 rounded-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder.svg';
+                          }}
+                        />
+                        <div>
+                          <h3 className="font-semibold text-gray-900">
+                            {ride.conducteur_name}
+                          </h3>
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span>{formatRating(ride.conducteur_rating)}</span>
+                          </div>
+                          {ride.match_score && (
+                            <div className="text-xs text-green-600 mt-1">
+                              {t.match}: {Math.round(ride.match_score * 100)}%
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Détails trajet */}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-2">
+                          <Clock className="w-5 h-5 text-gray-400" />
+                          <span>{ride.heure_depart}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <span>{ride.ville_depart} → {ride.ville_arrivee}</span>
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {new Date(ride.date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US')}
+                        </div>
+                        <div className="flex items-center gap-4 mt-3">
+                          {ride.luggage_allowed && (
+                            <div className="flex items-center gap-1 text-xs text-gray-500">
+                              <Briefcase className="w-4 h-4" />
+                              <span>{t.luggage}</span>
+                            </div>
+                          )}
+                          {ride.is_confort && (
+                            <div className="text-xs text-blue-600 font-medium">
+                              {t.comfort}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Prix et action */}
+                      <div className="flex flex-col items-end gap-3">
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-gray-900">
+                            {ride.price} DA
+                          </div>
+                          <div className="text-sm text-gray-500">{t.perSeat}</div>
+                        </div>
+                        <div className="text-sm text-green-600 font-medium">
+                          {ride.places_disponibles} {ride.places_disponibles > 1 ? t.availablePlural : t.available}
+                        </div>
+                        <button
+                          onClick={() => router.push(`/trip/${ride.id}`)}
+                          className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-2 rounded-lg font-medium transition-colors"
+                        >
+                          {t.viewTrip}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

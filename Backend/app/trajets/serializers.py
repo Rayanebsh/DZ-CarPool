@@ -1,9 +1,13 @@
+"""
+app/trajets/serializers.py - Serializers corrigés
+"""
+
 from decimal import Decimal
 
 from rest_framework import serializers
 
 from app.users.models import Preference, UserDocument
-from app.users.serializers import UserSerializer
+from app.users.serializers import PreferenceSerializer, UserSerializer
 from utils.pricing import calculate_suggested_price, extract_wilaya_from_location
 
 from .models import FuelPrice, Trajet, TrajetEtape
@@ -17,7 +21,7 @@ class TrajetEtapeSerializer(serializers.ModelSerializer):
 
 
 class TrajetCreateSerializer(serializers.ModelSerializer):
-    """Serializer pour la création d'un trajet avec calcul automatique du prix conseillé"""
+    """Serializer pour la création d'un trajet"""
 
     etapes = TrajetEtapeSerializer(many=True, required=False, write_only=True)
     preference_ids = serializers.ListField(
@@ -100,13 +104,11 @@ class TrajetCreateSerializer(serializers.ModelSerializer):
             nbr_places=validated_data["nbr_places"],
         )
 
-        # S'assurer que suggested_price est un Decimal
         if isinstance(suggested_price_data, dict):
             suggested_price = suggested_price_data.get(
                 "suggested_price_per_seat", Decimal("0")
             )
         else:
-            # Si calculate_suggested_price renvoie déjà un Decimal
             suggested_price = Decimal(suggested_price_data)
 
         validated_data["suggested_price"] = suggested_price
@@ -127,7 +129,7 @@ class TrajetCreateSerializer(serializers.ModelSerializer):
 
 
 class TrajetListSerializer(serializers.ModelSerializer):
-    """Serializer pour la liste des trajets (vue simplifiée)"""
+    """Serializer pour la liste des trajets"""
 
     conducteur_name = serializers.CharField(
         source="conducteur.full_name", read_only=True
@@ -161,11 +163,9 @@ class TrajetListSerializer(serializers.ModelSerializer):
             "is_confort",
             "pause_required",
             "fuel_type",
-            "no_smoking",
-            "music_allowed",
-            "small_luggage_only",
             "status",
             "created_at",
+            "luggage_allowed",  # ✅ Remplace small_luggage_only
         ]
         read_only_fields = ["id", "conducteur", "created_at", "places_disponibles"]
 
@@ -175,6 +175,13 @@ class TrajetDetailSerializer(serializers.ModelSerializer):
 
     conducteur = UserSerializer(read_only=True)
     etapes = TrajetEtapeSerializer(many=True, read_only=True)
+
+    # ✅ AJOUT : Préférences du trajet
+    preferences = PreferenceSerializer(many=True, read_only=True)
+
+    # ✅ AJOUT : Liste des passagers ayant réservé
+    passagers_reserves = serializers.SerializerMethodField()
+
     total_reservations = serializers.SerializerMethodField()
 
     class Meta:
@@ -200,12 +207,11 @@ class TrajetDetailSerializer(serializers.ModelSerializer):
             "pause_required",
             "fuel_type",
             "fuel_consumption",
-            "no_smoking",
-            "music_allowed",
-            "small_luggage_only",
             "status",
             "description",
             "luggage_allowed",
+            "preferences",  # ✅ AJOUT
+            "passagers_reserves",  # ✅ AJOUT
             "etapes",
             "total_reservations",
             "created_at",
@@ -227,11 +233,34 @@ class TrajetDetailSerializer(serializers.ModelSerializer):
         """Retourne le nombre total de réservations confirmées"""
         return obj.reservations.filter(status="CONFIRMED").count()
 
+    def get_passagers_reserves(self, obj):
+        """Retourne la liste des passagers ayant une réservation confirmée"""
+        from app.reservations.models import Reservation
 
-# app/trajets/serializers.py
+        reservations = Reservation.objects.filter(
+            trajet=obj, status="CONFIRMED"
+        ).select_related("passager")
 
+        passagers_data = []
+        for reservation in reservations:
+            passager = reservation.passager
+            passagers_data.append(
+                {
+                    "id": passager.id,
+                    "nom": passager.last_name,
+                    "prenom": passager.first_name,
+                    "profile_picture": (
+                        self.context.get("request").build_absolute_uri(
+                            passager.profile_picture.url
+                        )
+                        if passager.profile_picture
+                        else None
+                    ),
+                    "nbr_places": reservation.nbr_places,
+                }
+            )
 
-# app/trajets/serializers.py → Ligne validate()
+        return passagers_data
 
 
 class TrajetUpdateSerializer(serializers.ModelSerializer):
@@ -249,9 +278,6 @@ class TrajetUpdateSerializer(serializers.ModelSerializer):
             "is_confort",
             "fuel_type",
             "fuel_consumption",
-            "no_smoking",
-            "music_allowed",
-            "small_luggage_only",
             "description",
             "luggage_allowed",
             "status",
@@ -278,12 +304,16 @@ class TrajetUpdateSerializer(serializers.ModelSerializer):
 
 
 class TrajetSearchSerializer(serializers.Serializer):
-    """Serializer pour la recherche de trajets"""
+    """
+    Serializer pour la recherche intelligente de trajets
+    """
 
     ville_depart = serializers.CharField(required=True)
     ville_arrivee = serializers.CharField(required=True)
     date = serializers.DateField(required=True)
     nbr_places = serializers.IntegerField(required=False, default=1, min_value=1)
+
+    # Filtres optionnels
     price_max = serializers.DecimalField(
         required=False, max_digits=10, decimal_places=2, min_value=Decimal("0.01")
     )
@@ -292,8 +322,16 @@ class TrajetSearchSerializer(serializers.Serializer):
         choices=["essence_sans_plomb", "gasoil", "gpl", "electrique"],
         required=False,
     )
-    no_smoking = serializers.BooleanField(required=False)
-    music_allowed = serializers.BooleanField(required=False)
+
+    # Filtre par période de la journée
+    departure_time = serializers.ChoiceField(
+        choices=["morning", "afternoon", "evening"], required=False
+    )
+
+    # Filtre par préférences
+    preference_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
 
 
 class FuelPriceSerializer(serializers.ModelSerializer):

@@ -2,10 +2,26 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 class CustomJWTAuthentication(JWTAuthentication):
-    """Classe d'authentification JWT personnalisée (extension minimale).
-
-    Hérite de `JWTAuthentication` de `rest_framework_simplejwt`.
-    On peut étendre/override ses méthodes si nécessaire.
+    """
+    ✅ CORRECTION : Ne pas forcer l'authentification
     """
 
-    pass
+    def authenticate(self, request):
+        """
+        Override pour permettre les requêtes sans token
+        """
+        # ✅ Si pas de header Authorization, retourner None (pas d'erreur)
+        header = self.get_header(request)
+
+        if header is None:
+            # ✅ IMPORTANT : Retourner None au lieu de lever une exception
+            return None
+
+        # Si un header existe, valider le token
+        raw_token = self.get_raw_token(header)
+        if raw_token is None:
+            return None
+
+        # Validation normale du token
+        validated_token = self.get_validated_token(raw_token)
+        return self.get_user(validated_token), validated_token

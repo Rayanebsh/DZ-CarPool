@@ -1,23 +1,42 @@
+// hooks/use-auth.ts
+'use client';
+
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
+import { LoginData, RegisterData } from '@/services/auth.service';
 
 export function useAuth() {
   const router = useRouter();
   const store = useAuthStore();
 
-  // Wrapper pour login avec redirection
-  const login = async (data: any) => {
-    await store.login(data);
-    router.push('/#hero');
+  const login = async (data: LoginData) => {
+    try {
+      await store.login(data);
+      
+      // ✅ Vérifier le statut de vérification
+      const user = useAuthStore.getState().user;
+      
+      if (!user?.email_verified || !user?.phone_verified) {
+        router.push('/verify');
+      } else {
+        router.push('/#hero');
+      }
+    } catch (error) {
+      throw error;
+    }
   };
 
-  // Wrapper pour register avec redirection
-  const register = async (data: any) => {
-    await store.register(data);
-    router.push('/verify');
+  const register = async (data: RegisterData) => {
+    try {
+      await store.register(data);
+      
+      // ✅ Rediriger vers la vérification après inscription
+      router.push('/verify');
+    } catch (error) {
+      throw error;
+    }
   };
 
-  // Wrapper pour logout avec redirection
   const logout = () => {
     store.logout();
     router.push('/login');
@@ -26,12 +45,12 @@ export function useAuth() {
   return {
     user: store.user,
     loading: store.loading,
+    error: store.error,
     isAuthenticated: store.isAuthenticated,
-    setUser: store.setUser,
-    setIsAuthenticated: store.setIsAuthenticated,
-    updateUser: store.updateUser,
     login,
     register,
     logout,
+    checkAuth: store.checkAuth,
+    updateUser: store.updateUser,
   };
 }

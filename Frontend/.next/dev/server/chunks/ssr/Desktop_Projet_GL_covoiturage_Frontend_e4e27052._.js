@@ -113,7 +113,7 @@ function PreferencesPage() {
     }, []);
     const fetchPreferences = async ()=>{
         try {
-            const data = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$services$2f$auth$2e$service$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].getPreferences();
+            const data = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$services$2f$auth$2e$service$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].getAllPreferences();
             console.log('✅ Préférences récupérées:', data);
             if (Array.isArray(data)) {
                 setAllPreferences(data);

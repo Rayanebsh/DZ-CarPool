@@ -144,10 +144,7 @@ export default function OfferRidePage() {
 
   const loadFuelPrices = async () => {
     try {
-      const response = await fetch(
-        'http://localhost:8000/api/v1/trajets/fuel-prices-static/',
-      );
-
+      const response = await fetch('http://localhost:8000/api/v1/trajets/fuel_prices/');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -426,7 +423,7 @@ export default function OfferRidePage() {
       try {
         setLoading(true);
         setError(null);
-        const prefs = await authService.getAllPreferences();
+        const prefs = await authService.getPreferences();
         setAllPreferences(prefs);
         console.log('✅ Préférences récupérées:', prefs);
       } catch (err: any) {

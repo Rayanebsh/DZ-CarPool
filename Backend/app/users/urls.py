@@ -1,5 +1,5 @@
 """
-app/users/urls.py - URLs pour les utilisateurs MISES À JOUR
+app/users/urls.py - URLs pour les utilisateurs
 """
 
 from django.urls import include, path
@@ -9,31 +9,40 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import PreferenceViewSet, RoleViewSet, UserViewSet
 
-router = DefaultRouter()
-router.register(r"", UserViewSet, basename="user")
-router.register(r"roles", RoleViewSet, basename="role")
-router.register(r"preferences", PreferenceViewSet, basename="preference")
+# ✅ Créer des routeurs SÉPARÉS pour éviter les conflits
+user_router = DefaultRouter()
+user_router.register(r"", UserViewSet, basename="user")
+
+role_router = DefaultRouter()
+role_router.register(r"", RoleViewSet, basename="role")
+
+preference_router = DefaultRouter()
+preference_router.register(r"", PreferenceViewSet, basename="preference")
 
 app_name = "users"
 
 urlpatterns = [
     # JWT Token refresh
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    # Router URLs (inclut toutes les actions du ViewSet)
-    path("", include(router.urls)),
+    # ✅ Routes spécifiques AVANT les routes génériques
+    path("roles/", include(role_router.urls)),
+    path("preferences/", include(preference_router.urls)),
+    # Routes utilisateurs (en dernier pour éviter les conflits)
+    path("", include(user_router.urls)),
 ]
 
-# Les URLs générées automatiquement par le router :
+# URLs générées :
 # ========== AUTHENTIFICATION ==========
 # POST   /api/v1/users/register/
 # POST   /api/v1/users/login/
 # POST   /api/v1/users/google_auth/
 # GET    /api/v1/users/me/
 
-# ========== PRÉFÉRENCES (NOUVELLES) ==========
-# GET    /api/v1/users/preferences/           # Liste toutes les préférences disponibles
-# POST   /api/v1/users/preferences/           # Mettre à jour les préférences de l'utilisateur
-# GET    /api/v1/users/my_preferences/        # Récupérer les préférences de l'utilisateur connecté
+# ========== PRÉFÉRENCES ==========
+# GET    /api/v1/users/preferences/           ✅ Liste toutes les préférences (PUBLIC)
+# GET    /api/v1/users/preferences/{id}/      ✅ Détail d'une préférence (PUBLIC)
+# GET    /api/v1/users/my_preferences/        ✅ Préférences de l'utilisateur connecté
+# POST   /api/v1/users/preferences/           ✅ Mettre à jour les préférences (action custom dans UserViewSet)
 
 # ========== VÉRIFICATIONS ==========
 # POST   /api/v1/users/send_email_verification/
@@ -45,6 +54,8 @@ urlpatterns = [
 # ========== DOCUMENTS ==========
 # POST   /api/v1/users/upload_document/
 # GET    /api/v1/users/documents/
+# GET    /api/v1/users/check-document-status/
 
-# ========== AUTRES ==========
+# ========== RÔLES ==========
 # GET    /api/v1/users/roles/
+# GET    /api/v1/users/roles/{id}/

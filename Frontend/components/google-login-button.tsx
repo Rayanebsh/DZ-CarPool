@@ -16,7 +16,7 @@ export default function GoogleLoginButton({
   onError,
 }: GoogleLoginButtonProps) {
   const router = useRouter();
-  const { setUser, setIsAuthenticated } = useAuth();
+  const { updateUser, checkAuth } = useAuth(); // ✅ Utiliser updateUser et checkAuth
   const [loading, setLoading] = useState(false);
 
   const googleLogin = useGoogleLogin({
@@ -33,12 +33,16 @@ export default function GoogleLoginButton({
 
         console.log('✅ Authentification réussie:', authResponse);
 
-        // Mettre à jour le contexte
-        setUser(authResponse.user);
-        setIsAuthenticated(true);
+        // ✅ Mettre à jour le contexte avec updateUser
+        if (authResponse.user) {
+          updateUser(authResponse.user);
+        }
+
+        // ✅ Vérifier l'authentification pour mettre à jour isAuthenticated
+        await checkAuth();
 
         // Redirection
-        const redirectUrl = authResponse.redirect_url || '/#hero';
+        const redirectUrl = '/verify';
         console.log('🔄 Redirection vers:', redirectUrl);
 
         router.push(redirectUrl);

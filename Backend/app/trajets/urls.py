@@ -4,14 +4,39 @@ from django.urls import include, path
 
 from rest_framework.routers import DefaultRouter
 
-from .views import FuelPriceViewSet, TrajetViewSet
+from .views import FuelPriceViewSet, TrajetViewSet, get_trip_places
 
 router = DefaultRouter()
-router.register(r"", TrajetViewSet, basename="trajet")  # ← Ajoutez un préfixe
-router.register(r"", FuelPriceViewSet, basename="fuel-price")
+
+# ✅ Trajets sur le préfixe racine
+router.register(r"", TrajetViewSet, basename="trajet")
+
+# ✅ Fuel prices sur son propre préfixe
+router.register(r"fuel-prices", FuelPriceViewSet, basename="fuel-price")
 
 app_name = "trajets"
 
 urlpatterns = [
+    path("api/v1/trajets/<int:trajet_id>/places/", get_trip_places),
     path("", include(router.urls)),
 ]
+
+# URLs générées :
+# ========== TRAJETS ==========
+# GET    /api/v1/trajets/
+# POST   /api/v1/trajets/
+# GET    /api/v1/trajets/{id}/
+# PUT    /api/v1/trajets/{id}/
+# DELETE /api/v1/trajets/{id}/
+# POST   /api/v1/trajets/search/              ✅ RECHERCHE SIMPLE
+# POST   /api/v1/trajets/intelligent_search/  ✅ RECHERCHE INTELLIGENTE
+# GET    /api/v1/trajets/my_trips/
+# GET    /api/v1/trajets/upcoming/
+# GET    /api/v1/trajets/past/
+# POST   /api/v1/trajets/{id}/cancel/
+# GET    /api/v1/trajets/{id}/reservations/
+# GET    /api/v1/trajets/{id}/statistics/
+
+# ========== FUEL PRICES ==========
+# GET    /api/v1/trajets/fuel-prices/
+# POST   /api/v1/trajets/fuel-prices/

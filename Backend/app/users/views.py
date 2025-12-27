@@ -3,12 +3,16 @@ Views pour la gestion des utilisateurs
 AVEC VÉRIFICATION DES PRÉFÉRENCES ET REDIRECTION
 """
 
+import logging
+import traceback
+
+from django.db.models import Avg, Count, Q
 from django.utils import timezone
 
 import requests
 from allauth.socialaccount.models import SocialAccount
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -30,6 +34,8 @@ from .serializers import (
 )
 from .services import EmailService, SMSService
 
+logger = logging.getLogger(__name__)
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -42,6 +48,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_authenticators(self):
         """
         Désactiver l'authentification JWT pour les endpoints publics
+        ✅ FIX: Utiliser getattr pour éviter AttributeError
         """
         request = getattr(self, "request", None)
 
@@ -276,6 +283,48 @@ class UserViewSet(viewsets.ModelViewSet):
         data["has_preferences"] = self._check_user_preferences(user)
         data["preferences_count"] = user.preferences.count()
         return Response(data)
+
+    @action(detail=False, methods=["get", "post"], permission_classes=[IsAuthenticated])
+    def preferences(self, request):
+        user = request.user
+
+        if request.method == "GET":
+            # Retourner TOUTES les préférences disponibles
+            all_preferences = Preference.objects.all().order_by("category", "id")
+            return Response(PreferenceSerializer(all_preferences, many=True).data)
+        elif request.method == "POST":
+            preference_ids = request.data.get("preference_ids", [])
+
+        if not isinstance(preference_ids, list):
+            return Response(
+                {"error": "preference_ids doit être une liste"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Vérifier que toutes les préférences existent
+        preferences = Preference.objects.filter(id__in=preference_ids)
+
+        if len(preferences) != len(preference_ids):
+            return Response(
+                {"error": "Certaines préférences n'existent pas"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Mettre à jour les préférences
+        user.preferences.set(preferences)
+
+        return Response(
+            {
+                "message": "Préférences mises à jour avec succès",
+                "preference_ids": preference_ids,
+                "preferences": PreferenceSerializer(
+                    user.preferences.all(), many=True
+                ).data,
+                "has_preferences": True,
+                "redirect_url": "/#hero",  # ✅ Ajouter l'URL de redirection
+            },
+            status=status.HTTP_200_OK,  # ✅ Important !
+        )
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def check_preferences(self, request):
@@ -602,6 +651,83 @@ class UserViewSet(viewsets.ModelViewSet):
             }
         )
 
+    @action(detail=True, methods=["get"], permission_classes=[AllowAny])
+    def enriched(self, request, pk=None):
+        """
+        API pour récupérer les informations enrichies d'un utilisateur
+        URL: /api/v1/users/{id}/enriched/
+        """
+        try:
+            user = self.get_object()
+
+            # Calculer le nombre de trajets en tant que conducteur
+            from app.reservations.models import Rating, Reservation
+            from app.trajets.models import Trajet
+
+            trips_as_driver = Trajet.objects.filter(
+                conducteur=user, status__in=["ACTIVE", "COMPLETED"]
+            ).count()
+
+            trips_as_passenger = Reservation.objects.filter(
+                passager=user, status="CONFIRMED"
+            ).count()
+
+            # Calculer la note moyenne des avis reçus
+            average_rating = (
+                Rating.objects.filter(destinataire=user).aggregate(Avg("note"))[
+                    "note__avg"
+                ]
+                or 5.0
+            )
+
+            # Vérifier si vérifié
+            is_verified = UserDocument.objects.filter(user=user, verified=True).exists()
+
+            # URL de la photo de profil
+            profile_picture_url = None
+            if user.profile_picture:
+                profile_picture_url = request.build_absolute_uri(
+                    user.profile_picture.url
+                )
+
+            data = {
+                "id": user.id,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "full_name": f"{user.first_name} {user.last_name}",
+                "profile_picture": profile_picture_url,
+                "date_joined": (
+                    user.date_joined.isoformat()
+                    if hasattr(user, "date_joined")
+                    else None
+                ),
+                "member_since": (
+                    user.date_joined.strftime("%Y-%m-%d")
+                    if hasattr(user, "date_joined")
+                    else None
+                ),
+                "is_verified": is_verified,
+                "rating": round(average_rating, 1),
+                "trips_count": trips_as_driver,
+                "trips_as_driver": trips_as_driver,
+                "trips_as_passenger": trips_as_passenger,
+                "total_trips": trips_as_driver + trips_as_passenger,
+            }
+
+            logger.info(f"✅ User enriched data retrieved: {data['full_name']}")
+            return Response(data, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Utilisateur non trouvé"}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"❌ Erreur enriched: {str(e)}")
+            logger.error(traceback.format_exc())
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 # ---------- AUTRES VIEWSETS ----------
 class RoleViewSet(viewsets.ReadOnlyModelViewSet):
@@ -612,19 +738,38 @@ class RoleViewSet(viewsets.ReadOnlyModelViewSet):
 
 class PreferenceViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    ViewSet pour les préférences
+    ViewSet pour les préférences - ACCÈS PUBLIC
     """
 
     queryset = Preference.objects.all().order_by("category", "id")
     serializer_class = PreferenceSerializer
+
+    # ✅ FORCER l'accès public
     permission_classes = [AllowAny]
+    authentication_classes = []  # ✅ Désactiver l'auth complètement
+
     pagination_class = None
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        category = self.request.query_params.get("category", None)
+    def get_authenticators(self):
+        """✅ Retourner une liste vide pour désactiver toute authentification"""
+        return []
 
-        if category:
-            queryset = queryset.filter(category=category)
+    def list(self, request, *args, **kwargs):
+        """Override avec debug"""
+        print("=" * 60)
+        print("🔍 PREFERENCES - Liste demandée")
+        print(f"Method: {request.method}")
+        print(f"Path: {request.path}")
+        print("=" * 60)
 
-        return queryset
+        try:
+            queryset = self.get_queryset()
+            serializer = self.get_serializer(queryset, many=True)
+            print(f"✅ {len(serializer.data)} préférences retournées")
+            return Response(serializer.data)
+        except Exception as e:
+            print(f"❌ Erreur: {str(e)}")
+            logger.error(traceback.format_exc())
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
