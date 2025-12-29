@@ -63,7 +63,7 @@ export const useDocumentsStore = create<DocumentsState>((set, get) => ({
         'http://localhost:8000/api/v1/users/documents/',
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (!response.ok) throw new Error('Erreur chargement documents');
@@ -79,7 +79,7 @@ export const useDocumentsStore = create<DocumentsState>((set, get) => ({
   // ========== UPLOAD DOCUMENT ==========
   uploadDocument: async () => {
     const { selectedFile, documentType } = get();
-    
+
     if (!selectedFile) {
       throw new Error('Veuillez sélectionner un fichier');
     }
@@ -100,27 +100,31 @@ export const useDocumentsStore = create<DocumentsState>((set, get) => ({
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: formData,
-        }
+        },
       );
 
       if (!response.ok) {
         const errorText = await response.text();
         let errorMessage = `Erreur ${response.status}`;
-        
+
         try {
           const errorData = JSON.parse(errorText);
-          errorMessage = errorData.detail || errorData.message || errorData.error || errorText;
+          errorMessage =
+            errorData.detail ||
+            errorData.message ||
+            errorData.error ||
+            errorText;
         } catch {
           errorMessage += `: ${errorText.slice(0, 100)}`;
         }
-        
+
         throw new Error(errorMessage);
       }
 
       const result = await response.json();
-      
-      set({ 
-        uploadSuccess: true, 
+
+      set({
+        uploadSuccess: true,
         loading: false,
         selectedFile: null,
       });

@@ -1,106 +1,123 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Star, MapPin, Calendar, Users, Check, X, Loader2, Briefcase, Clock, AlertCircle, Minus, Plus, Globe, Shield } from 'lucide-react';
+import {
+  Star,
+  MapPin,
+  Calendar,
+  Users,
+  Check,
+  X,
+  Loader2,
+  Clock,
+  AlertCircle,
+  Minus,
+  Plus,
+  Globe,
+  Shield,
+} from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000';
 
 // 🌍 Traductions
 const translations = {
   fr: {
-    home: "Accueil",
-    searchResults: "Résultats de recherche",
-    tripFrom: "Trajet de",
-    to: "vers",
-    error: "Erreur",
-    tripNotFound: "Trajet introuvable",
-    backToResults: "Retour aux résultats",
-    verified: "Vérifié",
-    trips: "trajets",
-    trip: "trajet",
-    memberSince: "Membre depuis",
-    verifiedProfile: "Profil vérifié",
-    vehicleInfo: "Informations du véhicule",
-    seats: "places",
-    airConditioning: "Climatisation",
-    driverPreferences: "Préférences du conducteur",
-    tripFeatures: "Caractéristiques du trajet",
-    luggageAllowed: "Bagages autorisés",
-    comfortTrip: "Trajet confort",
-    confirmedPassengers: "Passagers confirmés",
-    pricePerSeat: "Prix par place",
-    available: "disponible",
-    availablePlural: "disponibles",
-    seatsToBook: "Nombre de places à réserver",
-    total: "Total",
-    departure: "Départ",
-    arrival: "Arrivée",
-    duration: "Durée",
-    bookNow: "Réserver maintenant",
-    booking: "Réservation...",
-    bookingConfirmed: "Réservation confirmée ✓",
-    full: "Complet",
-    noChargeYet: "Vous ne serez pas débité immédiatement",
-    bookingSuccess: "Réservation réussie !",
-    redirecting: "Vous allez être redirigé vers vos réservations...",
-    bookingError: "Erreur",
-    verificationRequired: "Vérification requise",
-    verificationMessage: "Vous devez vérifier votre carte d'identité pour effectuer une réservation",
-    verifyNow: "Vérifier maintenant",
-    loginRequired: "Connexion requise",
-    loginMessage: "Vous devez être connecté pour réserver",
-    loginNow: "Se connecter",
-    emailVerificationRequired: "Vérification email/téléphone requise",
-    emailVerificationMessage: "Vous devez vérifier votre email et numéro de téléphone avant de réserver",
-    verifyEmailPhone: "Vérifier maintenant",
+    home: 'Accueil',
+    searchResults: 'Résultats de recherche',
+    tripFrom: 'Trajet de',
+    to: 'vers',
+    error: 'Erreur',
+    tripNotFound: 'Trajet introuvable',
+    backToResults: 'Retour aux résultats',
+    verified: 'Vérifié',
+    trips: 'trajets',
+    trip: 'trajet',
+    memberSince: 'Membre depuis',
+    verifiedProfile: 'Profil vérifié',
+    vehicleInfo: 'Informations du véhicule',
+    seats: 'places',
+    airConditioning: 'Climatisation',
+    driverPreferences: 'Préférences du conducteur',
+    tripFeatures: 'Caractéristiques du trajet',
+    luggageAllowed: 'Bagages autorisés',
+    comfortTrip: 'Trajet confort',
+    confirmedPassengers: 'Passagers confirmés',
+    pricePerSeat: 'Prix par place',
+    available: 'disponible',
+    availablePlural: 'disponibles',
+    seatsToBook: 'Nombre de places à réserver',
+    total: 'Total',
+    departure: 'Départ',
+    arrival: 'Arrivée',
+    duration: 'Durée',
+    bookNow: 'Réserver maintenant',
+    booking: 'Réservation...',
+    bookingConfirmed: 'Réservation confirmée ✓',
+    full: 'Complet',
+    noChargeYet: 'Vous ne serez pas débité immédiatement',
+    bookingSuccess: 'Réservation réussie !',
+    redirecting: 'Vous allez être redirigé vers vos réservations...',
+    bookingError: 'Erreur',
+    verificationRequired: 'Vérification requise',
+    verificationMessage:
+      "Vous devez vérifier votre carte d'identité pour effectuer une réservation",
+    verifyNow: 'Vérifier maintenant',
+    loginRequired: 'Connexion requise',
+    loginMessage: 'Vous devez être connecté pour réserver',
+    loginNow: 'Se connecter',
+    emailVerificationRequired: 'Vérification email/téléphone requise',
+    emailVerificationMessage:
+      'Vous devez vérifier votre email et numéro de téléphone avant de réserver',
+    verifyEmailPhone: 'Vérifier maintenant',
   },
   en: {
-    home: "Home",
-    searchResults: "Search Results",
-    tripFrom: "Trip from",
-    to: "to",
-    error: "Error",
-    tripNotFound: "Trip not found",
-    backToResults: "Back to results",
-    verified: "Verified",
-    trips: "trips",
-    trip: "trip",
-    memberSince: "Member since",
-    verifiedProfile: "Verified Profile",
-    vehicleInfo: "Vehicle Information",
-    seats: "seats",
-    airConditioning: "Air Conditioning",
-    driverPreferences: "Driver Preferences",
-    tripFeatures: "Trip Features",
-    luggageAllowed: "Luggage Allowed",
-    comfortTrip: "Comfort Trip",
-    confirmedPassengers: "Confirmed Passengers",
-    pricePerSeat: "Price per seat",
-    available: "available",
-    availablePlural: "available",
-    seatsToBook: "Number of seats to book",
-    total: "Total",
-    departure: "Departure",
-    arrival: "Arrival",
-    duration: "Duration",
-    bookNow: "Book now",
-    booking: "Booking...",
-    bookingConfirmed: "Booking confirmed ✓",
-    full: "Full",
-    noChargeYet: "You will not be charged immediately",
-    bookingSuccess: "Booking successful!",
-    redirecting: "You will be redirected to your bookings...",
-    bookingError: "Error",
-    verificationRequired: "Verification Required",
-    verificationMessage: "You must verify your ID card to make a reservation",
-    verifyNow: "Verify now",
-    loginRequired: "Login Required",
-    loginMessage: "You must be logged in to book",
-    loginNow: "Log in",
-    emailVerificationRequired: "Email/Phone Verification Required",
-    emailVerificationMessage: "You must verify your email and phone number before booking",
-    verifyEmailPhone: "Verify now",
-  }
+    home: 'Home',
+    searchResults: 'Search Results',
+    tripFrom: 'Trip from',
+    to: 'to',
+    error: 'Error',
+    tripNotFound: 'Trip not found',
+    backToResults: 'Back to results',
+    verified: 'Verified',
+    trips: 'trips',
+    trip: 'trip',
+    memberSince: 'Member since',
+    verifiedProfile: 'Verified Profile',
+    vehicleInfo: 'Vehicle Information',
+    seats: 'seats',
+    airConditioning: 'Air Conditioning',
+    driverPreferences: 'Driver Preferences',
+    tripFeatures: 'Trip Features',
+    luggageAllowed: 'Luggage Allowed',
+    comfortTrip: 'Comfort Trip',
+    confirmedPassengers: 'Confirmed Passengers',
+    pricePerSeat: 'Price per seat',
+    available: 'available',
+    availablePlural: 'available',
+    seatsToBook: 'Number of seats to book',
+    total: 'Total',
+    departure: 'Departure',
+    arrival: 'Arrival',
+    duration: 'Duration',
+    bookNow: 'Book now',
+    booking: 'Booking...',
+    bookingConfirmed: 'Booking confirmed ✓',
+    full: 'Full',
+    noChargeYet: 'You will not be charged immediately',
+    bookingSuccess: 'Booking successful!',
+    redirecting: 'You will be redirected to your bookings...',
+    bookingError: 'Error',
+    verificationRequired: 'Verification Required',
+    verificationMessage: 'You must verify your ID card to make a reservation',
+    verifyNow: 'Verify now',
+    loginRequired: 'Login Required',
+    loginMessage: 'You must be logged in to book',
+    loginNow: 'Log in',
+    emailVerificationRequired: 'Email/Phone Verification Required',
+    emailVerificationMessage:
+      'You must verify your email and phone number before booking',
+    verifyEmailPhone: 'Verify now',
+  },
 };
 
 interface Preference {
@@ -175,24 +192,25 @@ export default function TripDetailsPage() {
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [tripData, setTripData] = useState<TripDetails | null>(null);
-  
+
   const [nbr_places, setNbrPlaces] = useState(1);
   const [driverEnriched, setDriverEnriched] = useState<any>(null);
   const [passengersEnriched, setPassengersEnriched] = useState<any[]>([]);
   const [driverLoading, setDriverLoading] = useState(true);
   const [passengersLoading, setPassengersLoading] = useState(true);
-  
+
   // ✅ État de vérification complet
-  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>({
-    isAuthenticated: false,
-    emailVerified: false,
-    phoneVerified: false,
-    documentsVerified: false,
-    canPerformAction: false,
-    redirectUrl: null,
-    message: '',
-    errorType: null,
-  });
+  const [verificationStatus, setVerificationStatus] =
+    useState<VerificationStatus>({
+      isAuthenticated: false,
+      emailVerified: false,
+      phoneVerified: false,
+      documentsVerified: false,
+      canPerformAction: false,
+      redirectUrl: null,
+      message: '',
+      errorType: null,
+    });
   const [showVerificationWarning, setShowVerificationWarning] = useState(false);
 
   // Charger la langue
@@ -234,7 +252,7 @@ export default function TripDetailsPage() {
       // Étape 2: Vérifier email/téléphone
       const userResponse = await fetch(`${API_BASE_URL}/api/v1/users/me/`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -257,12 +275,15 @@ export default function TripDetailsPage() {
       }
       // Étape 3: Vérifier les documents
       try {
-        const docResponse = await fetch(`${API_BASE_URL}/api/v1/users/check-document-status/`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
+        const docResponse = await fetch(
+          `${API_BASE_URL}/api/v1/users/check-document-status/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
           },
-        });
+        );
 
         if (docResponse.ok) {
           const docData = await docResponse.json();
@@ -348,10 +369,13 @@ export default function TripDetailsPage() {
           'Content-Type': 'application/json',
         };
 
-        const response = await fetch(`${API_BASE_URL}/api/v1/trajets/${tripId}/`, {
-          method: 'GET',
-          headers: publicHeaders,
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/api/v1/trajets/${tripId}/`,
+          {
+            method: 'GET',
+            headers: publicHeaders,
+          },
+        );
 
         if (response.ok) {
           const data = await response.json();
@@ -362,12 +386,12 @@ export default function TripDetailsPage() {
           try {
             const driverResponse = await fetch(
               `${API_BASE_URL}/api/v1/trajets/${tripId}/driver_info/`,
-              { 
+              {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-              }
+                headers: { 'Content-Type': 'application/json' },
+              },
             );
-            
+
             if (driverResponse.ok) {
               const driverData = await driverResponse.json();
               setDriverEnriched(driverData);
@@ -382,7 +406,7 @@ export default function TripDetailsPage() {
                 member_since: data.conducteur_member_since || '',
                 trips_as_driver: data.conducteur_trips || 0,
                 trips_as_passenger: 0,
-                total_trips: data.conducteur_trips || 0
+                total_trips: data.conducteur_trips || 0,
               });
             }
           } catch (err) {
@@ -396,12 +420,12 @@ export default function TripDetailsPage() {
           try {
             const passengersResponse = await fetch(
               `${API_BASE_URL}/api/v1/trajets/${tripId}/passengers/`,
-              { 
+              {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-              }
+                headers: { 'Content-Type': 'application/json' },
+              },
             );
-            
+
             if (passengersResponse.ok) {
               const passengersData = await passengersResponse.json();
               setPassengersEnriched(passengersData.passengers || []);
@@ -425,7 +449,7 @@ export default function TripDetailsPage() {
 
     fetchTripDetails();
   }, [tripId, t.error]);
-  
+
   const handleBooking = async () => {
     if (!tripData) return;
 
@@ -446,7 +470,7 @@ export default function TripDetailsPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           trajet: tripData.id,
@@ -461,9 +485,12 @@ export default function TripDetailsPage() {
         }, 2000);
       } else {
         const errorData = await response.json();
-        
+
         // Gérer les erreurs de vérification du backend
-        if (errorData.can_book === false || errorData.action_required === 'upload_document') {
+        if (
+          errorData.can_book === false ||
+          errorData.action_required === 'upload_document'
+        ) {
           setShowVerificationWarning(true);
           setBookingError(errorData.message || t.verificationMessage);
         } else {
@@ -526,15 +553,15 @@ export default function TripDetailsPage() {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
-      year: 'numeric'
+      year: 'numeric',
     });
   };
 
   const formatMemberSince = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { 
-      month: 'long', 
-      year: 'numeric' 
+    return date.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', {
+      month: 'long',
+      year: 'numeric',
     });
   };
 
@@ -593,11 +620,17 @@ export default function TripDetailsPage() {
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            <button onClick={() => router.push('/')} className="hover:text-gray-700">
+            <button
+              onClick={() => router.push('/')}
+              className="hover:text-gray-700"
+            >
               {t.home}
             </button>
             {' / '}
-            <button onClick={() => router.back()} className="hover:text-gray-700">
+            <button
+              onClick={() => router.back()}
+              className="hover:text-gray-700"
+            >
               {t.searchResults}
             </button>
             {' / '}
@@ -622,10 +655,12 @@ export default function TripDetailsPage() {
             {/* Trip Header */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                {t.tripFrom} {tripData.ville_depart} {t.to} {tripData.ville_arrivee}
+                {t.tripFrom} {tripData.ville_depart} {t.to}{' '}
+                {tripData.ville_arrivee}
               </h1>
               <p className="text-gray-600">
-                {formatDate(tripData.date)} {lang === 'fr' ? 'à' : 'at'} {tripData.heure_depart}
+                {formatDate(tripData.date)} {lang === 'fr' ? 'à' : 'at'}{' '}
+                {tripData.heure_depart}
               </p>
               {tripData.description && (
                 <p className="text-gray-600 mt-4">{tripData.description}</p>
@@ -655,7 +690,7 @@ export default function TripDetailsPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-3">
                       <h2 className="text-2xl font-bold text-gray-900 truncate">
@@ -668,7 +703,7 @@ export default function TripDetailsPage() {
                         </span>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-2 mb-3">
                       <div className="flex items-center gap-1.5">
                         <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
@@ -677,16 +712,18 @@ export default function TripDetailsPage() {
                         </span>
                       </div>
                       <span className="text-gray-600 font-medium">
-                        ({driverEnriched.trips_count || 0} {driverEnriched.trips_count > 1 ? t.trips : t.trip})
+                        ({driverEnriched.trips_count || 0}{' '}
+                        {driverEnriched.trips_count > 1 ? t.trips : t.trip})
                       </span>
                     </div>
-                    
+
                     <div className="space-y-2">
                       {driverEnriched.member_since && (
                         <div className="flex items-center gap-2 text-gray-700">
                           <Calendar className="w-4 h-4 text-gray-400" />
                           <span className="text-sm">
-                            {t.memberSince} {formatMemberSince(driverEnriched.member_since)}
+                            {t.memberSince}{' '}
+                            {formatMemberSince(driverEnriched.member_since)}
                           </span>
                         </div>
                       )}
@@ -703,40 +740,48 @@ export default function TripDetailsPage() {
                   <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
                 </div>
               </div>
-            ) : passengersEnriched.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-5">
-                  {t.confirmedPassengers} ({passengersEnriched.length})
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {passengersEnriched.map((passenger) => (
-                    <div 
-                      key={passenger.id} 
-                      className="flex items-center gap-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:shadow-md hover:border-blue-200 transition-all duration-200"
-                    >
-                      <img
-                        src={getProfilePictureUrl(passenger.profile_picture)}
-                        alt={passenger.full_name}
-                        className="w-16 h-16 rounded-full object-cover ring-4 ring-white shadow-md flex-shrink-0"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/placeholder.svg';
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-gray-900 text-base truncate">
-                          {passenger.full_name}
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Users className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm font-medium text-blue-700">
-                            {passenger.nbr_places} {passenger.nbr_places > 1 ? t.seats : (lang === 'fr' ? 'place' : 'seat')}
-                          </span>
+            ) : (
+              passengersEnriched.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-5">
+                    {t.confirmedPassengers} ({passengersEnriched.length})
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {passengersEnriched.map((passenger) => (
+                      <div
+                        key={passenger.id}
+                        className="flex items-center gap-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:shadow-md hover:border-blue-200 transition-all duration-200"
+                      >
+                        <img
+                          src={getProfilePictureUrl(passenger.profile_picture)}
+                          alt={passenger.full_name}
+                          className="w-16 h-16 rounded-full object-cover ring-4 ring-white shadow-md flex-shrink-0"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              '/placeholder.svg';
+                          }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-gray-900 text-base truncate">
+                            {passenger.full_name}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Users className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-medium text-blue-700">
+                              {passenger.nbr_places}{' '}
+                              {passenger.nbr_places > 1
+                                ? t.seats
+                                : lang === 'fr'
+                                  ? 'place'
+                                  : 'seat'}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )
             )}
 
             {/* Vehicle Information */}
@@ -748,7 +793,9 @@ export default function TripDetailsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
                     <img
-                      src={getProfilePictureUrl(tripData.vehicule_photo || null)}
+                      src={getProfilePictureUrl(
+                        tripData.vehicule_photo || null,
+                      )}
                       alt={tripData.vehicule_modele}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -762,7 +809,8 @@ export default function TripDetailsPage() {
                         {tripData.vehicule_modele}
                       </h4>
                       <p className="text-sm text-gray-600">
-                        {tripData.vehicule_annee && `${tripData.vehicule_annee} • `}
+                        {tripData.vehicule_annee &&
+                          `${tripData.vehicule_annee} • `}
                         {tripData.vehicule_couleur}
                       </p>
                     </div>
@@ -770,7 +818,9 @@ export default function TripDetailsPage() {
                       {tripData.vehicule_places && (
                         <div className="flex items-center gap-2 text-gray-700">
                           <Users className="w-5 h-5 text-gray-400" />
-                          <span>{tripData.vehicule_places} {t.seats}</span>
+                          <span>
+                            {tripData.vehicule_places} {t.seats}
+                          </span>
                         </div>
                       )}
                       {tripData.vehicule_climatisation && (
@@ -797,7 +847,9 @@ export default function TripDetailsPage() {
                       key={pref.id}
                       className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
                     >
-                      {pref.icon && <span className="mr-2 text-base">{pref.icon}</span>}
+                      {pref.icon && (
+                        <span className="mr-2 text-base">{pref.icon}</span>
+                      )}
                       {lang === 'fr' ? pref.name_fr : pref.name_en}
                     </span>
                   ))}
@@ -817,12 +869,16 @@ export default function TripDetailsPage() {
                   ) : (
                     <X className="w-6 h-6 text-red-600" />
                   )}
-                  <span className="text-sm font-medium text-gray-700">{t.luggageAllowed}</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {t.luggageAllowed}
+                  </span>
                 </div>
                 {tripData.is_confort && (
                   <div className="flex items-center gap-3">
                     <Check className="w-6 h-6 text-green-600" />
-                    <span className="text-sm font-medium text-gray-700">{t.comfortTrip}</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      {t.comfortTrip}
+                    </span>
                   </div>
                 )}
               </div>
@@ -833,29 +889,33 @@ export default function TripDetailsPage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sticky top-6 space-y-6">
               {/* ✅ Avertissement de vérification AMÉLIORÉ */}
-              {showVerificationWarning && !verificationStatus.canPerformAction && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-amber-900 mb-1">
-                        {verificationStatus.errorType === 'login' && t.loginRequired}
-                        {verificationStatus.errorType === 'email_phone' && t.emailVerificationRequired}
-                        {verificationStatus.errorType === 'documents' && t.verificationRequired}
-                      </h4>
-                      <p className="text-sm text-amber-700 mb-3">
-                        {verificationStatus.message}
-                      </p>
-                      <button
-                        onClick={handleVerificationRedirect}
-                        className="w-full px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
-                      >
-                        {getVerificationButtonText()}
-                      </button>
+              {showVerificationWarning &&
+                !verificationStatus.canPerformAction && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-amber-900 mb-1">
+                          {verificationStatus.errorType === 'login' &&
+                            t.loginRequired}
+                          {verificationStatus.errorType === 'email_phone' &&
+                            t.emailVerificationRequired}
+                          {verificationStatus.errorType === 'documents' &&
+                            t.verificationRequired}
+                        </h4>
+                        <p className="text-sm text-amber-700 mb-3">
+                          {verificationStatus.message}
+                        </p>
+                        <button
+                          onClick={handleVerificationRedirect}
+                          className="w-full px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
+                        >
+                          {getVerificationButtonText()}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {bookingSuccess && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -863,9 +923,7 @@ export default function TripDetailsPage() {
                     <Check className="w-5 h-5" />
                     <span className="font-medium">{t.bookingSuccess}</span>
                   </div>
-                  <p className="text-sm text-green-700 mt-1">
-                    {t.redirecting}
-                  </p>
+                  <p className="text-sm text-green-700 mt-1">{t.redirecting}</p>
                 </div>
               )}
 
@@ -874,8 +932,12 @@ export default function TripDetailsPage() {
                   <div className="flex items-start gap-2 text-red-800">
                     <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-medium block">{t.bookingError}</span>
-                      <span className="text-sm text-red-700">{bookingError}</span>
+                      <span className="font-medium block">
+                        {t.bookingError}
+                      </span>
+                      <span className="text-sm text-red-700">
+                        {bookingError}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -883,13 +945,18 @@ export default function TripDetailsPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm text-gray-600">{t.pricePerSeat}</span>
+                  <span className="text-sm text-gray-600">
+                    {t.pricePerSeat}
+                  </span>
                   <span className="text-3xl font-bold text-gray-900">
                     {tripData.price} DA
                   </span>
                 </div>
                 <div className="text-sm text-green-600 font-medium">
-                  {tripData.places_disponibles} {tripData.places_disponibles > 1 ? t.availablePlural : t.available}
+                  {tripData.places_disponibles}{' '}
+                  {tripData.places_disponibles > 1
+                    ? t.availablePlural
+                    : t.available}
                 </div>
               </div>
 
@@ -906,7 +973,9 @@ export default function TripDetailsPage() {
                   >
                     <Minus className="w-5 h-5" />
                   </button>
-                  <span className="text-3xl font-bold text-gray-900">{nbr_places}</span>
+                  <span className="text-3xl font-bold text-gray-900">
+                    {nbr_places}
+                  </span>
                   <button
                     onClick={incrementPlaces}
                     disabled={nbr_places >= tripData.places_disponibles}
@@ -951,19 +1020,27 @@ export default function TripDetailsPage() {
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                   <Calendar className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-700">{formatDate(tripData.date)}</span>
+                  <span className="text-gray-700">
+                    {formatDate(tripData.date)}
+                  </span>
                 </div>
                 {tripData.duree_estimee && (
                   <div className="flex items-center gap-3 text-sm">
                     <Clock className="w-5 h-5 text-gray-400" />
-                    <span className="text-gray-700">{t.duration}: {tripData.duree_estimee}</span>
+                    <span className="text-gray-700">
+                      {t.duration}: {tripData.duree_estimee}
+                    </span>
                   </div>
                 )}
               </div>
 
               <button
                 onClick={handleBooking}
-                disabled={bookingLoading || bookingSuccess || tripData.places_disponibles === 0}
+                disabled={
+                  bookingLoading ||
+                  bookingSuccess ||
+                  tripData.places_disponibles === 0
+                }
                 className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-semibold text-base rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 {bookingLoading ? (

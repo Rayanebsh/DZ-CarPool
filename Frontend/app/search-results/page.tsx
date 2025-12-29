@@ -8,67 +8,68 @@ const API_BASE_URL = 'http://localhost:8000';
 // 🌍 Traductions
 const translations = {
   fr: {
-    title: "Résultats de recherche",
-    filters: "Filtres",
-    reset: "Réinitialiser",
-    date: "Date",
-    maxPrice: "Prix maximum",
-    departureTime: "Heure de départ",
-    morning: "Matin",
-    afternoon: "Après-midi",
-    evening: "Soir",
-    preferences: "Préférences",
-    selected: "sélectionnée",
-    selectedPlural: "sélectionnées",
-    options: "Options",
-    comfort: "Confort",
-    applyFilters: "Appliquer les filtres",
-    errorTitle: "Erreur de recherche",
-    retry: "Réessayer",
-    noResults: "Aucun trajet trouvé",
-    noResultsDesc: "Essayez de modifier vos critères de recherche ou les filtres",
-    tripsFound: "trajet trouvé",
-    tripsFoundPlural: "trajets trouvés",
-    match: "Correspondance",
-    luggage: "Bagages",
-    perSeat: "par place",
-    available: "place dispo",
-    availablePlural: "places dispo",
-    viewTrip: "Voir le trajet",
-    searchInfo: (from: string, to: string, date: string, places: number) => 
+    title: 'Résultats de recherche',
+    filters: 'Filtres',
+    reset: 'Réinitialiser',
+    date: 'Date',
+    maxPrice: 'Prix maximum',
+    departureTime: 'Heure de départ',
+    morning: 'Matin',
+    afternoon: 'Après-midi',
+    evening: 'Soir',
+    preferences: 'Préférences',
+    selected: 'sélectionnée',
+    selectedPlural: 'sélectionnées',
+    options: 'Options',
+    comfort: 'Confort',
+    applyFilters: 'Appliquer les filtres',
+    errorTitle: 'Erreur de recherche',
+    retry: 'Réessayer',
+    noResults: 'Aucun trajet trouvé',
+    noResultsDesc:
+      'Essayez de modifier vos critères de recherche ou les filtres',
+    tripsFound: 'trajet trouvé',
+    tripsFoundPlural: 'trajets trouvés',
+    match: 'Correspondance',
+    luggage: 'Bagages',
+    perSeat: 'par place',
+    available: 'place dispo',
+    availablePlural: 'places dispo',
+    viewTrip: 'Voir le trajet',
+    searchInfo: (from: string, to: string, date: string, places: number) =>
       `${from} → ${to} • ${date} • ${places} place${places > 1 ? 's' : ''}`,
   },
   en: {
-    title: "Search Results",
-    filters: "Filters",
-    reset: "Reset",
-    date: "Date",
-    maxPrice: "Maximum price",
-    departureTime: "Departure time",
-    morning: "Morning",
-    afternoon: "Afternoon",
-    evening: "Evening",
-    preferences: "Preferences",
-    selected: "selected",
-    selectedPlural: "selected",
-    options: "Options",
-    comfort: "Comfort",
-    applyFilters: "Apply filters",
-    errorTitle: "Search error",
-    retry: "Retry",
-    noResults: "No trips found",
-    noResultsDesc: "Try modifying your search criteria or filters",
-    tripsFound: "trip found",
-    tripsFoundPlural: "trips found",
-    match: "Match",
-    luggage: "Luggage",
-    perSeat: "per seat",
-    available: "seat available",
-    availablePlural: "seats available",
-    viewTrip: "View trip",
-    searchInfo: (from: string, to: string, date: string, places: number) => 
+    title: 'Search Results',
+    filters: 'Filters',
+    reset: 'Reset',
+    date: 'Date',
+    maxPrice: 'Maximum price',
+    departureTime: 'Departure time',
+    morning: 'Morning',
+    afternoon: 'Afternoon',
+    evening: 'Evening',
+    preferences: 'Preferences',
+    selected: 'selected',
+    selectedPlural: 'selected',
+    options: 'Options',
+    comfort: 'Comfort',
+    applyFilters: 'Apply filters',
+    errorTitle: 'Search error',
+    retry: 'Retry',
+    noResults: 'No trips found',
+    noResultsDesc: 'Try modifying your search criteria or filters',
+    tripsFound: 'trip found',
+    tripsFoundPlural: 'trips found',
+    match: 'Match',
+    luggage: 'Luggage',
+    perSeat: 'per seat',
+    available: 'seat available',
+    availablePlural: 'seats available',
+    viewTrip: 'View trip',
+    searchInfo: (from: string, to: string, date: string, places: number) =>
       `${from} → ${to} • ${date} • ${places} seat${places > 1 ? 's' : ''}`,
-  }
+  },
 };
 
 interface Preference {
@@ -122,15 +123,15 @@ interface SearchData {
 export default function SearchResultsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [lang, setLang] = useState<'fr' | 'en'>('fr');
   const t = translations[lang];
-  
+
   const [loading, setLoading] = useState(true);
   const [results, setResults] = useState<Ride[]>([]);
   const [searchInfo, setSearchInfo] = useState<SearchInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [filters, setFilters] = useState<Filters>({
     date: searchParams.get('date') || '',
     priceRange: [500, 5000],
@@ -138,28 +139,32 @@ export default function SearchResultsPage() {
     preferences: [],
     isConfort: false,
   });
-  
-  const [availablePreferences, setAvailablePreferences] = useState<Preference[]>([]);
-  
+
+  const [availablePreferences, setAvailablePreferences] = useState<
+    Preference[]
+  >([]);
+
   // Charger la langue depuis localStorage
   useEffect(() => {
     const savedLang = localStorage.getItem('language') as 'fr' | 'en';
     if (savedLang) setLang(savedLang);
   }, []);
-  
+
   const toggleLanguage = () => {
     const newLang = lang === 'fr' ? 'en' : 'fr';
     setLang(newLang);
     localStorage.setItem('language', newLang);
   };
-  
+
   // Charger les préférences
   useEffect(() => {
     const fetchPreferences = async () => {
       try {
         console.log('🔄 Chargement des préférences...');
-        const response = await fetch(`${API_BASE_URL}/api/v1/users/preferences/`);
-        
+        const response = await fetch(
+          `${API_BASE_URL}/api/v1/users/preferences/`,
+        );
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -174,60 +179,63 @@ export default function SearchResultsPage() {
 
     fetchPreferences();
   }, []);
-  
+
   const performSearch = async (filterOverrides: Partial<Filters> = {}) => {
     setLoading(true);
     setError(null);
-    
+
     const depart = searchParams.get('from') || '';
     const arrivee = searchParams.get('to') || '';
     const date = searchParams.get('date') || '';
     const places = searchParams.get('passengers') || '1';
-    
+
     if (!depart || !arrivee) {
       setError('Paramètres de recherche manquants');
       setLoading(false);
       return;
     }
-    
+
     const currentFilters = { ...filters, ...filterOverrides };
-    
+
     const searchData: SearchData = {
       ville_depart: depart,
       ville_arrivee: arrivee,
       date: currentFilters.date || date,
       nbr_places: parseInt(places),
     };
-    
+
     if (currentFilters.priceRange[1] < 5000) {
       searchData.price_max = currentFilters.priceRange[1];
     }
-    
+
     if (currentFilters.departureTime) {
       searchData.departure_time = currentFilters.departureTime;
     }
-    
+
     if (currentFilters.preferences.length > 0) {
       searchData.preference_ids = currentFilters.preferences;
     }
-    
+
     if (currentFilters.isConfort) {
       searchData.is_confort = true;
     }
-    
+
     try {
       console.log('🔍 Recherche:', searchData);
-      
-      const response = await fetch(`${API_BASE_URL}/api/v1/trajets/intelligent_search/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/trajets/intelligent_search/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(searchData),
         },
-        body: JSON.stringify(searchData),
-      });
-      
+      );
+
       console.log('📡 Réponse:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('✅ Résultats:', data.count);
@@ -240,21 +248,20 @@ export default function SearchResultsPage() {
       }
     } catch (error) {
       console.error('💥 Erreur réseau:', error);
-      setError("Impossible de contacter le serveur");
+      setError('Impossible de contacter le serveur');
     } finally {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     performSearch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
   const applyFilters = () => {
     performSearch();
   };
-  
+
   const resetFilters = () => {
     const defaultFilters: Filters = {
       date: searchParams.get('date') || '',
@@ -266,28 +273,28 @@ export default function SearchResultsPage() {
     setFilters(defaultFilters);
     performSearch(defaultFilters);
   };
-  
+
   const handlePreferenceToggle = (prefId: number) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       preferences: prev.preferences.includes(prefId)
-        ? prev.preferences.filter(id => id !== prefId)
-        : [...prev.preferences, prefId]
+        ? prev.preferences.filter((id) => id !== prefId)
+        : [...prev.preferences, prefId],
     }));
   };
-  
+
   const getProfilePictureUrl = (picture: string | null): string => {
     if (!picture) return '/placeholder.svg';
     if (picture.startsWith('http')) return picture;
     return `${API_BASE_URL}${picture.startsWith('/') ? '' : '/'}${picture}`;
   };
-  
+
   const formatRating = (rating: number | string | null | undefined): string => {
     if (rating === null || rating === undefined) return '5.0';
     const numRating = typeof rating === 'number' ? rating : parseFloat(rating);
     return isNaN(numRating) ? '5.0' : numRating.toFixed(1);
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -298,11 +305,16 @@ export default function SearchResultsPage() {
               <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
               {searchInfo && (
                 <p className="text-gray-600 mt-1">
-                  {t.searchInfo(searchInfo.depart, searchInfo.arrivee, searchInfo.date, searchInfo.places)}
+                  {t.searchInfo(
+                    searchInfo.depart,
+                    searchInfo.arrivee,
+                    searchInfo.date,
+                    searchInfo.places,
+                  )}
                 </p>
               )}
             </div>
-            
+
             {/* Bouton changement de langue */}
             <button
               onClick={toggleLanguage}
@@ -314,7 +326,7 @@ export default function SearchResultsPage() {
           </div>
         </div>
       </div>
-      
+
       <main className="container mx-auto px-4 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar Filtres */}
@@ -333,11 +345,15 @@ export default function SearchResultsPage() {
               <div className="space-y-6">
                 {/* Date */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">{t.date}</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    {t.date}
+                  </label>
                   <input
                     type="date"
                     value={filters.date}
-                    onChange={(e) => setFilters(prev => ({ ...prev, date: e.target.value }))}
+                    onChange={(e) =>
+                      setFilters((prev) => ({ ...prev, date: e.target.value }))
+                    }
                     className="w-full h-11 px-3 border border-gray-300 rounded-lg"
                   />
                 </div>
@@ -353,10 +369,12 @@ export default function SearchResultsPage() {
                     max="5000"
                     step="100"
                     value={filters.priceRange[1]}
-                    onChange={(e) => setFilters(prev => ({
-                      ...prev,
-                      priceRange: [500, parseInt(e.target.value)]
-                    }))}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        priceRange: [500, parseInt(e.target.value)],
+                      }))
+                    }
                     className="w-full"
                   />
                   <div className="flex justify-between text-xs text-gray-500">
@@ -374,10 +392,13 @@ export default function SearchResultsPage() {
                     {['morning', 'afternoon', 'evening'].map((period) => (
                       <button
                         key={period}
-                        onClick={() => setFilters(prev => ({
-                          ...prev,
-                          departureTime: prev.departureTime === period ? '' : period
-                        }))}
+                        onClick={() =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            departureTime:
+                              prev.departureTime === period ? '' : period,
+                          }))
+                        }
                         className={`py-2 px-3 text-sm rounded-lg border transition-colors ${
                           filters.departureTime === period
                             ? 'bg-blue-600 text-white border-blue-600'
@@ -394,11 +415,18 @@ export default function SearchResultsPage() {
                 {availablePreferences.length > 0 && (
                   <div className="space-y-3">
                     <label className="text-sm font-medium text-gray-700">
-                      {t.preferences} ({filters.preferences.length} {filters.preferences.length > 1 ? t.selectedPlural : t.selected})
+                      {t.preferences} ({filters.preferences.length}{' '}
+                      {filters.preferences.length > 1
+                        ? t.selectedPlural
+                        : t.selected}
+                      )
                     </label>
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                       {availablePreferences.map((pref) => (
-                        <label key={pref.id} className="flex items-center gap-2 cursor-pointer">
+                        <label
+                          key={pref.id}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
                           <input
                             type="checkbox"
                             checked={filters.preferences.includes(pref.id)}
@@ -416,13 +444,20 @@ export default function SearchResultsPage() {
 
                 {/* Options */}
                 <div className="space-y-3">
-                  <label className="text-sm font-medium text-gray-700">{t.options}</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    {t.options}
+                  </label>
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={filters.isConfort}
-                        onChange={(e) => setFilters(prev => ({ ...prev, isConfort: e.target.checked }))}
+                        onChange={(e) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            isConfort: e.target.checked,
+                          }))
+                        }
                         className="w-4 h-4 rounded border-gray-300"
                       />
                       <span className="text-sm text-gray-700">{t.comfort}</span>
@@ -450,7 +485,9 @@ export default function SearchResultsPage() {
                     <span className="text-red-600 font-bold">!</span>
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-red-900 mb-1">{t.errorTitle}</h3>
+                    <h3 className="font-semibold text-red-900 mb-1">
+                      {t.errorTitle}
+                    </h3>
                     <p className="text-red-700 text-sm">{error}</p>
                     <button
                       onClick={() => {
@@ -465,7 +502,7 @@ export default function SearchResultsPage() {
                 </div>
               </div>
             )}
-            
+
             {loading ? (
               <div className="flex justify-center items-center py-20">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
@@ -478,7 +515,8 @@ export default function SearchResultsPage() {
             ) : (
               <>
                 <div className="text-sm text-gray-600 mb-4">
-                  {results.length} {results.length > 1 ? t.tripsFoundPlural : t.tripsFound}
+                  {results.length}{' '}
+                  {results.length > 1 ? t.tripsFoundPlural : t.tripsFound}
                 </div>
                 {results.map((ride) => (
                   <div
@@ -493,7 +531,8 @@ export default function SearchResultsPage() {
                           alt={ride.conducteur_name}
                           className="w-16 h-16 rounded-full object-cover"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/placeholder.svg';
+                            (e.target as HTMLImageElement).src =
+                              '/placeholder.svg';
                           }}
                         />
                         <div>
@@ -520,10 +559,14 @@ export default function SearchResultsPage() {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                           <MapPin className="w-4 h-4 text-gray-400" />
-                          <span>{ride.ville_depart} → {ride.ville_arrivee}</span>
+                          <span>
+                            {ride.ville_depart} → {ride.ville_arrivee}
+                          </span>
                         </div>
                         <div className="text-sm text-gray-500">
-                          {new Date(ride.date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US')}
+                          {new Date(ride.date).toLocaleDateString(
+                            lang === 'fr' ? 'fr-FR' : 'en-US',
+                          )}
                         </div>
                         <div className="flex items-center gap-4 mt-3">
                           {ride.luggage_allowed && (
@@ -546,10 +589,15 @@ export default function SearchResultsPage() {
                           <div className="text-2xl font-bold text-gray-900">
                             {ride.price} DA
                           </div>
-                          <div className="text-sm text-gray-500">{t.perSeat}</div>
+                          <div className="text-sm text-gray-500">
+                            {t.perSeat}
+                          </div>
                         </div>
                         <div className="text-sm text-green-600 font-medium">
-                          {ride.places_disponibles} {ride.places_disponibles > 1 ? t.availablePlural : t.available}
+                          {ride.places_disponibles}{' '}
+                          {ride.places_disponibles > 1
+                            ? t.availablePlural
+                            : t.available}
                         </div>
                         <button
                           onClick={() => router.push(`/trip/${ride.id}`)}

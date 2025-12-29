@@ -1,33 +1,22 @@
-"""
-app/trajets/views.py - ViewSet avec APIs enrichies pour conducteur et passagers
-"""
-
 import logging
 import traceback
-from datetime import timedelta
-
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Q
 from django.utils import timezone
-
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action, api_view
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework_simplejwt.authentication import JWTAuthentication
-
 from app.core.filters import TrajetFilter
 from app.reservations.models import Rating as Avis
 from app.reservations.models import Reservation
-from app.users.models import Preference, UserDocument
+from app.users.models import UserDocument
 from utils.pricing import get_fuel_prices_summary
 
 from .models import FuelPrice, Trajet
 from .permissions import (
     CanCancelTrajet,
-    CanModifyTrajet,
     CanViewTrajetReservations,
-    IsDriverOrReadOnly,
 )
 from .serializers import (
     FuelPriceSerializer,
@@ -91,6 +80,14 @@ class TrajetViewSet(viewsets.ModelViewSet):
             "driver_info",
             "passengers",
             "fuel_prices",
+            "_validate_search_params",
+            "_build_base_queryset",
+            "_build_city_filter",
+            "_apply_advanced_filters",
+            "_apply_price_filter",
+            "_apply_time_filter",
+            "_apply_preference_filter",
+            "_extract_search_params",
         ]:
             return [AllowAny()]
         return [permissions.IsAuthenticated()]
@@ -105,6 +102,14 @@ class TrajetViewSet(viewsets.ModelViewSet):
             "intelligent_search",
             "driver_info",
             "passengers",
+             "_validate_search_params",
+            "_build_base_queryset",
+            "_build_city_filter",
+            "_apply_advanced_filters",
+            "_apply_price_filter",
+            "_apply_time_filter",
+            "_apply_preference_filter",
+            "_extract_search_params",
         ]:
             return []
         return super().get_authenticators()
@@ -360,89 +365,31 @@ class TrajetViewSet(viewsets.ModelViewSet):
 
     # ========== RECHERCHE INTELLIGENTE (PUBLIC) ==========
     @action(
-        detail=False,
-        methods=["post"],
-        url_path="intelligent_search",
-        permission_classes=[AllowAny],
-        authentication_classes=[],
-    )
+    detail=False,
+    methods=["post"],
+    url_path="intelligent_search",
+    permission_classes=[AllowAny],
+    authentication_classes=[],
+)
     def intelligent_search(self, request):
-        """
-        🎯 RECHERCHE INTELLIGENTE - Avec filtres avancés
-        POST /api/v1/trajets/intelligent_search/
-        """
+
         try:
             data = request.data
             logger.info(f"🔍 INTELLIGENT SEARCH - Données reçues: {data}")
 
-            ville_depart = data.get("ville_depart", "").strip()
-            ville_arrivee = data.get("ville_arrivee", "").strip()
+            # Validation des paramètres obligatoires
+            validation_error = self._validate_search_params(data)
+            if validation_error:
+                return validation_error
 
-            if not ville_depart or not ville_arrivee:
-                return Response(
-                    {"error": "ville_depart et ville_arrivee sont obligatoires"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            # Construction de la requête de base
+            queryset = self._build_base_queryset(data)
 
-            date = data.get("date")
-            nbr_places = data.get("nbr_places", 1)
+            # Application des filtres avancés
+            queryset = self._apply_advanced_filters(queryset, data)
 
-            # Recherche flexible sur les villes
-            depart_parts = [p.strip() for p in ville_depart.split(",") if p.strip()]
-            arrivee_parts = [p.strip() for p in ville_arrivee.split(",") if p.strip()]
-
-            depart_q = Q()
-            for part in depart_parts:
-                depart_q |= Q(ville_depart__icontains=part)
-
-            arrivee_q = Q()
-            for part in arrivee_parts:
-                arrivee_q |= Q(ville_arrivee__icontains=part)
-
-            # Requête de base
-            queryset = (
-                Trajet.objects.filter(
-                    status="ACTIVE", places_disponibles__gte=nbr_places
-                )
-                .filter(depart_q)
-                .filter(arrivee_q)
-                .select_related("conducteur")
-                .prefetch_related("preferences")
-            )
-
-            # ✅ FILTRES AVANCÉS
-            if date:
-                queryset = queryset.filter(date=date)
-
-            price_max = data.get("price_max")
-            if price_max:
-                queryset = queryset.filter(price__lte=price_max)
-
-            departure_time = data.get("departure_time")
-            if departure_time:
-                if departure_time == "morning":
-                    queryset = queryset.filter(heure_depart__lt="12:00")
-                elif departure_time == "afternoon":
-                    queryset = queryset.filter(
-                        heure_depart__gte="12:00", heure_depart__lt="18:00"
-                    )
-                elif departure_time == "evening":
-                    queryset = queryset.filter(heure_depart__gte="18:00")
-
-            is_confort = data.get("is_confort")
-            if is_confort:
-                queryset = queryset.filter(is_confort=True)
-
-            preference_ids = data.get("preference_ids", [])
-            if preference_ids and len(preference_ids) > 0:
-                queryset = queryset.filter(
-                    preferences__id__in=preference_ids
-                ).distinct()
-
-            # Tri
+            # Tri et sérialisation
             queryset = queryset.order_by("date", "heure_depart", "price")
-
-            # Sérialisation
             serializer = TrajetListSerializer(queryset, many=True)
 
             logger.info(f"✅ Résultats finaux: {len(serializer.data)} trajets")
@@ -451,12 +398,7 @@ class TrajetViewSet(viewsets.ModelViewSet):
                 {
                     "results": serializer.data,
                     "count": queryset.count(),
-                    "search_params": {
-                        "depart": ville_depart,
-                        "arrivee": ville_arrivee,
-                        "date": date,
-                        "places": nbr_places,
-                    },
+                    "search_params": self._extract_search_params(data),
                 },
                 status=status.HTTP_200_OK,
             )
@@ -464,7 +406,6 @@ class TrajetViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.error(f"❌ Erreur intelligent_search: {str(e)}")
             logger.error(traceback.format_exc())
-
             return Response(
                 {
                     "error": "Erreur lors de la recherche",
@@ -474,6 +415,113 @@ class TrajetViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+
+    def _validate_search_params(self, data):
+        """Valide les paramètres de recherche obligatoires."""
+        ville_depart = data.get("ville_depart", "").strip()
+        ville_arrivee = data.get("ville_arrivee", "").strip()
+
+        if not ville_depart or not ville_arrivee:
+            return Response(
+                {"error": "ville_depart et ville_arrivee sont obligatoires"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return None
+
+
+    def _build_base_queryset(self, data):
+        """Construit la requête de base avec les filtres de ville et places."""
+        ville_depart = data.get("ville_depart", "").strip()
+        ville_arrivee = data.get("ville_arrivee", "").strip()
+        nbr_places = data.get("nbr_places", 1)
+
+        # Construction des filtres de ville flexibles
+        depart_q = self._build_city_filter(ville_depart)
+        arrivee_q = self._build_city_filter(ville_arrivee)
+
+        # Requête de base
+        return (
+            Trajet.objects.filter(
+                status="ACTIVE", places_disponibles__gte=nbr_places
+            )
+            .filter(depart_q)
+            .filter(arrivee_q)
+            .select_related("conducteur")
+            .prefetch_related("preferences")
+        )
+
+
+    def _build_city_filter(self, city_name):
+        """Construit un filtre Q pour recherche flexible sur les villes."""
+        city_parts = [p.strip() for p in city_name.split(",") if p.strip()]
+        city_q = Q()
+        for part in city_parts:
+            city_q |= Q(ville_depart__icontains=part) | Q(ville_arrivee__icontains=part)
+        return city_q
+
+
+    def _apply_advanced_filters(self, queryset, data):
+        """Applique les filtres avancés au queryset."""
+        # Filtre par date
+        date = data.get("date")
+        if date:
+            queryset = queryset.filter(date=date)
+
+        # Filtre par prix maximum
+        queryset = self._apply_price_filter(queryset, data.get("price_max"))
+
+        # Filtre par horaire de départ
+        queryset = self._apply_time_filter(queryset, data.get("departure_time"))
+
+        # Filtre confort
+        if data.get("is_confort"):
+            queryset = queryset.filter(is_confort=True)
+
+        # Filtre par préférences
+        queryset = self._apply_preference_filter(queryset, data.get("preference_ids", []))
+
+        return queryset
+
+
+    def _apply_price_filter(self, queryset, price_max):
+        """Applique le filtre de prix maximum."""
+        if price_max:
+            return queryset.filter(price__lte=price_max)
+        return queryset
+
+
+    def _apply_time_filter(self, queryset, departure_time):
+        """Applique le filtre d'horaire de départ."""
+        if not departure_time:
+            return queryset
+
+        time_filters = {
+            "morning": Q(heure_depart__lt="12:00"),
+            "afternoon": Q(heure_depart__gte="12:00", heure_depart__lt="18:00"),
+            "evening": Q(heure_depart__gte="18:00"),
+        }
+
+        time_filter = time_filters.get(departure_time)
+        if time_filter:
+            return queryset.filter(time_filter)
+        return queryset
+
+
+    def _apply_preference_filter(self, queryset, preference_ids):
+        """Applique le filtre de préférences."""
+        if preference_ids and len(preference_ids) > 0:
+            return queryset.filter(preferences__id__in=preference_ids).distinct()
+        return queryset
+
+
+    def _extract_search_params(self, data):
+        """Extrait les paramètres de recherche pour la réponse."""
+        return {
+            "depart": data.get("ville_depart", "").strip(),
+            "arrivee": data.get("ville_arrivee", "").strip(),
+            "date": data.get("date"),
+            "places": data.get("nbr_places", 1),
+        }
     # ========== AUTRES ACTIONS ==========
     @action(detail=False, methods=["get"])
     def my_trips(self, request):

@@ -1,7 +1,8 @@
 // services/trajet.service.ts
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export interface SimpleSearchParams {
   ville_depart: string;
@@ -56,20 +57,18 @@ class TrajetService {
     try {
       console.log('🔍 Recherche simple (publique):', params);
 
-      const response = await axios.post(
-        `${API_URL}/trajets/search/`,
-        params,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          // ⚠️ Pas de token pour cette recherche
-          transformRequest: [(data, headers) => {
+      const response = await axios.post(`${API_URL}/trajets/search/`, params, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // ⚠️ Pas de token pour cette recherche
+        transformRequest: [
+          (data, headers) => {
             delete headers.Authorization;
             return JSON.stringify(data);
-          }],
-        }
-      );
+          },
+        ],
+      });
 
       console.log(`✅ ${response.data.count} trajet(s) trouvé(s)`);
       return response.data;
@@ -83,7 +82,9 @@ class TrajetService {
    * 🎯 RECHERCHE INTELLIGENTE - Avec filtres avancés (PUBLIQUE)
    * Inclut les préférences, prix max, heure, confort, etc.
    */
-  async intelligentSearch(params: IntelligentSearchParams): Promise<SearchResponse> {
+  async intelligentSearch(
+    params: IntelligentSearchParams,
+  ): Promise<SearchResponse> {
     try {
       console.log('🎯 Recherche intelligente avec filtres:', params);
 
@@ -95,11 +96,13 @@ class TrajetService {
             'Content-Type': 'application/json',
           },
           // ⚠️ Pas de token pour cette recherche
-          transformRequest: [(data, headers) => {
-            delete headers.Authorization;
-            return JSON.stringify(data);
-          }],
-        }
+          transformRequest: [
+            (data, headers) => {
+              delete headers.Authorization;
+              return JSON.stringify(data);
+            },
+          ],
+        },
       );
 
       console.log(`✅ ${response.data.count} trajet(s) trouvé(s) avec filtres`);
@@ -116,10 +119,12 @@ class TrajetService {
   async getTrajetDetails(trajetId: number): Promise<any> {
     try {
       const response = await axios.get(`${API_URL}/trajets/${trajetId}/`, {
-        transformRequest: [(data, headers) => {
-          delete headers.Authorization;
-          return data;
-        }],
+        transformRequest: [
+          (data, headers) => {
+            delete headers.Authorization;
+            return data;
+          },
+        ],
       });
       return response.data;
     } catch (error: any) {
@@ -143,18 +148,21 @@ class TrajetService {
       // ✅ Le token sera ajouté automatiquement par l'intercepteur
       const response = await axios.post(
         `${API_URL}/reservations/`,
-        bookingData
+        bookingData,
       );
 
       console.log('✅ Réservation créée:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Erreur de réservation:', error.response?.data || error.message);
-      
+      console.error(
+        '❌ Erreur de réservation:',
+        error.response?.data || error.message,
+      );
+
       if (error.response?.status === 401) {
         throw new Error('Session expirée. Veuillez vous reconnecter.');
       }
-      
+
       throw error;
     }
   }
@@ -178,7 +186,9 @@ class TrajetService {
   async getMyTrajets(status?: string): Promise<Trajet[]> {
     try {
       const params = status ? { status } : {};
-      const response = await axios.get(`${API_URL}/trajets/my_trips/`, { params });
+      const response = await axios.get(`${API_URL}/trajets/my_trips/`, {
+        params,
+      });
       return response.data;
     } catch (error: any) {
       console.error('❌ Erreur chargement trajets:', error);
@@ -217,7 +227,9 @@ class TrajetService {
    */
   async cancelTrajet(trajetId: number): Promise<any> {
     try {
-      const response = await axios.post(`${API_URL}/trajets/${trajetId}/cancel/`);
+      const response = await axios.post(
+        `${API_URL}/trajets/${trajetId}/cancel/`,
+      );
       return response.data;
     } catch (error: any) {
       console.error('❌ Erreur annulation:', error);
@@ -231,10 +243,12 @@ class TrajetService {
   async getFuelPrices(): Promise<any> {
     try {
       const response = await axios.get(`${API_URL}/trajets/fuel_prices/`, {
-        transformRequest: [(data, headers) => {
-          delete headers.Authorization;
-          return data;
-        }],
+        transformRequest: [
+          (data, headers) => {
+            delete headers.Authorization;
+            return data;
+          },
+        ],
       });
       return response.data;
     } catch (error: any) {

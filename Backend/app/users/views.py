@@ -6,13 +6,13 @@ AVEC VÉRIFICATION DES PRÉFÉRENCES ET REDIRECTION
 import logging
 import traceback
 
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg
 from django.utils import timezone
 
 import requests
 from allauth.socialaccount.models import SocialAccount
 from rest_framework import status, viewsets
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -283,48 +283,6 @@ class UserViewSet(viewsets.ModelViewSet):
         data["has_preferences"] = self._check_user_preferences(user)
         data["preferences_count"] = user.preferences.count()
         return Response(data)
-
-    @action(detail=False, methods=["get", "post"], permission_classes=[IsAuthenticated])
-    def preferences(self, request):
-        user = request.user
-
-        if request.method == "GET":
-            # Retourner TOUTES les préférences disponibles
-            all_preferences = Preference.objects.all().order_by("category", "id")
-            return Response(PreferenceSerializer(all_preferences, many=True).data)
-        elif request.method == "POST":
-            preference_ids = request.data.get("preference_ids", [])
-
-        if not isinstance(preference_ids, list):
-            return Response(
-                {"error": "preference_ids doit être une liste"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Vérifier que toutes les préférences existent
-        preferences = Preference.objects.filter(id__in=preference_ids)
-
-        if len(preferences) != len(preference_ids):
-            return Response(
-                {"error": "Certaines préférences n'existent pas"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Mettre à jour les préférences
-        user.preferences.set(preferences)
-
-        return Response(
-            {
-                "message": "Préférences mises à jour avec succès",
-                "preference_ids": preference_ids,
-                "preferences": PreferenceSerializer(
-                    user.preferences.all(), many=True
-                ).data,
-                "has_preferences": True,
-                "redirect_url": "/#hero",  # ✅ Ajouter l'URL de redirection
-            },
-            status=status.HTTP_200_OK,  # ✅ Important !
-        )
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def check_preferences(self, request):

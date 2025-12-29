@@ -1,17 +1,46 @@
 from rest_framework import serializers
-
 from app.trajets.serializers import TrajetListSerializer
 from app.users.serializers import UserSerializer
-
 from .models import Rating, Reservation
 
 
+class RatingSerializer(serializers.ModelSerializer):
+    """Serializer pour les évaluations"""
+
+    rater_detail = UserSerializer(source="rater", read_only=True)
+    rated_detail = UserSerializer(source="rated", read_only=True)
+
+    class Meta:
+        model = Rating
+        fields = [
+            "id",
+            "reservation",
+            "rater",
+            "rater_detail",
+            "rated",
+            "rated_detail",
+            "note",
+            "comment",
+            "ponctualite",
+            "convivialite",
+            "conduite",
+            "created_at",
+        ]
+        read_only_fields = ["id", "rater", "rated", "created_at"]
+
+
 class ReservationSerializer(serializers.ModelSerializer):
-    """Serializer pour les réservations"""
+    """
+    ✅ Serializer CORRIGÉ pour afficher correctement can_rate et has_rating
+    """
 
     passager_detail = UserSerializer(source="passager", read_only=True)
     trajet_detail = TrajetListSerializer(source="trajet", read_only=True)
+
+    # ✅ Ces champs DOIVENT être SerializerMethodField pour être calculés dynamiquement
     can_rate = serializers.SerializerMethodField()
+    has_rating = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Reservation
@@ -30,7 +59,9 @@ class ReservationSerializer(serializers.ModelSerializer):
             "cancelled_at",
             "rejection_reason",
             "cancellation_reason",
-            "can_rate",
+            "can_rate",  # ✅ Important
+            "has_rating",  # ✅ Important
+            "rating",  # ✅ Important
         ]
         read_only_fields = [
             "id",
@@ -42,23 +73,93 @@ class ReservationSerializer(serializers.ModelSerializer):
             "total_price",
         ]
 
+    def get_rating(self, obj):
+        """
+        ✅ Retourne le rating avec le bon format pour le frontend
+        """
+        try:
+            if not hasattr(obj, "rating"):
+                return None
+
+            rating = obj.rating
+            return {
+                "id": rating.id,
+                "note": rating.note,
+                "ponctualite": rating.ponctualite,
+                "convivialite": rating.convivialite,
+                "conduite": rating.conduite,
+                "comment": rating.comment or "",
+                "created_at": (
+                    rating.created_at.isoformat() if rating.created_at else None
+                ),
+            }
+        except Exception as e:
+            print(f"❌ Erreur get_rating: {str(e)}")
+            return None
+
     def get_can_rate(self, obj):
-        """Vérifie si l'utilisateur peut noter cette réservation"""
-        request = self.context.get("request")
-        if not request or not request.user:
+        """
+        ✅ CORRECTION CRITIQUE: Vérifie si l'utilisateur PEUT noter
+
+        Conditions:
+        1. Réservation CONFIRMÉE
+        2. PAS de rating existant
+        3. Utilisateur authentifié
+        """
+        try:
+            request = self.context.get("request")
+
+            # Debug
+            print(f"\n🔍 CAN_RATE CHECK - Booking #{obj.id}:")
+            print(f"  - Status: {obj.status}")
+            print(f"  - Has rating: {hasattr(obj, 'rating')}")
+            print(f"  - Request user: {request.user if request else 'None'}")
+            print(f"  - Passager: {obj.passager}")
+
+            # Pas de request ou user non authentifié
+            if (
+                not request
+                or not hasattr(request, "user")
+                or not request.user.is_authenticated
+            ):
+                print("  ❌ Pas d'utilisateur authentifié")
+                return False
+
+            # Pas le passager
+            if request.user != obj.passager:
+                print("  ❌ Pas le passager")
+                return False
+
+            # Pas confirmée
+            if obj.status != "CONFIRMED":
+                print(f"  ❌ Status pas CONFIRMED: {obj.status}")
+                return False
+
+            # Déjà noté
+            if hasattr(obj, "rating"):
+                print("  ❌ Déjà noté")
+                return False
+
+            # ✅ Toutes les conditions OK
+            print("  ✅ PEUT NOTER!")
+            return True
+
+        except Exception as e:
+            print(f"❌ Erreur get_can_rate: {str(e)}")
+            import traceback
+
+            traceback.print_exc()
             return False
 
-        # Peut noter si réservation confirmée et terminée
-        from django.utils import timezone
-
-        is_completed = (
-            obj.status == "CONFIRMED" and obj.trajet.date < timezone.now().date()
-        )
-
-        # Vérifier si une note existe déjà
-        has_rated = Rating.objects.filter(reservation=obj, rater=request.user).exists()
-
-        return is_completed and not has_rated
+    def get_has_rating(self, obj):
+        """Vérifie si la réservation a déjà un rating"""
+        try:
+            has_rating = hasattr(obj, "rating")
+            print(f"🔍 HAS_RATING - Booking #{obj.id}: {has_rating}")
+            return has_rating
+        except Exception as e:
+            print(f"❌ Erreur get_has_rating: {str(e)}")
+            return False
 
 
 class ReservationCreateSerializer(serializers.ModelSerializer):
@@ -74,19 +175,16 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
         nbr_places = attrs["nbr_places"]
         request = self.context.get("request")
 
-        # Vérifier que l'utilisateur n'est pas le conducteur
         if trajet.conducteur == request.user:
             raise serializers.ValidationError(
                 "Vous ne pouvez pas réserver votre propre trajet"
             )
 
-        # Vérifier la disponibilité
         if not trajet.can_reserve(nbr_places):
             raise serializers.ValidationError(
                 f"Seulement {trajet.places_disponibles} places disponibles"
             )
 
-        # Vérifier qu'il n'y a pas déjà une réservation active
         existing = Reservation.objects.filter(
             trajet=trajet, passager=request.user, status__in=["PENDING", "CONFIRMED"]
         ).exists()
@@ -107,105 +205,37 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
         )
 
         # Créer une notification pour le conducteur
-        from app.notifications.models import Notification
+        try:
+            from app.notifications.models import Notification
 
-        Notification.objects.create(
-            recipient=reservation.trajet.conducteur,
-            sender=request.user,
-            type="RESERVATION_REQUEST",
-            content=(
-                f"{request.user.full_name} demande à réserver "
-                f"{validated_data['nbr_places']} place(s)"
-            ),
-            related_model="Reservation",
-            related_id=reservation.id,
-        )
+            Notification.objects.create(
+                recipient=reservation.trajet.conducteur,
+                sender=request.user,
+                type="RESERVATION_REQUEST",
+                content=(
+                    f"{request.user.first_name} {request.user.last_name} demande à réserver "
+                    f"{validated_data['nbr_places']} place(s)"
+                ),
+                related_model="Reservation",
+                related_id=reservation.id,
+            )
+        except Exception as e:
+            print(f"⚠️ Erreur création notification: {str(e)}")
 
         return reservation
 
 
-class RatingSerializer(serializers.ModelSerializer):
-    """Serializer pour les évaluations"""
+class RatingCreateSerializer(serializers.Serializer):
+    """Serializer simplifié pour la création de ratings"""
 
-    rater_detail = UserSerializer(source="rater", read_only=True)
-    rated_detail = UserSerializer(source="rated", read_only=True)
-    reservation_detail = ReservationSerializer(source="reservation", read_only=True)
-
-    class Meta:
-        model = Rating
-        fields = [
-            "id",
-            "reservation",
-            "reservation_detail",
-            "rater",
-            "rater_detail",
-            "rated",
-            "rated_detail",
-            "note",
-            "comment",
-            "ponctualite",
-            "convivialite",
-            "conduite",
-            "created_at",
-        ]
-        read_only_fields = ["id", "rater", "rated", "created_at"]
-
-    def validate(self, attrs):
-        """Valide l'évaluation"""
-        reservation = attrs["reservation"]
-        request = self.context.get("request")
-
-        # Vérifier que la réservation est confirmée
-        if reservation.status != "CONFIRMED":
-            raise serializers.ValidationError(
-                "Vous pouvez seulement noter une réservation confirmée"
-            )
-
-        # Vérifier que le trajet est terminé
-        from django.utils import timezone
-
-        if reservation.trajet.date >= timezone.now().date():
-            raise serializers.ValidationError(
-                "Vous pouvez noter seulement après le trajet"
-            )
-
-        # Vérifier que l'utilisateur fait partie de la réservation
-        if request.user not in [reservation.passager, reservation.trajet.conducteur]:
-            raise serializers.ValidationError(
-                "Vous ne pouvez noter que vos propres trajets"
-            )
-
-        # Vérifier qu'il n'a pas déjà noté
-        if Rating.objects.filter(reservation=reservation, rater=request.user).exists():
-            raise serializers.ValidationError("Vous avez déjà noté cette réservation")
-
-        return attrs
-
-    def create(self, validated_data):
-        """Crée une nouvelle évaluation"""
-        request = self.context.get("request")
-        reservation = validated_data["reservation"]
-
-        # Déterminer qui est noté
-        if request.user == reservation.passager:
-            rated = reservation.trajet.conducteur
-        else:
-            rated = reservation.passager
-
-        rating = Rating.objects.create(
-            rater=request.user, rated=rated, **validated_data
-        )
-
-        # Créer une notification
-        from app.notifications.models import Notification
-
-        Notification.objects.create(
-            recipient=rated,
-            sender=request.user,
-            type="RATING_RECEIVED",
-            content=f"{request.user.full_name} vous a noté {rating.note}/5",
-            related_model="Rating",
-            related_id=rating.id,
-        )
-
-        return rating
+    note = serializers.IntegerField(min_value=1, max_value=5)
+    ponctualite = serializers.IntegerField(
+        min_value=1, max_value=5, required=False, allow_null=True
+    )
+    convivialite = serializers.IntegerField(
+        min_value=1, max_value=5, required=False, allow_null=True
+    )
+    conduite = serializers.IntegerField(
+        min_value=1, max_value=5, required=False, allow_null=True
+    )
+    comment = serializers.CharField(max_length=500, required=False, allow_blank=True)

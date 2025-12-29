@@ -10,31 +10,23 @@ export function useAuth() {
   const store = useAuthStore();
 
   const login = async (data: LoginData) => {
-    try {
-      await store.login(data);
-      
-      // ✅ Vérifier le statut de vérification
-      const user = useAuthStore.getState().user;
-      
-      if (!user?.email_verified || !user?.phone_verified) {
-        router.push('/verify');
-      } else {
-        router.push('/#hero');
-      }
-    } catch (error) {
-      throw error;
+    await store.login(data);
+
+    // ✅ Vérifier le statut de vérification
+    const user = useAuthStore.getState().user;
+
+    if (!user?.email_verified || !user?.phone_verified) {
+      router.push('/verify');
+    } else {
+      router.push('/#hero');
     }
   };
 
   const register = async (data: RegisterData) => {
-    try {
-      await store.register(data);
-      
-      // ✅ Rediriger vers la vérification après inscription
-      router.push('/verify');
-    } catch (error) {
-      throw error;
-    }
+    await store.register(data);
+
+    // ✅ Rediriger vers la vérification après inscription
+    router.push('/verify');
   };
 
   const logout = () => {

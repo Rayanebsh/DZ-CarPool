@@ -13,6 +13,7 @@ from django.contrib.auth.models import (
 )
 from django.core.validators import FileExtensionValidator
 from django.db import models
+from django.db.models import Avg
 from django.utils import timezone
 
 
@@ -157,23 +158,23 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{self.first_name} {self.last_name}".strip() or self.email
 
     def update_statistics(self):
-        """Met à jour les statistiques de l'utilisateur"""
-        from app.reservations.models import Reservation
-        from app.trajets.models import Trajet
+        """
+        ✅ Met à jour les statistiques de l'utilisateur
+        Calcule la moyenne des notes reçues
+        """
+        from app.reservations.models import Rating
 
-        self.trips_as_driver = Trajet.objects.filter(conducteur=self).count()
+        # Calculer la moyenne des notes reçues
+        avg_rating = Rating.objects.filter(rated=self).aggregate(Avg("note"))[
+            "note__avg"
+        ]
 
-        self.trips_as_passenger = Reservation.objects.filter(
-            passager=self, status="CONFIRMED"
-        ).count()
+        # Mettre à jour le champ rating (si vous avez ce champ)
+        if hasattr(self, "rating"):
+            self.rating = round(avg_rating, 1) if avg_rating else 5.0
+            self.save(update_fields=["rating"])
 
-        # Calcul de la moyenne des notes
-        ratings = self.received_ratings.all()
-        if ratings.exists():
-            total = sum(r.note for r in ratings)
-            self.average_rating = total / ratings.count()
-
-        self.save()
+        return avg_rating
 
 
 class UserDocument(models.Model):

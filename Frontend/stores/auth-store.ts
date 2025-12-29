@@ -27,7 +27,7 @@ interface AuthState {
   register: (data: RegisterData) => Promise<AuthResponse>;
   googleAuth: (accessToken: string) => Promise<AuthResponse>;
   logout: () => void;
-  
+
   // Actions utilisateur
   updateUser: (user: User) => void;
   checkAuth: () => Promise<void>;
@@ -68,7 +68,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ loading: true, error: null });
           const response = await authService.login(data);
-          
+
           set({
             user: response.user,
             isAuthenticated: true,
@@ -77,9 +77,10 @@ export const useAuthStore = create<AuthState>()(
 
           return response;
         } catch (error: any) {
-          const errorMsg = error.response?.data?.error || 
-                          error.response?.data?.detail ||
-                          'Erreur de connexion';
+          const errorMsg =
+            error.response?.data?.error ||
+            error.response?.data?.detail ||
+            'Erreur de connexion';
           set({ error: errorMsg, loading: false });
           throw new Error(errorMsg);
         }
@@ -90,7 +91,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ loading: true, error: null });
           const response = await authService.register(data);
-          
+
           set({
             user: response.user,
             isAuthenticated: true,
@@ -114,7 +115,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ loading: true, error: null });
           const response = await authService.googleAuth(accessToken);
-          
+
           set({
             user: response.user,
             isAuthenticated: true,
@@ -123,8 +124,8 @@ export const useAuthStore = create<AuthState>()(
 
           return response;
         } catch (error: any) {
-          const errorMsg = error.response?.data?.error || 
-                          'Erreur authentification Google';
+          const errorMsg =
+            error.response?.data?.error || 'Erreur authentification Google';
           set({ error: errorMsg, loading: false });
           throw new Error(errorMsg);
         }
@@ -204,8 +205,8 @@ export const useAuthStore = create<AuthState>()(
           await get().refreshUser();
           return result;
         } catch (error: any) {
-          const errorMsg = error.response?.data?.error || 
-                          'Erreur upload document';
+          const errorMsg =
+            error.response?.data?.error || 'Erreur upload document';
           throw new Error(errorMsg);
         }
       },
@@ -220,7 +221,7 @@ export const useAuthStore = create<AuthState>()(
             'http://localhost:8000/api/v1/users/check-document-status/',
             {
               headers: { Authorization: `Bearer ${token}` },
-            }
+            },
           );
 
           if (!response.ok) {
@@ -244,6 +245,6 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
-    }
-  )
+    },
+  ),
 );

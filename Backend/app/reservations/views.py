@@ -12,9 +12,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from app.users.models import UserDocument
-
-from .models import Reservation
-from .serializers import ReservationSerializer
+from .models import Rating, Reservation
+from .serializers import RatingSerializer, ReservationSerializer
+from app.trajets.models import Trajet
+from django.db import IntegrityError
+from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
@@ -37,71 +39,84 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         user = request.user
-
-        # ✅ VÉRIFICATION 1 : L'utilisateur doit avoir un document vérifié
-        has_verified_document = UserDocument.objects.filter(
-            user=user, verified=True
-        ).exists()
-
-        if not has_verified_document:
-            logger.warning(
-                f"❌ Tentative de réservation par utilisateur non vérifié: {user.email}"
-            )
-            return Response(
-                {
-                    "error": "Document non vérifié",
-                    "message": (
-                        "Vous devez avoir au moins un document vérifié "
-                        "(CNI) pour effectuer une réservation."
-                    ),
-                    "can_book": False,
-                    "action_required": "upload_document",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        # ✅ VÉRIFICATION 2 : Validation des données
+        # Vérification 1: Document vérifié
+        if not self._has_verified_document(user):
+            return self._response_document_required()
+        # Vérification 2: Validation des données
         serializer = self.get_serializer(data=request.data)
+        validation_error = self._validate_serializer(serializer)
+        if validation_error:
+            return validation_error
+        # Vérification 3: Pas de réservation existante
+        trajet_id = request.data.get("trajet")
+        existing_error = self._check_existing_reservation(user, trajet_id)
+        if existing_error:
+            return existing_error
+        # Vérification 4: Places disponibles
+        availability_error = self._check_availability(trajet_id, request.data)
+        if availability_error:
+            return availability_error
+        # Création
+        return self._create_reservation(serializer, user, trajet_id)
+    # ========== MÉTHODES PRIVÉES ==========
+
+    def _has_verified_document(self, user):
+        return UserDocument.objects.filter(user=user, verified=True).exists()
+
+    def _response_document_required(self):
+        logger.warning("❌ Tentative de réservation sans document vérifié")
+        return Response(
+            {
+                "error": "Document non vérifié",
+                "message": "Vous devez avoir une CNI vérifiée pour réserver.",
+                "can_book": False,
+                "action_required": "upload_document",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    def _validate_serializer(self, serializer):
         try:
             serializer.is_valid(raise_exception=True)
+            return None
         except Exception as e:
-            logger.error(f"❌ Erreur validation données: {str(e)}")
+            logger.error(f"❌ Erreur validation: {str(e)}")
             return Response(
                 {
                     "error": "Données invalides",
                     "message": str(e),
-                    "details": (
-                        serializer.errors if hasattr(serializer, "errors") else {}
-                    ),
+                    "details": getattr(serializer, "errors", {}),
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # ✅ VÉRIFICATION 3 : Pas de réservation active existante
-        trajet_id = request.data.get("trajet")
-        existing_reservation = Reservation.objects.filter(
-            trajet_id=trajet_id, passager=user, status__in=["PENDING", "CONFIRMED"]
+    def _check_existing_reservation(self, user, trajet_id):
+        existing = Reservation.objects.filter(
+            trajet_id=trajet_id,
+            passager=user,
+            status__in=["PENDING", "CONFIRMED"]
         ).first()
 
-        if existing_reservation:
-            logger.warning(f"⚠️ Réservation déjà existante: {existing_reservation.id}")
+        if existing:
+            logger.warning(f"⚠️ Réservation existante: {existing.id}")
             return Response(
                 {
                     "error": "Réservation déjà existante",
-                    "message": f"Vous avez déjà une réservation {existing_reservation.get_status_display().lower()} pour ce trajet.",
-                    "existing_reservation_id": existing_reservation.id,
-                    "status": existing_reservation.status,
+                    "message": (
+                        f"Vous avez déjà une réservation "
+                        f"{existing.get_status_display().lower()}."
+                    ),
+                    "existing_reservation_id": existing.id,
+                    "status": existing.status,
                 },
-                status=status.HTTP_409_CONFLICT,  # 409 = Conflict
+                status=status.HTTP_409_CONFLICT,
             )
+        return None
 
-        # ✅ VÉRIFICATION 4 : Places disponibles
-        from app.trajets.models import Trajet
-
+    def _check_availability(self, trajet_id, data):
         try:
             trajet = Trajet.objects.get(id=trajet_id)
-            nbr_places = request.data.get("nbr_places", 1)
-
+            nbr_places = data.get("nbr_places", 1)
             if trajet.places_disponibles < nbr_places:
                 return Response(
                     {
@@ -120,15 +135,12 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
+        return None
 
-        # ✅ CRÉATION : Tout est OK, créer la réservation
+    def _create_reservation(self, serializer, user, trajet_id):
         try:
             self.perform_create(serializer)
-            logger.info(
-                f"✅ Réservation créée avec succès pour {user.email} - Trajet {trajet_id}"
-            )
-
-            headers = self.get_success_headers(serializer.data)
+            logger.info(f"✅ Réservation créée: {user.email} - Trajet {trajet_id}")
             return Response(
                 {
                     "success": True,
@@ -136,58 +148,46 @@ class ReservationViewSet(viewsets.ModelViewSet):
                     "reservation": serializer.data,
                 },
                 status=status.HTTP_201_CREATED,
-                headers=headers,
+                headers=self.get_success_headers(serializer.data),
             )
 
         except IntegrityError as e:
-            # ❌ Erreur de contrainte DB (par sécurité si vérification ratée)
-            logger.error(f"❌ IntegrityError lors de la création: {str(e)}")
+            logger.error(f"❌ IntegrityError: {str(e)}")
             return Response(
                 {
                     "error": "Conflit de réservation",
-                    "message": "Une réservation existe déjà pour ce trajet. Veuillez actualiser la page.",
+                    "message": "Une réservation existe déjà. Actualisez la page.",
                 },
                 status=status.HTTP_409_CONFLICT,
             )
 
         except Exception as e:
-            # ❌ Erreur inattendue
-            logger.error(f"❌ Erreur inattendue lors de la création: {str(e)}")
+            logger.error(f"❌ Erreur inattendue: {str(e)}")
             return Response(
                 {
                     "error": "Erreur serveur",
-                    "message": "Une erreur est survenue lors de la création de la réservation.",
+                    "message": "Erreur lors de la création.",
                     "details": str(e) if settings.DEBUG else "Contactez le support",
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     def perform_create(self, serializer):
-        """Enregistre la réservation avec le passager authentifié"""
         serializer.save(passager=self.request.user)
 
     @action(detail=False, methods=["get"], url_path="check-booking-permission")
     def check_booking_permission(self, request):
-        """
-        ✅ Vérifie si l'utilisateur peut effectuer des réservations
-        GET /api/v1/reservations/check-booking-permission/
-        """
         user = request.user
-
         has_verified_document = UserDocument.objects.filter(
             user=user, verified=True
         ).exists()
-
         pending_documents = UserDocument.objects.filter(
             user=user, verified=False
         ).count()
-
         total_documents = UserDocument.objects.filter(user=user).count()
-
         logger.info(
             f"🔍 Check booking permission for {user.email}: can_book={has_verified_document}"
         )
-
         return Response(
             {
                 "can_book": has_verified_document,
@@ -197,17 +197,16 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 "message": (
                     "Vous pouvez effectuer des réservations"
                     if has_verified_document
-                    else "Vous devez télécharger et faire vérifier votre CNI pour réserver un trajet"
+                    else (
+                        "Vous devez télécharger et faire vérifier votre CNI "
+                        "pour réserver un trajet"
+                    )
                 ),
             }
         )
 
     @action(detail=False, methods=["get"], url_path="my-bookings")
     def my_bookings(self, request):
-        """
-        Récupère toutes les réservations de l'utilisateur en tant que passager
-        GET /api/v1/reservations/my-bookings/
-        """
         bookings = (
             Reservation.objects.filter(passager=request.user)
             .select_related("trajet", "trajet__conducteur")
@@ -219,10 +218,6 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="my-trips-bookings")
     def my_trips_bookings(self, request):
-        """
-        Récupère les réservations pour les trajets du conducteur
-        GET /api/v1/reservations/my-trips-bookings/
-        """
         bookings = (
             Reservation.objects.filter(trajet__conducteur=request.user)
             .select_related("trajet", "passager")
@@ -234,13 +229,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def confirm(self, request, pk=None):
-        """
-        Confirme une réservation (conducteur uniquement)
-        POST /api/v1/reservations/{id}/confirm/
-        """
         reservation = self.get_object()
-
-        # Vérifier que c'est bien le conducteur
         if reservation.trajet.conducteur != request.user:
             return Response(
                 {"error": "Seul le conducteur peut confirmer une réservation"},
@@ -288,8 +277,6 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
         reservation.status = "REJECTED"
         reservation.save()
-
-        # Libérer les places
         trajet = reservation.trajet
         trajet.places_disponibles += reservation.nbr_places
         trajet.save()
@@ -305,10 +292,6 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def cancel(self, request, pk=None):
-        """
-        Annule une réservation (passager uniquement)
-        POST /api/v1/reservations/{id}/cancel/
-        """
         reservation = self.get_object()
 
         # Vérifier que c'est bien le passager
@@ -328,7 +311,6 @@ class ReservationViewSet(viewsets.ModelViewSet):
         reservation.status = "CANCELLED"
         reservation.save()
 
-        # Libérer les places si la réservation était confirmée
         if old_status == "CONFIRMED":
             trajet = reservation.trajet
             trajet.places_disponibles += reservation.nbr_places
@@ -341,4 +323,133 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 "message": "Réservation annulée avec succès",
                 "reservation": self.get_serializer(reservation).data,
             }
+        )
+
+    @action(detail=True, methods=["post"], url_path="rate")
+    def rate(self, request, pk=None):
+        """Note un conducteur après une réservation."""
+        try:
+            reservation = self.get_object()
+            user = request.user
+
+            # Validation des permissions et état
+            validation_error = self._validate_rating_permissions(reservation, user)
+            if validation_error:
+                return validation_error
+
+            # Validation des données
+            rating_data = self._extract_and_validate_rating_data(request.data)
+            if isinstance(rating_data, Response):  # C'est une erreur
+                return rating_data
+
+            # Création du rating
+            rating = self._create_rating(reservation, user, rating_data)
+
+            logger.info(
+                f"⭐ Rating créé: {rating.note}/5 par {user.email} "
+                f"pour {rating.rated.email}"
+            )
+
+            return Response(
+                {
+                    "success": True,
+                    "message": "Note enregistrée avec succès",
+                    "rating": RatingSerializer(rating).data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        except Exception as e:
+            logger.error(f"❌ Erreur rating: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return Response(
+                {"error": "Erreur serveur", "message": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def _validate_rating_permissions(self, reservation, user):
+        if reservation.passager != user:
+            logger.warning(f"❌ Tentative notation par non-passager: {user.email}")
+            return Response(
+                {"error": "Seul le passager peut noter le conducteur"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if reservation.status != "CONFIRMED":
+            return Response(
+                {
+                    "error": "Réservation non confirmée",
+                    "message": "Vous ne pouvez noter que les réservations confirmées",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if hasattr(reservation, "rating"):
+            return Response(
+                {
+                    "error": "Déjà noté",
+                    "message": "Vous avez déjà noté ce trajet",
+                    "rating": RatingSerializer(reservation.rating).data,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return None
+
+    def _extract_and_validate_rating_data(self, data):
+        """Extrait et valide les données de notation."""
+        note = data.get("note")
+        ponctualite = data.get("ponctualite")
+        convivialite = data.get("convivialite")
+        conduite = data.get("conduite")
+        comment = data.get("comment", "")
+        if not note or not isinstance(note, int) or not 1 <= note <= 5:
+            return Response(
+                {"error": "La note doit être un entier entre 1 et 5"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        validation_error = self._validate_optional_ratings(
+            ponctualite, convivialite, conduite
+        )
+        if validation_error:
+            return validation_error
+        if len(comment) > 500:
+            return Response(
+                {"error": "Le commentaire ne peut pas dépasser 500 caractères"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return {
+            "note": note,
+            "ponctualite": ponctualite,
+            "convivialite": convivialite,
+            "conduite": conduite,
+            "comment": comment,
+        }
+
+    def _validate_optional_ratings(self, ponctualite, convivialite, conduite):
+        """Valide les notes optionnelles."""
+        for field_name, field_value in [
+            ("ponctualite", ponctualite),
+            ("convivialite", convivialite),
+            ("conduite", conduite),
+        ]:
+            if field_value is not None:
+                if not isinstance(field_value, int) or not 1 <= field_value <= 5:
+                    return Response(
+                        {"error": f"La note de {field_name} doit être entre 1 et 5"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+        return None
+
+    def _create_rating(self, reservation, user, rating_data):
+        """Crée l'objet Rating."""
+        conducteur = reservation.trajet.conducteur
+        return Rating.objects.create(
+            reservation=reservation,
+            rater=user,
+            rated=conducteur,
+            note=rating_data["note"],
+            ponctualite=rating_data["ponctualite"],
+            convivialite=rating_data["convivialite"],
+            conduite=rating_data["conduite"],
+            comment=rating_data["comment"],
         )

@@ -42,15 +42,13 @@ urlpatterns = [
 # GET    /api/v1/users/preferences/           ✅ Liste toutes les préférences (PUBLIC)
 # GET    /api/v1/users/preferences/{id}/      ✅ Détail d'une préférence (PUBLIC)
 # GET    /api/v1/users/my_preferences/        ✅ Préférences de l'utilisateur connecté
-# POST   /api/v1/users/preferences/           ✅ Mettre à jour les préférences (action custom dans UserViewSet)
-
+# POST   /api/v1/users/preferences/           ✅ Mettre à jour les préférences
 # ========== VÉRIFICATIONS ==========
 # POST   /api/v1/users/send_email_verification/
 # POST   /api/v1/users/verify_email/
 # POST   /api/v1/users/send_phone_verification/
 # POST   /api/v1/users/verify_phone/
 # GET    /api/v1/users/verification_status/
-
 # ========== DOCUMENTS ==========
 # POST   /api/v1/users/upload_document/
 # GET    /api/v1/users/documents/

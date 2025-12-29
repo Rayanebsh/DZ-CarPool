@@ -1,10 +1,5 @@
-"""
-utils/search_utils.py - Utilitaires pour la recherche intelligente de trajets
-"""
-
-from datetime import timedelta
 from difflib import SequenceMatcher
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 # Villes principales d'Algérie avec leurs régions
 WILAYAS_DATA = {
@@ -194,9 +189,6 @@ def calculate_match_score(
 
 
 def get_time_period(heure: str) -> str:
-    """
-    Convertit une heure en période (morning, afternoon, evening)
-    """
     try:
         hour = int(heure.split(":")[0])
         if 5 <= hour < 12:
@@ -205,5 +197,5 @@ def get_time_period(heure: str) -> str:
             return "afternoon"
         else:
             return "evening"
-    except:
+    except (ValueError, IndexError):
         return "morning"
