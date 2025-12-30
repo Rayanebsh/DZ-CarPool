@@ -9,8 +9,6 @@ import { Input } from '@/components/ui/input';
 import {
   Send,
   Paperclip,
-  Smile,
-  MoreVertical,
   Loader2,
   AlertCircle,
   Search,
@@ -49,14 +47,12 @@ export default function MessagesPage() {
   const isUserScrollingRef = useRef<boolean>(false);
   const lastScrollTopRef = useRef<number>(0);
 
-  // État pour l'utilisateur courant
   const [currentUser, setCurrentUser] = useState<User>({
     id: 0,
     full_name: '',
     email: '',
   });
 
-  // Charger l'utilisateur depuis localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedUser = localStorage.getItem('user');
@@ -71,7 +67,6 @@ export default function MessagesPage() {
     }
   }, []);
 
-  // Configuration WebSocket
   const conversationType: 'group' | 'private' = selectedConversation?.is_group
     ? 'group'
     : 'private';
@@ -111,12 +106,10 @@ export default function MessagesPage() {
     },
   });
 
-  // Charger les conversations au montage
   useEffect(() => {
     loadConversations();
   }, []);
 
-  // Détection du scroll manuel par l'utilisateur
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
@@ -124,8 +117,6 @@ export default function MessagesPage() {
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
       const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
-
-      // Si l'utilisateur n'est pas en bas, il est en train de scroller manuellement
       isUserScrollingRef.current = !isAtBottom;
       lastScrollTopRef.current = scrollTop;
     };
@@ -133,13 +124,6 @@ export default function MessagesPage() {
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
-
-  // Auto-scroll uniquement si l'utilisateur n'a pas scrollé manuellement
-  useEffect(() => {
-    if (!isUserScrollingRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
 
   const loadConversations = async () => {
     try {
@@ -157,7 +141,6 @@ export default function MessagesPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Vérifier le type de fichier
     const allowedTypes = [
       'image/jpeg',
       'image/jpg',
@@ -173,7 +156,6 @@ export default function MessagesPage() {
       return;
     }
 
-    // Vérifier la taille (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert(
         language === 'en'
@@ -185,7 +167,6 @@ export default function MessagesPage() {
 
     setSelectedFile(file);
 
-    // Créer un aperçu pour les images
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -212,19 +193,13 @@ export default function MessagesPage() {
       if (selectedFile) {
         setUploadingFile(true);
 
-        // Envoyer via API REST pour les fichiers
         const reader = new FileReader();
         reader.onloadend = async () => {
           try {
             const base64 = reader.result as string;
-
-            // Récupérer l'URL de l'API depuis l'environnement ou utiliser une valeur par défaut
             const apiUrl =
               process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            // ✅ CORRECTION: L'endpoint correct est /messaging/messages/upload-media/
             const endpoint = `${apiUrl}/api/v1/messaging/messages/upload-media/`;
-
-            console.log('📤 Envoi vers:', endpoint);
 
             const response = await fetch(endpoint, {
               method: 'POST',
@@ -251,25 +226,11 @@ export default function MessagesPage() {
             }
 
             const data = await response.json();
-            console.log('✅ Fichier envoyé:', data);
-            // ✅ AJOUT DU MESSAGE AU STATE AFFICHÉ
             addMessage(data);
 
             setMessageInput('');
             handleRemoveFile();
             setUploadingFile(false);
-
-            // scroll
-            isUserScrollingRef.current = false;
-            setTimeout(() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
-
-            // Forcer le scroll en bas après l'envoi
-            isUserScrollingRef.current = false;
-            setTimeout(() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
           } catch (error) {
             console.error('❌ Erreur upload:', error);
             alert(
@@ -282,16 +243,9 @@ export default function MessagesPage() {
         };
         reader.readAsDataURL(selectedFile);
       } else {
-        // Message texte simple via WebSocket
         sendMessage(messageInput);
         setMessageInput('');
         sendTyping(false);
-
-        // Forcer le scroll en bas après l'envoi
-        isUserScrollingRef.current = false;
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
       }
     } catch (error) {
       console.error('Erreur envoi message:', error);
@@ -348,7 +302,6 @@ export default function MessagesPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 h-full flex overflow-hidden">
             {/* Conversations List */}
             <div className="w-80 border-r border-gray-200 flex flex-col">
-              {/* Header */}
               <div className="p-4 border-b border-gray-200">
                 <h2 className="text-xl font-bold text-gray-900 mb-3">
                   {language === 'en' ? 'Messages' : 'Messages'}
@@ -367,7 +320,6 @@ export default function MessagesPage() {
                 </div>
               </div>
 
-              {/* Conversations */}
               <div className="flex-1 overflow-y-auto">
                 {loading ? (
                   <div className="flex items-center justify-center h-32">
@@ -446,7 +398,6 @@ export default function MessagesPage() {
             <div className="flex-1 flex flex-col">
               {selectedConversation ? (
                 <>
-                  {/* Chat Header */}
                   <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold text-gray-900">
@@ -476,13 +427,9 @@ export default function MessagesPage() {
                           {language === 'en' ? 'Reconnect' : 'Reconnecter'}
                         </Button>
                       )}
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="w-5 h-5" />
-                      </Button>
                     </div>
                   </div>
 
-                  {/* Error Alert */}
                   {wsError && (
                     <Alert variant="destructive" className="m-4">
                       <AlertCircle className="h-4 w-4" />
@@ -490,7 +437,6 @@ export default function MessagesPage() {
                     </Alert>
                   )}
 
-                  {/* Messages */}
                   <div
                     ref={messagesContainerRef}
                     className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
@@ -526,7 +472,6 @@ export default function MessagesPage() {
                                 </p>
                               )}
 
-                              {/* Affichage du média si présent */}
                               {message.media_url && (
                                 <div className="mb-2">
                                   {message.media_type?.startsWith('image/') ? (
@@ -534,6 +479,21 @@ export default function MessagesPage() {
                                       src={message.media_url}
                                       alt="Pièce jointe"
                                       className="rounded-lg max-w-full h-auto"
+                                      onError={(e) => {
+                                        console.error('❌ Erreur chargement image:', {
+                                          url: message.media_url,
+                                          message_id: message.id,
+                                        });
+                                        e.currentTarget.style.display = 'none';
+                                        const parent = e.currentTarget.parentElement;
+                                        if (parent) {
+                                          parent.innerHTML = `
+                                            <div class="bg-gray-200 rounded-lg p-4 text-center text-sm text-gray-600">
+                                              ❌ ${language === 'en' ? 'Error loading image' : 'Erreur de chargement'}
+                                            </div>
+                                          `;
+                                        }
+                                      }}
                                     />
                                   ) : (
                                     <a
@@ -577,7 +537,6 @@ export default function MessagesPage() {
                       })
                     )}
 
-                    {/* Indicateur de saisie */}
                     {typingUsers.length > 0 && (
                       <div className="flex justify-start">
                         <div className="bg-white rounded-2xl rounded-bl-none shadow-sm px-4 py-2">
@@ -598,9 +557,7 @@ export default function MessagesPage() {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Message Input */}
                   <div className="p-4 border-t border-gray-200 bg-white">
-                    {/* Aperçu du fichier sélectionné */}
                     {selectedFile && (
                       <div className="mb-3 p-3 bg-gray-50 rounded-lg flex items-center gap-3">
                         {filePreview ? (
@@ -662,9 +619,6 @@ export default function MessagesPage() {
                         disabled={!isConnected || uploadingFile}
                         className="flex-1"
                       />
-                      <Button variant="ghost" size="sm" disabled>
-                        <Smile className="w-5 h-5" />
-                      </Button>
                       <Button
                         onClick={handleSendMessage}
                         disabled={

@@ -35,10 +35,10 @@ urlpatterns = [
     path("api/v1/notifications/", include("app.notifications.urls")),
     # Allauth URLs (pour Google Auth)
     path("accounts/", include("allauth.urls")),
-    # ❌ SUPPRIMEZ CETTE LIGNE - elle cherche app.urls qui n'existe pas
-    # path('api/v1/', include('app.urls')),
 ]
+# ✅ SUPPRIMÉ : la ligne en doublon qui était ici
 
+# ✅ Servir les fichiers média et statiques uniquement en mode DEBUG
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

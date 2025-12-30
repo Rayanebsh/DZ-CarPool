@@ -12,7 +12,7 @@ interface Message {
   text: string;
   created_at: string;
   is_read?: boolean;
-  media_url?: string;
+  media_url?: string;  // ✅ Déjà l'URL complète depuis le backend
   media_type?: string;
 }
 
@@ -91,6 +91,7 @@ export function useWebSocket({
           console.log('📨 Message reçu:', data);
 
           if (data.type === 'message' || !data.type) {
+            // ✅ Le message reçu du WebSocket contient déjà media_url construit par le backend
             setMessages((prev) => [...prev, data]);
           } else if (data.type === 'typing' && onTyping) {
             onTyping(data.user, data.is_typing);
@@ -101,6 +102,7 @@ export function useWebSocket({
               'messages',
             );
             if (data.messages && Array.isArray(data.messages)) {
+              // ✅ Les messages de l'historique contiennent déjà media_url
               setMessages(data.messages);
             }
           }
@@ -144,7 +146,7 @@ export function useWebSocket({
   }, [conversationId, conversationType, onTyping]);
 
   const sendMessage = useCallback(
-    (text: string, media?: string, mediaType?: string, mediaName?: string) => {
+    (text: string) => {
       if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
         console.error('❌ WebSocket pas connecté');
         setError('Non connecté');
@@ -152,22 +154,12 @@ export function useWebSocket({
       }
 
       try {
-        const payload: any = {
+        const payload = {
           type: 'message',
           text,
         };
 
-        // Ajouter les données média si présentes
-        if (media) {
-          payload.media = media;
-          payload.media_type = mediaType;
-          payload.media_name = mediaName;
-        }
-
-        console.log('📤 Envoi:', {
-          ...payload,
-          media: media ? '[BASE64_DATA]' : undefined,
-        });
+        console.log('📤 Envoi:', payload);
         wsRef.current.send(JSON.stringify(payload));
       } catch (err) {
         console.error('❌ Erreur envoi:', err);
@@ -231,7 +223,6 @@ export function useWebSocket({
     };
   }, [conversationId]);
 
-  // Exposer les fonctions et états
   return {
     messages,
     isConnected,

@@ -1,10 +1,11 @@
 """
-app/messaging/consumers.py - Consumer WebSocket complet et corrigé
+app/messaging/consumers.py - Consumer WebSocket avec URLs média HTTP complètes
 """
 
 import json
 import logging
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
@@ -20,11 +21,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         """Connexion WebSocket"""
-        # Déterminer le type de conversation en fonction de l'URL
         url_route = self.scope.get("url_route", {})
         kwargs = url_route.get("kwargs", {})
 
-        # Vérifier si c'est un groupe (trajet_id) ou privé (conversation_id)
         if "trajet_id" in kwargs:
             self.conversation_type = "group"
             self.conversation_id = kwargs["trajet_id"]
@@ -37,8 +36,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return
 
         self.room_group_name = f"chat_{self.conversation_type}_{self.conversation_id}"
-
-        # Récupérer l'utilisateur
         self.user = self.scope.get("user")
 
         if not self.user or not self.user.is_authenticated:
@@ -46,20 +43,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close(code=4001)
             return
 
-        # Vérifier les permissions
         has_permission = await self.check_permission()
         if not has_permission:
             logger.warning(f"Permission refusée pour {self.user.email}")
             await self.close(code=4003)
             return
 
-        # Rejoindre le groupe
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-
         await self.accept()
-        logger.info(f"Utilisateur {self.user.email} connecté à {self.room_group_name}")
+        logger.info(f"✅ Utilisateur {self.user.email} connecté à {self.room_group_name}")
 
-        # Envoyer l'historique
         await self.send_message_history()
 
     async def disconnect(self, close_code):
@@ -96,19 +89,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         """Traite un message texte"""
         text = data.get("text", "").strip()
 
-        # Validation
         if not text:
             await self.send_error("Message vide")
             return
 
-        # Sauvegarder le message
         message = await self.save_message(text)
 
         if not message:
             await self.send_error("Erreur de sauvegarde")
             return
 
-        # Broadcaster le message
         await self.channel_layer.group_send(
             self.room_group_name,
             {"type": "chat_message", "message": await self.format_message(message)},
@@ -137,7 +127,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def user_typing(self, event):
         """Envoie l'indicateur de saisie"""
-        # Ne pas renvoyer à l'expéditeur
         if event["user"]["id"] != self.user.id:
             await self.send(
                 text_data=json.dumps(
@@ -157,6 +146,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         for msg in messages:
             formatted_messages.append(await self.format_message(msg))
 
+        logger.info(f"📜 Envoi de {len(formatted_messages)} messages d'historique")
         await self.send(
             text_data=json.dumps({"type": "history", "messages": formatted_messages})
         )
@@ -169,7 +159,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def check_permission(self):
         """Vérifie les permissions d'accès"""
         if self.conversation_type == "group":
-            # Vérifier si l'utilisateur a accès au trajet
             from app.reservations.models import Reservation
             from app.trajets.models import Trajet
 
@@ -177,7 +166,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 trajet_id = int(self.conversation_id)
                 trajet = Trajet.objects.get(id=trajet_id)
 
-                # Vérifier si conducteur ou passager confirmé
                 is_driver = trajet.conducteur == self.user
                 has_reservation = Reservation.objects.filter(
                     trajet=trajet, passager=self.user, status="CONFIRMED"
@@ -188,7 +176,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 return False
 
         elif self.conversation_type == "private":
-            # Format: user1_id_user2_id
             try:
                 user_ids = [int(uid) for uid in self.conversation_id.split("_")]
                 return self.user.id in user_ids
@@ -209,7 +196,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
 
             if self.conversation_type == "group":
-                # Message de groupe
                 from app.trajets.models import Trajet
 
                 trajet_id = int(self.conversation_id)
@@ -220,7 +206,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 message_data["receiver"] = None
 
             elif self.conversation_type == "private":
-                # Message privé
                 user_ids = [int(uid) for uid in self.conversation_id.split("_")]
                 other_user_id = [uid for uid in user_ids if uid != self.user.id][0]
                 receiver = User.objects.get(id=other_user_id)
@@ -229,15 +214,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 message_data["is_group_message"] = False
 
             message = Message.objects.create(**message_data)
-            logger.info(f"Message sauvegardé: {message.id}")
+            logger.info(f"✅ Message sauvegardé: ID={message.id}")
 
-            # Mettre à jour la conversation
             self.update_conversation(message)
 
             return message
 
         except Exception as e:
-            logger.error(f"Erreur sauvegarde: {e}", exc_info=True)
+            logger.error(f"❌ Erreur sauvegarde: {e}", exc_info=True)
             return None
 
     @database_sync_to_async
@@ -271,14 +255,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def format_message(self, message):
-        """Formate un message pour l'envoi"""
-        # ✅ CORRECTION: Utiliser profile_picture au lieu de photo
+        """✅ Formate un message avec URLs complètes (HTTP)"""
+        # Photo de profil
         photo_url = None
         if (
             hasattr(message.sender, "profile_picture")
             and message.sender.profile_picture
         ):
-            photo_url = message.sender.profile_picture.url
+            try:
+                photo_url = message.sender.profile_picture.url
+                if not photo_url.startswith('http'):
+                    backend_url = getattr(settings, 'BACKEND_URL', 'http://localhost:8000').rstrip('/')
+                    photo_url = f"{backend_url}{photo_url}"
+            except Exception as e:
+                logger.error(f"❌ Erreur photo profil: {e}")
+                photo_url = None
 
         data = {
             "id": message.id,
@@ -293,15 +284,29 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "is_read": message.is_read,
         }
 
-        # Ajouter le média si présent
+        # ✅ Média du message (CORRECTION: utiliser BACKEND_URL, pas WEBSOCKET_URL)
         if message.media:
-            data["media"] = message.media.url
-            data["media_type"] = message.media_type
+            try:
+                media_path = message.media.url
+                
+                if media_path.startswith('http'):
+                    data["media_url"] = media_path
+                else:
+                    # ✅ BACKEND_URL pour HTTP, pas WEBSOCKET_URL
+                    backend_url = getattr(settings, 'BACKEND_URL', 'http://localhost:8000').rstrip('/')
+                    data["media_url"] = f"{backend_url}{media_path}"
+                
+                data["media_type"] = message.media_type
+                
+                logger.info(f"📎 URL média construite: {data['media_url']}")
+                
+            except Exception as e:
+                logger.error(f"❌ Erreur construction URL média: {e}")
 
         return data
 
     def update_conversation(self, message):
-        """Met à jour la conversation (last_message, last_activity)"""
+        """Met à jour la conversation"""
         from app.notifications.models import Conversation
 
         try:
@@ -311,10 +316,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     is_group=True,
                 )
             else:
-                # Pour les conversations privées
                 conversation = None
 
-                # Chercher une conversation existante entre ces deux utilisateurs
                 existing_conversations = Conversation.objects.filter(
                     is_group=False, participants=message.sender
                 ).filter(participants=message.receiver)
@@ -322,7 +325,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 if existing_conversations.exists():
                     conversation = existing_conversations.first()
                 else:
-                    # Créer une nouvelle conversation
                     conversation = Conversation.objects.create(is_group=False)
                     conversation.participants.add(message.sender, message.receiver)
 
@@ -332,4 +334,4 @@ class ChatConsumer(AsyncWebsocketConsumer):
             logger.info(f"Conversation mise à jour: {conversation.id}")
 
         except Exception as e:
-            logger.error(f"Erreur update conversation: {e}", exc_info=True)
+            logger.error(f"❌ Erreur update conversation: {e}", exc_info=True)

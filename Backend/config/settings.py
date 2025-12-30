@@ -4,7 +4,7 @@ Configuration Django pour le projet DZ-CarPool
 
 from datetime import timedelta
 from pathlib import Path
-
+import os
 from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -133,9 +133,10 @@ USE_TZ = True
 # Static files
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
+# URL du backend (pour construire les URLs complètes)
+BACKEND_URL = os.environ.get('BACKEND_URL', 'http://localhost:8000/')
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
