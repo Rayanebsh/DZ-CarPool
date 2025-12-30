@@ -29,20 +29,11 @@ from .serializers import (
     TrajetSearchSerializer,
     TrajetUpdateSerializer,
 )
+from django.db import models
+
+
 
 logger = logging.getLogger(__name__)
-
-
-@api_view(["GET"])
-def get_trip_places(request, trajet_id):
-    """Retourne le nombre de places disponibles en temps réel"""
-    try:
-        trajet = Trajet.objects.get(id=trajet_id)
-        return Response(
-            {"places_disponibles": trajet.places_disponibles, "trajet_id": trajet.id}
-        )
-    except Trajet.DoesNotExist:
-        return Response({"error": "Trajet not found"}, status=404)
 
 
 class TrajetViewSet(viewsets.ModelViewSet):
@@ -91,6 +82,7 @@ class TrajetViewSet(viewsets.ModelViewSet):
             "_apply_time_filter",
             "_apply_preference_filter",
             "_extract_search_params",
+            "places",
         ]:
             return [AllowAny()]
         return [permissions.IsAuthenticated()]
@@ -113,6 +105,7 @@ class TrajetViewSet(viewsets.ModelViewSet):
             "_apply_time_filter",
             "_apply_preference_filter",
             "_extract_search_params",
+            "places",
         ]:
             return []
         return super().get_authenticators()
@@ -298,7 +291,50 @@ class TrajetViewSet(viewsets.ModelViewSet):
                 {"error": "Erreur lors de la récupération des passagers"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
+    
+    @action(
+    detail=True,
+    methods=["get"],
+    url_path="places",
+    permission_classes=[AllowAny],
+    authentication_classes=[],
+)
+    def places(self, request, pk=None):
+        """Retourne le nombre de places disponibles en temps réel"""
+        try:
+            trajet = self.get_object()
+            
+            # Calcul manuel FIABLE
+            reservations_confirmees = Reservation.objects.filter(
+                trajet=trajet, 
+                status__in=['PENDING', 'CONFIRMED']
+            ).aggregate(total=models.Sum('nbr_places'))['total'] or 0
+            
+            places_calculees = trajet.nbr_places - reservations_confirmees
+            
+            # ✅ Mettre à jour la base de données si nécessaire
+            if trajet.places_disponibles != places_calculees:
+                logger.warning(
+                    f"⚠️ Trajet {trajet.id}: DB={trajet.places_disponibles}, "
+                    f"Calculé={places_calculees}. Correction..."
+                )
+                trajet.places_disponibles = places_calculees
+                trajet.save(update_fields=['places_disponibles'])
+            
+            return Response({
+                "places_disponibles": places_calculees,  # ✅ Retourner la valeur calculée
+                "trajet_id": trajet.id,
+                "nbr_places_total": trajet.nbr_places,
+                "reservations_total": reservations_confirmees
+            })
+        except Exception as e:
+            logger.error(f"Erreur get places: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return Response(
+                {"error": "Erreur lors de la récupération des places"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     # ========== RECHERCHE SIMPLE (PUBLIC) ==========
     @action(
         detail=False,
@@ -686,3 +722,4 @@ class FuelPriceViewSet(viewsets.ModelViewSet):
     queryset = FuelPrice.objects.all()
     serializer_class = FuelPriceSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+

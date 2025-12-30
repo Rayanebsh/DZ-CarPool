@@ -1,11 +1,6 @@
-"""
-app/reservations/signals.py - Signals pour les réservations
-"""
-
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from .models import Reservation
-
 
 print("=" * 80)
 print("FICHIER app/reservations/signals.py CHARGÉ")
@@ -182,3 +177,31 @@ def create_or_update_group_conversation(reservation):
     print(f"✅ Conversation finalisée - {total} participants")
     
     return conversation
+
+@receiver(post_save, sender=Reservation)
+def update_places_on_reservation_create(sender, instance, created, **kwargs):
+    """
+    Met à jour les places disponibles quand une réservation est créée ou confirmée
+    """
+    if created and instance.status == 'PENDING':
+        # Réserver les places dès la création
+        trajet = instance.trajet
+        trajet.places_disponibles -= instance.nbr_places
+        trajet.save(update_fields=['places_disponibles'])
+        print(f"✅ Places réservées: {instance.nbr_places} - Restantes: {trajet.places_disponibles}")
+    
+    # Si le statut change vers CONFIRMED (depuis PENDING)
+    elif not created and instance.status == 'CONFIRMED':
+        # Les places sont déjà réservées, ne rien faire
+        print(f"✅ Réservation confirmée - Places déjà réservées")
+
+@receiver(pre_delete, sender=Reservation)
+def restore_places_on_reservation_delete(sender, instance, **kwargs):
+    """
+    Restaure les places quand une réservation est supprimée
+    """
+    if instance.status in ['PENDING', 'CONFIRMED']:
+        trajet = instance.trajet
+        trajet.places_disponibles += instance.nbr_places
+        trajet.save(update_fields=['places_disponibles'])
+        print(f"✅ Places restaurées: {instance.nbr_places} - Disponibles: {trajet.places_disponibles}")

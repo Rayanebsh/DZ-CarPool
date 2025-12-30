@@ -20,7 +20,6 @@ import {
 
 const API_BASE_URL = 'http://localhost:8000';
 
-// 🌍 Traductions
 const translations = {
   fr: {
     home: 'Accueil',
@@ -130,8 +129,7 @@ interface Preference {
 
 interface Passager {
   id: number;
-  nom: string;
-  prenom: string;
+  full_name: string;
   profile_picture: string | null;
   nbr_places: number;
 }
@@ -200,7 +198,6 @@ export default function TripDetailsPage() {
   const [driverLoading, setDriverLoading] = useState(true);
   const [passengersLoading, setPassengersLoading] = useState(true);
 
-  // ✅ État de vérification complet
   const [verificationStatus, setVerificationStatus] =
     useState<VerificationStatus>({
       isAuthenticated: false,
@@ -214,19 +211,11 @@ export default function TripDetailsPage() {
     });
   const [showVerificationWarning, setShowVerificationWarning] = useState(false);
 
-  // Charger la langue
   useEffect(() => {
     const savedLang = localStorage.getItem('language') as 'fr' | 'en';
     if (savedLang) setLang(savedLang);
   }, []);
 
-  const toggleLanguage = () => {
-    const newLang = lang === 'fr' ? 'en' : 'fr';
-    setLang(newLang);
-    localStorage.setItem('language', newLang);
-  };
-
-  // ✅ LOGIQUE DE VÉRIFICATION COMPLÈTE
   useEffect(() => {
     checkCompleteVerificationStatus();
   }, []);
@@ -234,7 +223,6 @@ export default function TripDetailsPage() {
   const checkCompleteVerificationStatus = async () => {
     const token = localStorage.getItem('access_token');
 
-    // Étape 1: Vérifier si connecté
     if (!token) {
       setVerificationStatus({
         isAuthenticated: false,
@@ -250,7 +238,6 @@ export default function TripDetailsPage() {
     }
 
     try {
-      // Étape 2: Vérifier email/téléphone
       const userResponse = await fetch(`${API_BASE_URL}/api/v1/users/me/`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -274,7 +261,7 @@ export default function TripDetailsPage() {
           return;
         }
       }
-      // Étape 3: Vérifier les documents
+
       try {
         const docResponse = await fetch(
           `${API_BASE_URL}/api/v1/users/check-document-status/`,
@@ -304,7 +291,6 @@ export default function TripDetailsPage() {
             return;
           }
 
-          // ✅ Tout est OK
           setVerificationStatus({
             isAuthenticated: true,
             emailVerified: true,
@@ -316,35 +302,30 @@ export default function TripDetailsPage() {
             errorType: null,
           });
         } else {
-          // Si l'endpoint documents est HS, on laisse passer
-          console.warn('⚠️ Endpoint documents indisponible');
           setVerificationStatus({
             isAuthenticated: true,
             emailVerified: true,
             phoneVerified: true,
             documentsVerified: false,
-            canPerformAction: true, // On laisse passer quand même
+            canPerformAction: true,
             redirectUrl: null,
             message: 'Vérification partielle',
             errorType: null,
           });
         }
       } catch (docError) {
-        console.warn('⚠️ Erreur documents, on laisse passer:', docError);
         setVerificationStatus({
           isAuthenticated: true,
           emailVerified: true,
           phoneVerified: true,
           documentsVerified: false,
-          canPerformAction: true, // On laisse passer en cas d'erreur
+          canPerformAction: true,
           redirectUrl: null,
           message: 'Erreur de vérification',
           errorType: null,
         });
       }
     } catch (error) {
-      console.error('❌ Erreur vérification complète:', error);
-      // En cas d'erreur réseau, on laisse passer
       setVerificationStatus({
         isAuthenticated: true,
         emailVerified: false,
@@ -358,110 +339,145 @@ export default function TripDetailsPage() {
     }
   };
 
-  useEffect(() => {
-    const fetchTripDetails = async () => {
-      if (!tripId) return;
+  // ✅ MODIF 1: NOUVELLE FONCTION pour détails (API 2)
+  const fetchTripDetailsOnly = async () => {
+    if (!tripId) return;
 
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/trajets/${tripId}/`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        const detailsData = await response.json();
+        return detailsData;
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Erreur détails:', error);
+      return null;
+    }
+  };
+
+  // ✅ MODIF 2: fetchTripDetails utilise MAINTENANT LES 2 APIs
+  const fetchTripDetails = async () => {
+    if (!tripId) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // 🔄 API 1: PLACES (inchangé)
+      const placesResponse = await fetch(
+        `${API_BASE_URL}/api/v1/trajets/${tripId}/places/`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+
+      if (!placesResponse.ok) {
+        const errorText = await placesResponse.text();
+        setError(`${t.error} (Places): ${placesResponse.status}: ${errorText}`);
+        return;
+      }
+
+      const placesData = await placesResponse.json();
+
+      // 🔄 API 2: DÉTAILS (NOUVEAU)
+      const detailsData = await fetchTripDetailsOnly();
+
+      if (!detailsData) {
+        setError(`${t.error} (Détails): Trajet introuvable`);
+        return;
+      }
+      const driverPrice = Number(detailsData.price_driver);     // "1020.00" -> 1020
+      const platformPrice = Number(detailsData.price_platform); // "180.00"  -> 180
+      // 🔄 FUSION des 2 APIs
+      const mergedData: TripDetails = {
+        ...detailsData,
+        // Surcharger avec les données places (plus fraîches)
+        id: detailsData.id,
+        price: driverPrice + platformPrice,
+        places_disponibles: placesData.places_disponibles,
+      };
+      console.log('🔥 mergedData =', mergedData);
+      setTripData(mergedData);
+
+      // 🔄 Driver & Passengers (inchangé)
+      setDriverLoading(true);
       try {
-        setLoading(true);
-        setError(null);
-
-        const publicHeaders: HeadersInit = {
-          'Content-Type': 'application/json',
-        };
-
-        const response = await fetch(
-          `${API_BASE_URL}/api/v1/trajets/${tripId}/`,
+        const driverResponse = await fetch(
+          `${API_BASE_URL}/api/v1/trajets/${tripId}/driver_info/`,
           {
             method: 'GET',
-            headers: publicHeaders,
+            headers: { 'Content-Type': 'application/json' },
           },
         );
 
-        if (response.ok) {
-          const data = await response.json();
-          setTripData(data);
-
-          // Charger les données du conducteur
-          setDriverLoading(true);
-          try {
-            const driverResponse = await fetch(
-              `${API_BASE_URL}/api/v1/trajets/${tripId}/driver_info/`,
-              {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-              },
-            );
-
-            if (driverResponse.ok) {
-              const driverData = await driverResponse.json();
-              setDriverEnriched(driverData);
-            } else {
-              setDriverEnriched({
-                id: data.conducteur_id,
-                full_name: data.conducteur_name,
-                profile_picture: data.conducteur_picture,
-                rating: data.conducteur_rating || 5.0,
-                trips_count: data.conducteur_trips || 0,
-                is_verified: data.conducteur_verified || false,
-                member_since: data.conducteur_member_since || '',
-                trips_as_driver: data.conducteur_trips || 0,
-                trips_as_passenger: 0,
-                total_trips: data.conducteur_trips || 0,
-              });
-            }
-          } catch (err) {
-            console.error('❌ Exception driver_info:', err);
-          } finally {
-            setDriverLoading(false);
-          }
-
-          // Charger les passagers
-          setPassengersLoading(true);
-          try {
-            const passengersResponse = await fetch(
-              `${API_BASE_URL}/api/v1/trajets/${tripId}/passengers/`,
-              {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-              },
-            );
-
-            if (passengersResponse.ok) {
-              const passengersData = await passengersResponse.json();
-              setPassengersEnriched(passengersData.passengers || []);
-            }
-          } catch (err) {
-            console.error('❌ Exception passengers:', err);
-          } finally {
-            setPassengersLoading(false);
-          }
+        if (driverResponse.ok) {
+          const driverData = await driverResponse.json();
+          setDriverEnriched(driverData);
         } else {
-          const errorText = await response.text();
-          setError(`${t.error} ${response.status}: ${errorText}`);
+          setDriverEnriched({
+            id: mergedData.conducteur_id,
+            full_name: mergedData.conducteur_name,
+            profile_picture: mergedData.conducteur_picture,
+            rating: mergedData.conducteur_rating || 5.0,
+            trips_count: mergedData.conducteur_trips || 0,
+            is_verified: mergedData.conducteur_verified || false,
+            member_since: mergedData.conducteur_member_since || '',
+          });
         }
-      } catch (error) {
-        console.error('❌ Erreur chargement trajet:', error);
-        setError('Impossible de charger les détails du trajet');
+      } catch (err) {
+        console.error('❌ Exception driver_info:', err);
       } finally {
-        setLoading(false);
+        setDriverLoading(false);
       }
-    };
 
+      setPassengersLoading(true);
+      try {
+        const passengersResponse = await fetch(
+          `${API_BASE_URL}/api/v1/trajets/${tripId}/passengers/`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+
+        if (passengersResponse.ok) {
+          const passengersData = await passengersResponse.json();
+          setPassengersEnriched(passengersData.passengers || []);
+        }
+      } catch (err) {
+        console.error('❌ Exception passengers:', err);
+      } finally {
+        setPassengersLoading(false);
+      }
+    } catch (error) {
+      console.error('❌ Erreur chargement trajet:', error);
+      setError('Impossible de charger les détails du trajet');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ... (useEffect pour fetchTripDetails INCHANGÉ)
+  useEffect(() => {
     fetchTripDetails();
-  }, [tripId, t.error]);
+  }, [tripId]);
 
+  // ✅ MODIF 3: handleBooking - SEULEMENT refresh places après réservation
   const handleBooking = async () => {
     if (!tripData) return;
 
-    // ✅ Vérifier TOUTES les conditions AVANT de réserver
     if (!verificationStatus.canPerformAction) {
       setShowVerificationWarning(true);
       setBookingError(verificationStatus.message);
       return;
     }
 
-    // Procéder à la réservation
     try {
       setBookingLoading(true);
       setBookingError(null);
@@ -481,13 +497,46 @@ export default function TripDetailsPage() {
 
       if (response.ok) {
         setBookingSuccess(true);
+
+        // ✅ OPTIMISTE: mise à jour immédiate
+        setTripData((prev) =>
+          prev
+            ? {
+                ...prev,
+                places_disponibles: prev.places_disponibles - nbr_places,
+              }
+            : null,
+        );
+
+        // ✅ RAPIDE: refresh SEULEMENT les places (API 1)
+        setTimeout(async () => {
+          try {
+            const placesResponse = await fetch(
+              `${API_BASE_URL}/api/v1/trajets/${tripData.id}/places/`
+            );
+            if (placesResponse.ok) {
+              const placesData = await placesResponse.json();
+              console.log('🔄 Places mises à jour:', placesData);
+              console.log('🔥 placesData =', placesData);
+              console.log('keys:', Object.keys(placesData));
+              setTripData((prev) =>
+                prev
+                  ? { ...prev, places_disponibles: placesData.places_disponibles }
+                  : null
+              );
+            }
+          } catch (error) {
+            console.error('Erreur refresh places:', error);
+            fetchTripDetails(); // Fallback complet
+          }
+        }, 500);
+
         setTimeout(() => {
           router.push('/trips');
         }, 2000);
       } else {
         const errorData = await response.json();
 
-        // Gérer les erreurs de vérification du backend
         if (
           errorData.can_book === false ||
           errorData.action_required === 'upload_document'

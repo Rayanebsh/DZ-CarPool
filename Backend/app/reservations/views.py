@@ -275,8 +275,6 @@ class ReservationViewSet(viewsets.ModelViewSet):
         """Rejette une réservation (conducteur uniquement)"""
         reservation = self.get_object()
 
-        print(f"REJECT appelé - Status AVANT: {reservation.status}")
-
         if reservation.trajet.conducteur != request.user:
             return Response(
                 {"error": "Seul le conducteur peut rejeter une réservation"},
@@ -289,18 +287,16 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Changer status et sauvegarder
-        reservation.status = "REJECTED"
-        reservation.save()  #Sans update_fields
-        
-        # Libérer les places
+        # Libérer les places AVANT de changer le status
         trajet = reservation.trajet
         trajet.places_disponibles += reservation.nbr_places
-        trajet.save()
+        trajet.save(update_fields=['places_disponibles'])
 
-        print(f"APRÈS SAVE - Status: {reservation.status}")
+        # Changer status
+        reservation.status = "REJECTED"
+        reservation.save(update_fields=['status'])
 
-        logger.info(f"Réservation {pk} rejetée par {request.user.email}")
+        logger.info(f"Réservation {pk} rejetée - {reservation.nbr_places} places libérées")
 
         return Response(
             {
@@ -309,13 +305,10 @@ class ReservationViewSet(viewsets.ModelViewSet):
             }
         )
 
-
     @action(detail=True, methods=["post"])
     def cancel(self, request, pk=None):
         """Annule une réservation (passager uniquement)"""
         reservation = self.get_object()
-
-        print(f"CANCEL appelé - Status AVANT: {reservation.status}")
 
         if reservation.passager != request.user:
             return Response(
@@ -329,21 +322,16 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        old_status = reservation.status
+        # Libérer les places (peu importe le status)
+        trajet = reservation.trajet
+        trajet.places_disponibles += reservation.nbr_places
+        trajet.save(update_fields=['places_disponibles'])
         
-        # Changer status et sauvegarder
+        # Changer status
         reservation.status = "CANCELLED"
-        reservation.save()  # Sans update_fields
+        reservation.save(update_fields=['status'])
 
-        # Libérer les places si c'était confirmé
-        if old_status == "CONFIRMED":
-            trajet = reservation.trajet
-            trajet.places_disponibles += reservation.nbr_places
-            trajet.save()
-
-        print(f"APRÈS SAVE - Status: {reservation.status}")
-
-        logger.info(f"Réservation {pk} annulée par {request.user.email}")
+        logger.info(f"Réservation {pk} annulée - {reservation.nbr_places} places libérées")
 
         return Response(
             {

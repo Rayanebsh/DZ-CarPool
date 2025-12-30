@@ -4,7 +4,7 @@ from django.urls import include, path
 
 from rest_framework.routers import DefaultRouter
 
-from .views import FuelPriceViewSet, TrajetViewSet, get_trip_places
+from .views import FuelPriceViewSet, TrajetViewSet
 
 router = DefaultRouter()
 
@@ -17,7 +17,6 @@ router.register(r"fuel-prices", FuelPriceViewSet, basename="fuel-price")
 app_name = "trajets"
 
 urlpatterns = [
-    path("api/v1/trajets/<int:trajet_id>/places/", get_trip_places),
     path("", include(router.urls)),
 ]
 
