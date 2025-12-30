@@ -16,6 +16,7 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(","
 
 # Application definition
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -30,6 +31,7 @@ INSTALLED_APPS = [
     "django_filters",
     "drf_spectacular",
     "corsheaders",
+    "channels",
     # Allauth pour social authentication
     "allauth",
     "allauth.account",
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
     "app.messaging",
     "app.notifications",
     "django_extensions",
+    "app",
 ]
 
 MIDDLEWARE = [
@@ -80,8 +83,19 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = "config.asgi.application"
 WSGI_APPLICATION = "config.wsgi.application"
-
+# Configuration Channels Layer (Redis)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+# URL WebSocket (pour le frontend)
+WEBSOCKET_URL = config("WEBSOCKET_URL", default="ws://localhost:8000")
 # Database
 DATABASES = {
     "default": {
@@ -341,14 +355,16 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Configuration allauth
-AUTH_USER_MODEL = "users.User"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_EMAIL_VERIFICATION = "optional"
+# APRÈS (garder seulement)
 ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_VERIFICATION = "optional"
 SOCIALACCOUNT_AUTO_SIGNUP = True
-ACCOUNT_LOGIN_METHODS = {"email"}  # Remplace ACCOUNT_AUTHENTICATION_METHOD
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = [
+    "email*",
+    "password1*",
+    "password2*",
+]  # Remplace ACCOUNT_AUTHENTICATION_METHOD
 
 ACCOUNT_SIGNUP_FIELDS = [
     "email*",  # * = required

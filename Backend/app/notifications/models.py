@@ -1,10 +1,14 @@
 """
-apps/messaging/models.py - Modèles pour la messagerie
+app/notifications/models.py - Modèles pour messagerie ET notifications
 """
 
 from django.conf import settings
 from django.core.validators import FileExtensionValidator
 from django.db import models
+
+# ============================================================================
+# MODÈLES DE MESSAGERIE
+# ============================================================================
 
 
 class Message(models.Model):
@@ -17,6 +21,8 @@ class Message(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="received_messages",
+        null=True,  # ✅ Nullable pour les messages de groupe
+        blank=True,
     )
 
     trajet = models.ForeignKey(
@@ -39,6 +45,9 @@ class Message(models.Model):
     )
     media_type = models.CharField(max_length=50, blank=True)
 
+    # ✅ NOUVEAU: Indicateur de message de groupe
+    is_group_message = models.BooleanField(default=False, db_index=True)
+
     is_read = models.BooleanField(default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     read_at = models.DateTimeField(null=True, blank=True)
@@ -52,10 +61,13 @@ class Message(models.Model):
             models.Index(fields=["sender", "receiver"]),
             models.Index(fields=["trajet", "created_at"]),
             models.Index(fields=["is_read", "receiver"]),
+            models.Index(fields=["is_group_message", "trajet"]),  # ✅ NOUVEAU
         ]
 
     def __str__(self):
-        return f"Message de {self.sender.full_name} à {self.receiver.full_name}"
+        if self.is_group_message:
+            return f"Message de {self.sender.full_name} dans groupe trajet {self.trajet_id}"
+        return f"Message de {self.sender.full_name} à {self.receiver.full_name if self.receiver else 'groupe'}"
 
     def mark_as_read(self):
         """Marque le message comme lu"""
@@ -81,6 +93,9 @@ class Conversation(models.Model):
         blank=True,
     )
 
+    # ✅ NOUVEAU: Type de conversation
+    is_group = models.BooleanField(default=False, db_index=True)
+
     last_message = models.ForeignKey(
         Message, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
     )
@@ -93,25 +108,34 @@ class Conversation(models.Model):
         verbose_name = "Conversation"
         verbose_name_plural = "Conversations"
         ordering = ["-last_activity"]
+        indexes = [
+            models.Index(fields=["is_group", "trajet"]),  # ✅ NOUVEAU
+        ]
 
     def __str__(self):
+        if self.is_group and self.trajet:
+            return f"Groupe: {self.trajet.ville_depart} → {self.trajet.ville_arrivee}"
         participants = ", ".join([u.full_name for u in self.participants.all()[:2]])
         return f"Conversation: {participants}"
 
     def get_unread_count(self, user):
         """Retourne le nombre de messages non lus pour un utilisateur"""
-        return (
-            Message.objects.filter(receiver=user, is_read=False)
-            .filter(
-                models.Q(sender__in=self.participants.all())
-                | models.Q(trajet=self.trajet)
+        if self.is_group:
+            return (
+                Message.objects.filter(
+                    trajet=self.trajet, is_group_message=True, is_read=False
+                )
+                .exclude(sender=user)
+                .count()
             )
-            .count()
-        )
+        else:
+            return Message.objects.filter(
+                receiver=user, is_read=False, sender__in=self.participants.all()
+            ).count()
 
 
 # ============================================================================
-# apps/notifications/models.py - Modèles pour les notifications
+# MODÈLES DE NOTIFICATIONS
 # ============================================================================
 
 

@@ -4,6 +4,9 @@ app/reservations/views.py - ViewSet pour les réservations avec vérification de
 
 import logging
 
+from django.apps import AppConfig
+from django.conf import settings
+from django.db import IntegrityError
 from django.db.models import Q
 
 from rest_framework import status, viewsets
@@ -11,12 +14,12 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from app.trajets.models import Trajet
 from app.users.models import UserDocument
+
 from .models import Rating, Reservation
 from .serializers import RatingSerializer, ReservationSerializer
-from app.trajets.models import Trajet
-from django.db import IntegrityError
-from django.conf import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,6 +61,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
             return availability_error
         # Création
         return self._create_reservation(serializer, user, trajet_id)
+
     # ========== MÉTHODES PRIVÉES ==========
 
     def _has_verified_document(self, user):
@@ -92,9 +96,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     def _check_existing_reservation(self, user, trajet_id):
         existing = Reservation.objects.filter(
-            trajet_id=trajet_id,
-            passager=user,
-            status__in=["PENDING", "CONFIRMED"]
+            trajet_id=trajet_id, passager=user, status__in=["PENDING", "CONFIRMED"]
         ).first()
 
         if existing:
@@ -362,6 +364,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.error(f"❌ Erreur rating: {str(e)}")
             import traceback
+
             logger.error(traceback.format_exc())
             return Response(
                 {"error": "Erreur serveur", "message": str(e)},
@@ -453,3 +456,12 @@ class ReservationViewSet(viewsets.ModelViewSet):
             conduite=rating_data["conduite"],
             comment=rating_data["comment"],
         )
+
+
+class ReservationsConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "app.reservations"
+    verbose_name = "Réservations"
+
+    def ready(self):
+        import app.reservations.signals

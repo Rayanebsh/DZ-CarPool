@@ -107,9 +107,14 @@ class Trajet(models.Model):
         blank=True,
         help_text="Wilaya de départ extraite automatiquement de l'adresse",
     )
-    # ✅ NOUVEAU : Relation many-to-many avec les préférences
+
+    # ✅ CORRECTION : Relation many-to-many avec through
     preferences = models.ManyToManyField(
-        "users.Preference", blank=True, related_name="trajets"
+        "users.Preference",
+        blank=True,
+        related_name="trajets",
+        through="TrajetPreference",  # ✅ Ajoutez cette ligne
+        help_text="Préférences du conducteur pour ce trajet",
     )
 
     # Statut et métadonnées
@@ -186,6 +191,29 @@ class Trajet(models.Model):
 
         self.places_disponibles = self.nbr_places - reserved
         self.save()
+
+
+# ✅ AJOUT : Modèle intermédiaire TrajetPreference
+class TrajetPreference(models.Model):
+    """Table de liaison entre Trajet et Preference"""
+
+    trajet = models.ForeignKey(
+        "Trajet", on_delete=models.CASCADE, related_name="trajet_preferences"
+    )
+    preference = models.ForeignKey(
+        "users.Preference", on_delete=models.CASCADE, related_name="preference_trajets"
+    )
+
+    class Meta:
+        db_table = "trajets_preferences"
+        unique_together = [("trajet", "preference")]
+        indexes = [
+            models.Index(fields=["trajet"]),
+            models.Index(fields=["preference"]),
+        ]
+
+    def __str__(self):
+        return f"{self.trajet} - {self.preference}"
 
 
 class TrajetEtape(models.Model):

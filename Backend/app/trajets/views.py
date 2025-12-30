@@ -1,12 +1,15 @@
 import logging
 import traceback
+
 from django.db.models import Avg, Q
 from django.utils import timezone
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+
 from app.core.filters import TrajetFilter
 from app.reservations.models import Rating as Avis
 from app.reservations.models import Reservation
@@ -102,7 +105,7 @@ class TrajetViewSet(viewsets.ModelViewSet):
             "intelligent_search",
             "driver_info",
             "passengers",
-             "_validate_search_params",
+            "_validate_search_params",
             "_build_base_queryset",
             "_build_city_filter",
             "_apply_advanced_filters",
@@ -365,12 +368,12 @@ class TrajetViewSet(viewsets.ModelViewSet):
 
     # ========== RECHERCHE INTELLIGENTE (PUBLIC) ==========
     @action(
-    detail=False,
-    methods=["post"],
-    url_path="intelligent_search",
-    permission_classes=[AllowAny],
-    authentication_classes=[],
-)
+        detail=False,
+        methods=["post"],
+        url_path="intelligent_search",
+        permission_classes=[AllowAny],
+        authentication_classes=[],
+    )
     def intelligent_search(self, request):
 
         try:
@@ -415,7 +418,6 @@ class TrajetViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-
     def _validate_search_params(self, data):
         """Valide les paramètres de recherche obligatoires."""
         ville_depart = data.get("ville_depart", "").strip()
@@ -427,7 +429,6 @@ class TrajetViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return None
-
 
     def _build_base_queryset(self, data):
         """Construit la requête de base avec les filtres de ville et places."""
@@ -441,15 +442,12 @@ class TrajetViewSet(viewsets.ModelViewSet):
 
         # Requête de base
         return (
-            Trajet.objects.filter(
-                status="ACTIVE", places_disponibles__gte=nbr_places
-            )
+            Trajet.objects.filter(status="ACTIVE", places_disponibles__gte=nbr_places)
             .filter(depart_q)
             .filter(arrivee_q)
             .select_related("conducteur")
             .prefetch_related("preferences")
         )
-
 
     def _build_city_filter(self, city_name):
         """Construit un filtre Q pour recherche flexible sur les villes."""
@@ -458,7 +456,6 @@ class TrajetViewSet(viewsets.ModelViewSet):
         for part in city_parts:
             city_q |= Q(ville_depart__icontains=part) | Q(ville_arrivee__icontains=part)
         return city_q
-
 
     def _apply_advanced_filters(self, queryset, data):
         """Applique les filtres avancés au queryset."""
@@ -478,17 +475,17 @@ class TrajetViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(is_confort=True)
 
         # Filtre par préférences
-        queryset = self._apply_preference_filter(queryset, data.get("preference_ids", []))
+        queryset = self._apply_preference_filter(
+            queryset, data.get("preference_ids", [])
+        )
 
         return queryset
-
 
     def _apply_price_filter(self, queryset, price_max):
         """Applique le filtre de prix maximum."""
         if price_max:
             return queryset.filter(price__lte=price_max)
         return queryset
-
 
     def _apply_time_filter(self, queryset, departure_time):
         """Applique le filtre d'horaire de départ."""
@@ -506,13 +503,11 @@ class TrajetViewSet(viewsets.ModelViewSet):
             return queryset.filter(time_filter)
         return queryset
 
-
     def _apply_preference_filter(self, queryset, preference_ids):
         """Applique le filtre de préférences."""
         if preference_ids and len(preference_ids) > 0:
             return queryset.filter(preferences__id__in=preference_ids).distinct()
         return queryset
-
 
     def _extract_search_params(self, data):
         """Extrait les paramètres de recherche pour la réponse."""
@@ -522,6 +517,7 @@ class TrajetViewSet(viewsets.ModelViewSet):
             "date": data.get("date"),
             "places": data.get("nbr_places", 1),
         }
+
     # ========== AUTRES ACTIONS ==========
     @action(detail=False, methods=["get"])
     def my_trips(self, request):

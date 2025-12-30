@@ -1,11 +1,25 @@
+"""
+ViewSet pour la messagerie avec support WebSocket
+"""
+
+import base64
+import logging
+import uuid
+
+from django.conf import settings
+from django.core.files.base import ContentFile
 from django.db.models import Q
 
+from channels.layers import get_channel_layer
 from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 
-from .models import Conversation, Message
+from app.notifications.models import Conversation, Message
+
 from .serializers import ConversationSerializer, MessageSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class MessageViewSet(viewsets.ModelViewSet):
@@ -18,9 +32,9 @@ class MessageViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Filtre les messages selon l'utilisateur"""
         user = self.request.user
-        return self.queryset.filter(Q(sender=user) | Q(receiver=user)).order_by(
-            "-created_at"
-        )
+        return self.queryset.filter(
+            Q(sender=user) | Q(receiver=user) | Q(trajet__conducteur=user)
+        ).order_by("-created_at")
 
     def perform_create(self, serializer):
         """Crée un message avec l'expéditeur automatique"""
@@ -53,11 +67,133 @@ class MessageViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(messages, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=["get"], url_path="trip-group/(?P<trajet_id>[^/.]+)")
+    def trip_group_messages(self, request, trajet_id=None):
+        """
+        Récupère les messages de groupe d'un trajet + URL WebSocket
+        GET /api/v1/messages/trip-group/{trajet_id}/
+        """
+        from app.reservations.models import Reservation
+        from app.trajets.models import Trajet
+
+        # Vérifier que le trajet existe
+        try:
+            trajet = Trajet.objects.get(id=trajet_id)
+        except Trajet.DoesNotExist:
+            return Response(
+                {"error": "Trajet non trouvé"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Vérifier permission
+        is_driver = trajet.conducteur == request.user
+        has_reservation = Reservation.objects.filter(
+            trajet_id=trajet_id, passager=request.user, status="CONFIRMED"
+        ).exists()
+
+        if not is_driver and not has_reservation:
+            return Response(
+                {
+                    "error": "Accès non autorisé",
+                    "message": "Vous devez avoir une réservation confirmée pour accéder à ce groupe",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Récupérer les messages de groupe
+        messages = (
+            Message.objects.filter(trajet_id=trajet_id, is_group_message=True)
+            .select_related("sender")
+            .order_by("created_at")
+        )
+
+        serializer = self.get_serializer(messages, many=True)
+
+        # Générer l'URL WebSocket
+        websocket_url = f"{settings.WEBSOCKET_URL}/ws/chat/group/{trajet_id}/"
+
+        return Response(
+            {
+                "trajet_id": trajet_id,
+                "trajet": {
+                    "id": trajet.id,
+                    "ville_depart": trajet.ville_depart,
+                    "ville_arrivee": trajet.ville_arrivee,
+                    "date_depart": trajet.date_depart,
+                    "conducteur": {
+                        "id": trajet.conducteur.id,
+                        "full_name": trajet.conducteur.full_name,
+                        "photo": (
+                            trajet.conducteur.photo.url
+                            if trajet.conducteur.photo
+                            else None
+                        ),
+                    },
+                },
+                "messages": serializer.data,
+                "websocket_url": websocket_url,
+                "is_driver": is_driver,
+            }
+        )
+
+    @action(detail=False, methods=["get"], url_path="private/(?P<other_user_id>[^/.]+)")
+    def private_messages(self, request, other_user_id=None):
+        """
+        Récupère les messages privés avec un utilisateur + URL WebSocket
+        GET /api/v1/messages/private/{other_user_id}/
+        """
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+
+        # Vérifier que l'autre utilisateur existe
+        try:
+            other_user = User.objects.get(id=other_user_id)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Utilisateur non trouvé"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Récupérer les messages privés
+        messages = (
+            Message.objects.filter(
+                Q(sender=request.user, receiver=other_user)
+                | Q(sender=other_user, receiver=request.user),
+                is_group_message=False,
+            )
+            .select_related("sender", "receiver")
+            .order_by("created_at")
+        )
+
+        # Marquer comme lus
+        messages.filter(receiver=request.user, is_read=False).update(is_read=True)
+
+        serializer = self.get_serializer(messages, many=True)
+
+        # Générer l'ID de conversation (IDs triés)
+        user_ids = sorted([request.user.id, int(other_user_id)])
+        conversation_id = f"{user_ids[0]}_{user_ids[1]}"
+
+        # URL WebSocket
+        websocket_url = f"{settings.WEBSOCKET_URL}/ws/chat/private/{conversation_id}/"
+
+        return Response(
+            {
+                "conversation_id": conversation_id,
+                "other_user": {
+                    "id": other_user.id,
+                    "full_name": other_user.full_name,
+                    "email": other_user.email,
+                    "photo": other_user.photo.url if other_user.photo else None,
+                },
+                "messages": serializer.data,
+                "websocket_url": websocket_url,
+            }
+        )
+
     @action(detail=False, methods=["get"])
     def unread_count(self, request):
         """Compte les messages non lus"""
         count = self.queryset.filter(receiver=request.user, is_read=False).count()
-
         return Response({"unread_count": count})
 
     @action(detail=True, methods=["post"])
@@ -78,15 +214,194 @@ class MessageViewSet(viewsets.ModelViewSet):
     def mark_all_read(self, request):
         """Marque tous les messages comme lus"""
         user_id = request.data.get("user_id")
-
         messages = self.queryset.filter(receiver=request.user, is_read=False)
 
         if user_id:
             messages = messages.filter(sender_id=user_id)
 
         count = messages.update(is_read=True)
-
         return Response({"message": f"{count} messages marqués comme lus"})
+
+    @action(detail=False, methods=["post"], url_path="upload-media")
+    def upload_media(self, request):
+        """
+        Upload d'un fichier média pour un message
+        POST /api/v1/messages/upload-media/
+        Body: {
+            "conversation_type": "group" | "private",
+            "conversation_id": "123" | "1_2",
+            "text": "Message texte",
+            "media": "data:image/png;base64,iVBORw0KG...",
+            "media_type": "image/png",
+            "media_name": "photo.png"
+        }
+        """
+        try:
+            conversation_type = request.data.get("conversation_type")
+            conversation_id = request.data.get("conversation_id")
+            text = request.data.get("text", "").strip()
+            media_base64 = request.data.get("media")
+            media_type = request.data.get("media_type")
+            media_name = request.data.get("media_name", "file")
+
+            # Validation
+            if not conversation_type or not conversation_id:
+                return Response(
+                    {"error": "conversation_type et conversation_id requis"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if not text and not media_base64:
+                return Response(
+                    {"error": "Message vide"}, status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Préparer les données du message
+            message_data = {
+                "sender": request.user,
+                "text": text,
+            }
+
+            # Traiter le fichier si présent
+            if media_base64:
+                try:
+                    # Retirer le préfixe data:image/...;base64, si présent
+                    if "," in media_base64:
+                        media_base64 = media_base64.split(",")[1]
+
+                    # Décoder le base64
+                    file_data = base64.b64decode(media_base64)
+
+                    # Générer un nom de fichier unique
+                    file_extension = (
+                        media_name.split(".")[-1] if "." in media_name else "jpg"
+                    )
+                    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+
+                    # Créer un ContentFile
+                    media_file = ContentFile(file_data, name=unique_filename)
+                    message_data["media"] = media_file
+                    message_data["media_type"] = media_type
+
+                    logger.info(
+                        f"📎 Fichier uploadé: {unique_filename} ({len(file_data)} bytes)"
+                    )
+                except Exception as e:
+                    logger.error(f"❌ Erreur décodage fichier: {e}")
+                    return Response(
+                        {"error": "Erreur lors du traitement du fichier"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            # Déterminer le type de conversation et créer le message
+            if conversation_type == "group":
+                from app.reservations.models import Reservation
+                from app.trajets.models import Trajet
+
+                try:
+                    trajet_id = int(conversation_id)
+                    trajet = Trajet.objects.get(id=trajet_id)
+
+                    # Vérifier permission
+                    is_driver = trajet.conducteur == request.user
+                    has_reservation = Reservation.objects.filter(
+                        trajet_id=trajet_id, passager=request.user, status="CONFIRMED"
+                    ).exists()
+
+                    if not is_driver and not has_reservation:
+                        return Response(
+                            {"error": "Accès non autorisé"},
+                            status=status.HTTP_403_FORBIDDEN,
+                        )
+
+                    message_data["trajet"] = trajet
+                    message_data["is_group_message"] = True
+                    message_data["receiver"] = None
+
+                except (Trajet.DoesNotExist, ValueError):
+                    return Response(
+                        {"error": "Trajet non trouvé"}, status=status.HTTP_404_NOT_FOUND
+                    )
+
+            elif conversation_type == "private":
+                from django.contrib.auth import get_user_model
+
+                User = get_user_model()
+
+                try:
+                    user_ids = [int(uid) for uid in conversation_id.split("_")]
+                    if request.user.id not in user_ids:
+                        return Response(
+                            {"error": "Accès non autorisé"},
+                            status=status.HTTP_403_FORBIDDEN,
+                        )
+
+                    other_user_id = [uid for uid in user_ids if uid != request.user.id][
+                        0
+                    ]
+                    receiver = User.objects.get(id=other_user_id)
+
+                    message_data["receiver"] = receiver
+                    message_data["is_group_message"] = False
+
+                except (User.DoesNotExist, ValueError, IndexError):
+                    return Response(
+                        {"error": "Utilisateur non trouvé"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+            else:
+                return Response(
+                    {"error": "Type de conversation invalide"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Créer le message
+            from app.notifications.models import Message
+
+            message = Message.objects.create(**message_data)
+
+            # Mettre à jour la conversation
+            self._update_conversation(message, conversation_type)
+
+            # Sérialiser et retourner
+            serializer = self.get_serializer(message)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            logger.error(f"❌ Erreur upload media: {e}", exc_info=True)
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def _update_conversation(self, message, conversation_type):
+        """Méthode helper pour mettre à jour la conversation"""
+        from app.notifications.models import Conversation
+
+        try:
+            if conversation_type == "group":
+                conversation, _ = Conversation.objects.get_or_create(
+                    trajet=message.trajet,
+                    is_group=True,
+                )
+            else:
+                conversation, created = Conversation.objects.get_or_create(
+                    is_group=False,
+                )
+                if (
+                    created
+                    or not conversation.participants.filter(
+                        id=message.sender.id
+                    ).exists()
+                ):
+                    conversation.participants.add(message.sender)
+                if message.receiver:
+                    conversation.participants.add(message.receiver)
+
+            conversation.last_message = message
+            conversation.save()
+
+        except Exception as e:
+            logger.error(f"❌ Erreur update conversation: {e}")
 
 
 class ConversationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -101,6 +416,19 @@ class ConversationViewSet(viewsets.ReadOnlyModelViewSet):
         return self.queryset.filter(participants=self.request.user).order_by(
             "-last_activity"
         )
+
+    @action(detail=False, methods=["get"])
+    def my_groups(self, request):
+        """
+        Liste les conversations de groupe de l'utilisateur
+        GET /api/v1/conversations/my-groups/
+        """
+        groups = self.queryset.filter(
+            participants=request.user, is_group=True
+        ).select_related("trajet", "trajet__conducteur")
+
+        serializer = self.get_serializer(groups, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
     def messages(self, request, pk=None):
@@ -117,7 +445,17 @@ class ConversationViewSet(viewsets.ReadOnlyModelViewSet):
 
         messages = messages.order_by("-created_at")
 
-        from .serializers import MessageSerializer
-
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
+
+
+@api_view(["GET"])
+def get_messages(request, conversation_id):
+    messages = Message.objects.filter(conversation_id=conversation_id).order_by(
+        "created_at"
+    )
+    serializer = MessageSerializer(messages, many=True, context={"request": request})
+    return Response(serializer.data)
+
+
+channel_layer = get_channel_layer()
