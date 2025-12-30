@@ -4154,19 +4154,42 @@ class Router {
                     staticFilterData = routerFilterSValue ? routerFilterSValue : undefined;
                 }
                 const routerFilterDValue = ("TURBOPACK compile-time value", {
-                    "numItems": ("TURBOPACK compile-time value", 1),
+                    "numItems": ("TURBOPACK compile-time value", 2),
                     "errorRate": ("TURBOPACK compile-time value", 0.0001),
-                    "numBits": ("TURBOPACK compile-time value", 20),
+                    "numBits": ("TURBOPACK compile-time value", 39),
                     "numHashes": ("TURBOPACK compile-time value", 14),
                     "bitArray": ("TURBOPACK compile-time value", [
-                        ("TURBOPACK compile-time value", 1),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 0),
                         ("TURBOPACK compile-time value", 1),
                         ("TURBOPACK compile-time value", 1),
                         ("TURBOPACK compile-time value", 0),
                         ("TURBOPACK compile-time value", 0),
                         ("TURBOPACK compile-time value", 1),
                         ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 1),
                         ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 1),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 1),
+                        ("TURBOPACK compile-time value", 1),
+                        ("TURBOPACK compile-time value", 1),
+                        ("TURBOPACK compile-time value", 1),
+                        ("TURBOPACK compile-time value", 1),
+                        ("TURBOPACK compile-time value", 1),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 0),
+                        ("TURBOPACK compile-time value", 1),
+                        ("TURBOPACK compile-time value", 1),
                         ("TURBOPACK compile-time value", 0),
                         ("TURBOPACK compile-time value", 1),
                         ("TURBOPACK compile-time value", 1),
@@ -4174,11 +4197,7 @@ class Router {
                         ("TURBOPACK compile-time value", 0),
                         ("TURBOPACK compile-time value", 1),
                         ("TURBOPACK compile-time value", 0),
-                        ("TURBOPACK compile-time value", 1),
-                        ("TURBOPACK compile-time value", 1),
-                        ("TURBOPACK compile-time value", 0),
-                        ("TURBOPACK compile-time value", 0),
-                        ("TURBOPACK compile-time value", 1)
+                        ("TURBOPACK compile-time value", 0)
                     ])
                 });
                 if (!dynamicFilterData && routerFilterDValue) {

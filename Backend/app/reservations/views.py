@@ -68,7 +68,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
         return UserDocument.objects.filter(user=user, verified=True).exists()
 
     def _response_document_required(self):
-        logger.warning("❌ Tentative de réservation sans document vérifié")
+        logger.warning("Tentative de réservation sans document vérifié")
         return Response(
             {
                 "error": "Document non vérifié",
@@ -84,7 +84,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             return None
         except Exception as e:
-            logger.error(f"❌ Erreur validation: {str(e)}")
+            logger.error(f"Erreur validation: {str(e)}")
             return Response(
                 {
                     "error": "Données invalides",
@@ -100,7 +100,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
         ).first()
 
         if existing:
-            logger.warning(f"⚠️ Réservation existante: {existing.id}")
+            logger.warning(f"Réservation existante: {existing.id}")
             return Response(
                 {
                     "error": "Réservation déjà existante",
@@ -142,7 +142,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
     def _create_reservation(self, serializer, user, trajet_id):
         try:
             self.perform_create(serializer)
-            logger.info(f"✅ Réservation créée: {user.email} - Trajet {trajet_id}")
+            logger.info(f"Réservation créée: {user.email} - Trajet {trajet_id}")
             return Response(
                 {
                     "success": True,
@@ -154,7 +154,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
             )
 
         except IntegrityError as e:
-            logger.error(f"❌ IntegrityError: {str(e)}")
+            logger.error(f"IntegrityError: {str(e)}")
             return Response(
                 {
                     "error": "Conflit de réservation",
@@ -164,7 +164,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
             )
 
         except Exception as e:
-            logger.error(f"❌ Erreur inattendue: {str(e)}")
+            logger.error(f"Erreur inattendue: {str(e)}")
             return Response(
                 {
                     "error": "Erreur serveur",
@@ -188,7 +188,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
         ).count()
         total_documents = UserDocument.objects.filter(user=user).count()
         logger.info(
-            f"🔍 Check booking permission for {user.email}: can_book={has_verified_document}"
+            f"Check booking permission for {user.email}: can_book={has_verified_document}"
         )
         return Response(
             {
@@ -231,7 +231,17 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def confirm(self, request, pk=None):
+        """Confirme une réservation (conducteur uniquement)"""
         reservation = self.get_object()
+        
+        print("=" * 80)
+        print(f"CONFIRM appelé pour réservation #{pk}")
+        print(f"Status AVANT: {reservation.status}")
+        print(f"Conducteur: {reservation.trajet.conducteur.full_name}")
+        print(f"User: {request.user.full_name}")
+        print("=" * 80)
+        
+        # Vérifier que c'est bien le conducteur
         if reservation.trajet.conducteur != request.user:
             return Response(
                 {"error": "Seul le conducteur peut confirmer une réservation"},
@@ -244,10 +254,14 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # CRITIQUE: Changer le status et sauvegarder SANS update_fields
         reservation.status = "CONFIRMED"
-        reservation.save()
+        reservation.save()  # Sans update_fields pour déclencher le signal
+        
+        print(f"🔵 APRÈS SAVE - Status: {reservation.status}")
+        print("=" * 80)
 
-        logger.info(f"✅ Réservation {pk} confirmée par {request.user.email}")
+        logger.info(f"Réservation {pk} confirmée par {request.user.email}")
 
         return Response(
             {
@@ -255,16 +269,14 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 "reservation": self.get_serializer(reservation).data,
             }
         )
-
+    
     @action(detail=True, methods=["post"])
     def reject(self, request, pk=None):
-        """
-        Rejette une réservation (conducteur uniquement)
-        POST /api/v1/reservations/{id}/reject/
-        """
+        """Rejette une réservation (conducteur uniquement)"""
         reservation = self.get_object()
 
-        # Vérifier que c'est bien le conducteur
+        print(f"REJECT appelé - Status AVANT: {reservation.status}")
+
         if reservation.trajet.conducteur != request.user:
             return Response(
                 {"error": "Seul le conducteur peut rejeter une réservation"},
@@ -277,13 +289,18 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Changer status et sauvegarder
         reservation.status = "REJECTED"
-        reservation.save()
+        reservation.save()  #Sans update_fields
+        
+        # Libérer les places
         trajet = reservation.trajet
         trajet.places_disponibles += reservation.nbr_places
         trajet.save()
 
-        logger.info(f"❌ Réservation {pk} rejetée par {request.user.email}")
+        print(f"APRÈS SAVE - Status: {reservation.status}")
+
+        logger.info(f"Réservation {pk} rejetée par {request.user.email}")
 
         return Response(
             {
@@ -292,11 +309,14 @@ class ReservationViewSet(viewsets.ModelViewSet):
             }
         )
 
+
     @action(detail=True, methods=["post"])
     def cancel(self, request, pk=None):
+        """Annule une réservation (passager uniquement)"""
         reservation = self.get_object()
 
-        # Vérifier que c'est bien le passager
+        print(f"CANCEL appelé - Status AVANT: {reservation.status}")
+
         if reservation.passager != request.user:
             return Response(
                 {"error": "Seul le passager peut annuler sa réservation"},
@@ -310,15 +330,20 @@ class ReservationViewSet(viewsets.ModelViewSet):
             )
 
         old_status = reservation.status
+        
+        # Changer status et sauvegarder
         reservation.status = "CANCELLED"
-        reservation.save()
+        reservation.save()  # Sans update_fields
 
+        # Libérer les places si c'était confirmé
         if old_status == "CONFIRMED":
             trajet = reservation.trajet
             trajet.places_disponibles += reservation.nbr_places
             trajet.save()
 
-        logger.info(f"🚫 Réservation {pk} annulée par {request.user.email}")
+        print(f"APRÈS SAVE - Status: {reservation.status}")
+
+        logger.info(f"Réservation {pk} annulée par {request.user.email}")
 
         return Response(
             {
@@ -348,7 +373,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
             rating = self._create_rating(reservation, user, rating_data)
 
             logger.info(
-                f"⭐ Rating créé: {rating.note}/5 par {user.email} "
+                f"Rating créé: {rating.note}/5 par {user.email} "
                 f"pour {rating.rated.email}"
             )
 
@@ -362,7 +387,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
             )
 
         except Exception as e:
-            logger.error(f"❌ Erreur rating: {str(e)}")
+            logger.error(f"Erreur rating: {str(e)}")
             import traceback
 
             logger.error(traceback.format_exc())
@@ -373,7 +398,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     def _validate_rating_permissions(self, reservation, user):
         if reservation.passager != user:
-            logger.warning(f"❌ Tentative notation par non-passager: {user.email}")
+            logger.warning(f"Tentative notation par non-passager: {user.email}")
             return Response(
                 {"error": "Seul le passager peut noter le conducteur"},
                 status=status.HTTP_403_FORBIDDEN,

@@ -31,7 +31,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.conversation_type = "private"
             self.conversation_id = kwargs["conversation_id"]
         else:
-            logger.error(f"❌ Route WebSocket invalide: {kwargs}")
+            logger.error(f"Route WebSocket invalide: {kwargs}")
             await self.close(code=4000)
             return
 
@@ -51,7 +51,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
-        logger.info(f"✅ Utilisateur {self.user.email} connecté à {self.room_group_name}")
+        logger.info(f"Utilisateur {self.user.email} connecté à {self.room_group_name}")
 
         await self.send_message_history()
 
@@ -146,7 +146,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         for msg in messages:
             formatted_messages.append(await self.format_message(msg))
 
-        logger.info(f"📜 Envoi de {len(formatted_messages)} messages d'historique")
+        logger.info(f"Envoi de {len(formatted_messages)} messages d'historique")
         await self.send(
             text_data=json.dumps({"type": "history", "messages": formatted_messages})
         )
@@ -214,14 +214,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 message_data["is_group_message"] = False
 
             message = Message.objects.create(**message_data)
-            logger.info(f"✅ Message sauvegardé: ID={message.id}")
+            logger.info(f"Message sauvegardé: ID={message.id}")
 
             self.update_conversation(message)
 
             return message
 
         except Exception as e:
-            logger.error(f"❌ Erreur sauvegarde: {e}", exc_info=True)
+            logger.error(f"Erreur sauvegarde: {e}", exc_info=True)
             return None
 
     @database_sync_to_async
@@ -255,7 +255,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def format_message(self, message):
-        """✅ Formate un message avec URLs complètes (HTTP)"""
+        """ Formate un message avec URLs complètes (HTTP)"""
         # Photo de profil
         photo_url = None
         if (
@@ -268,7 +268,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     backend_url = getattr(settings, 'BACKEND_URL', 'http://localhost:8000').rstrip('/')
                     photo_url = f"{backend_url}{photo_url}"
             except Exception as e:
-                logger.error(f"❌ Erreur photo profil: {e}")
+                logger.error(f"Erreur photo profil: {e}")
                 photo_url = None
 
         data = {
@@ -298,10 +298,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 
                 data["media_type"] = message.media_type
                 
-                logger.info(f"📎 URL média construite: {data['media_url']}")
+                logger.info(f"URL média construite: {data['media_url']}")
                 
             except Exception as e:
-                logger.error(f"❌ Erreur construction URL média: {e}")
+                logger.error(f"Erreur construction URL média: {e}")
 
         return data
 
@@ -334,4 +334,4 @@ class ChatConsumer(AsyncWebsocketConsumer):
             logger.info(f"Conversation mise à jour: {conversation.id}")
 
         except Exception as e:
-            logger.error(f"❌ Erreur update conversation: {e}", exc_info=True)
+            logger.error(f"Erreur update conversation: {e}", exc_info=True)

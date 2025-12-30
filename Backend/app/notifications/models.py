@@ -1,27 +1,25 @@
 """
-app/notifications/models.py - Modèles pour messagerie ET notifications
+app/notifications/models.py - Modèles CORRIGÉS
 """
 
 from django.conf import settings
 from django.core.validators import FileExtensionValidator
 from django.db import models
 
-# ============================================================================
-# MODÈLES DE MESSAGERIE
-# ============================================================================
-
 
 class Message(models.Model):
     """Modèle pour les messages entre utilisateurs"""
 
     sender = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sent_messages"
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name="sent_messages"
     )
     receiver = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="received_messages",
-        null=True,  # ✅ Nullable pour les messages de groupe
+        null=True,
         blank=True,
     )
 
@@ -31,12 +29,11 @@ class Message(models.Model):
         related_name="messages",
         null=True,
         blank=True,
-        help_text="Trajet associé au message (optionnel)",
     )
 
+    # ⚠️ IMPORTANT: Le champ s'appelle 'text', pas 'content'
     text = models.TextField()
 
-    # Support média (optionnel)
     media = models.FileField(
         upload_to="messages/media/",
         null=True,
@@ -45,12 +42,20 @@ class Message(models.Model):
     )
     media_type = models.CharField(max_length=50, blank=True)
 
-    # ✅ NOUVEAU: Indicateur de message de groupe
     is_group_message = models.BooleanField(default=False, db_index=True)
 
     is_read = models.BooleanField(default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     read_at = models.DateTimeField(null=True, blank=True)
+
+    # ⚠️ AJOUT: Référence à la conversation (optionnel mais utile)
+    conversation = models.ForeignKey(
+        "Conversation",
+        on_delete=models.CASCADE,
+        related_name="messages",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         db_table = "messagerie"
@@ -61,7 +66,7 @@ class Message(models.Model):
             models.Index(fields=["sender", "receiver"]),
             models.Index(fields=["trajet", "created_at"]),
             models.Index(fields=["is_read", "receiver"]),
-            models.Index(fields=["is_group_message", "trajet"]),  # ✅ NOUVEAU
+            models.Index(fields=["is_group_message", "trajet"]),
         ]
 
     def __str__(self):
@@ -73,7 +78,6 @@ class Message(models.Model):
         """Marque le message comme lu"""
         if not self.is_read:
             from django.utils import timezone
-
             self.is_read = True
             self.read_at = timezone.now()
             self.save()
@@ -83,7 +87,8 @@ class Conversation(models.Model):
     """Modèle pour regrouper les messages en conversations"""
 
     participants = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="conversations"
+        settings.AUTH_USER_MODEL, 
+        related_name="conversations"
     )
     trajet = models.ForeignKey(
         "trajets.Trajet",
@@ -93,14 +98,16 @@ class Conversation(models.Model):
         blank=True,
     )
 
-    # ✅ NOUVEAU: Type de conversation
     is_group = models.BooleanField(default=False, db_index=True)
 
     last_message = models.ForeignKey(
-        Message, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+        Message, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="+"
     )
     last_activity = models.DateTimeField(auto_now=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -109,7 +116,7 @@ class Conversation(models.Model):
         verbose_name_plural = "Conversations"
         ordering = ["-last_activity"]
         indexes = [
-            models.Index(fields=["is_group", "trajet"]),  # ✅ NOUVEAU
+            models.Index(fields=["is_group", "trajet"]),
         ]
 
     def __str__(self):
@@ -123,20 +130,19 @@ class Conversation(models.Model):
         if self.is_group:
             return (
                 Message.objects.filter(
-                    trajet=self.trajet, is_group_message=True, is_read=False
+                    trajet=self.trajet, 
+                    is_group_message=True, 
+                    is_read=False
                 )
                 .exclude(sender=user)
                 .count()
             )
         else:
             return Message.objects.filter(
-                receiver=user, is_read=False, sender__in=self.participants.all()
+                receiver=user, 
+                is_read=False, 
+                sender__in=self.participants.all()
             ).count()
-
-
-# ============================================================================
-# MODÈLES DE NOTIFICATIONS
-# ============================================================================
 
 
 class Notification(models.Model):
@@ -153,10 +159,13 @@ class Notification(models.Model):
         ("RATING_RECEIVED", "Évaluation reçue"),
         ("DOCUMENT_VERIFIED", "Document vérifié"),
         ("DOCUMENT_REJECTED", "Document rejeté"),
+        ("WELCOME", "Bienvenue"),
     ]
 
     recipient = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name="notifications"
     )
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -169,7 +178,6 @@ class Notification(models.Model):
     type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES)
     content = models.TextField()
 
-    # Référence polymorphe vers l'objet lié
     related_model = models.CharField(max_length=50, blank=True)
     related_id = models.IntegerField(null=True, blank=True)
 
@@ -195,7 +203,6 @@ class Notification(models.Model):
         """Marque la notification comme lue"""
         if not self.is_read:
             from django.utils import timezone
-
             self.is_read = True
             self.read_at = timezone.now()
             self.save()
@@ -207,7 +214,7 @@ class Notification(models.Model):
 
         try:
             from django.apps import apps
-
+            
             model_class = apps.get_model(
                 app_label=(
                     "reservations" if "Reservation" in self.related_model else "trajets"

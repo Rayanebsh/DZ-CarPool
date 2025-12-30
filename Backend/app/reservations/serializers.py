@@ -33,13 +33,13 @@ class RatingSerializer(serializers.ModelSerializer):
 
 class ReservationSerializer(serializers.ModelSerializer):
     """
-    ✅ Serializer CORRIGÉ pour afficher correctement can_rate et has_rating
+    Serializer CORRIGÉ pour afficher correctement can_rate et has_rating
     """
 
     passager_detail = UserSerializer(source="passager", read_only=True)
     trajet_detail = TrajetListSerializer(source="trajet", read_only=True)
 
-    # ✅ Ces champs DOIVENT être SerializerMethodField pour être calculés dynamiquement
+    # Ces champs DOIVENT être SerializerMethodField pour être calculés dynamiquement
     can_rate = serializers.SerializerMethodField()
     has_rating = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
@@ -61,9 +61,9 @@ class ReservationSerializer(serializers.ModelSerializer):
             "cancelled_at",
             "rejection_reason",
             "cancellation_reason",
-            "can_rate",  # ✅ Important
-            "has_rating",  # ✅ Important
-            "rating",  # ✅ Important
+            "can_rate",
+            "has_rating",
+            "rating",
         ]
         read_only_fields = [
             "id",
@@ -77,7 +77,7 @@ class ReservationSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         """
-        ✅ Retourne le rating avec le bon format pour le frontend
+        Retourne le rating avec le bon format pour le frontend
         """
         try:
             if not hasattr(obj, "rating"):
@@ -96,12 +96,12 @@ class ReservationSerializer(serializers.ModelSerializer):
                 ),
             }
         except Exception as e:
-            print(f"❌ Erreur get_rating: {str(e)}")
+            print(f"Erreur get_rating: {str(e)}")
             return None
 
     def get_can_rate(self, obj):
         """
-        ✅ CORRECTION CRITIQUE: Vérifie si l'utilisateur PEUT noter
+        CORRECTION CRITIQUE: Vérifie si l'utilisateur PEUT noter
 
         Conditions:
         1. Réservation CONFIRMÉE
@@ -112,11 +112,11 @@ class ReservationSerializer(serializers.ModelSerializer):
             request = self.context.get("request")
 
             # Debug
-            print(f"\n🔍 CAN_RATE CHECK - Booking #{obj.id}:")
-            print(f"  - Status: {obj.status}")
-            print(f"  - Has rating: {hasattr(obj, 'rating')}")
-            print(f"  - Request user: {request.user if request else 'None'}")
-            print(f"  - Passager: {obj.passager}")
+            print(f"CAN_RATE CHECK - Booking #{obj.id}:")
+            print(f"Status: {obj.status}")
+            print(f"Has rating: {hasattr(obj, 'rating')}")
+            print(f"Request user: {request.user if request else 'None'}")
+            print(f"Passager: {obj.passager}")
 
             # Pas de request ou user non authentifié
             if (
@@ -124,30 +124,30 @@ class ReservationSerializer(serializers.ModelSerializer):
                 or not hasattr(request, "user")
                 or not request.user.is_authenticated
             ):
-                print("  ❌ Pas d'utilisateur authentifié")
+                print("Pas d'utilisateur authentifié")
                 return False
 
             # Pas le passager
             if request.user != obj.passager:
-                print("  ❌ Pas le passager")
+                print("Pas le passager")
                 return False
 
             # Pas confirmée
             if obj.status != "CONFIRMED":
-                print(f"  ❌ Status pas CONFIRMED: {obj.status}")
+                print(f"Status pas CONFIRMED: {obj.status}")
                 return False
 
             # Déjà noté
             if hasattr(obj, "rating"):
-                print("  ❌ Déjà noté")
+                print("Déjà noté")
                 return False
 
-            # ✅ Toutes les conditions OK
-            print("  ✅ PEUT NOTER!")
+            # Toutes les conditions OK
+            print("PEUT NOTER!")
             return True
 
         except Exception as e:
-            print(f"❌ Erreur get_can_rate: {str(e)}")
+            print(f"Erreur get_can_rate: {str(e)}")
             import traceback
 
             traceback.print_exc()
@@ -157,10 +157,10 @@ class ReservationSerializer(serializers.ModelSerializer):
         """Vérifie si la réservation a déjà un rating"""
         try:
             has_rating = hasattr(obj, "rating")
-            print(f"🔍 HAS_RATING - Booking #{obj.id}: {has_rating}")
+            print(f"HAS_RATING - Booking #{obj.id}: {has_rating}")
             return has_rating
         except Exception as e:
-            print(f"❌ Erreur get_has_rating: {str(e)}")
+            print(f"Erreur get_has_rating: {str(e)}")
             return False
 
 
@@ -222,7 +222,7 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
                 related_id=reservation.id,
             )
         except Exception as e:
-            print(f"⚠️ Erreur création notification: {str(e)}")
+            print(f"Erreur création notification: {str(e)}")
 
         return reservation
 

@@ -368,7 +368,7 @@ class MessageViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            logger.error(f"❌ Erreur upload media: {e}", exc_info=True)
+            logger.error(f"Erreur upload media: {e}", exc_info=True)
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

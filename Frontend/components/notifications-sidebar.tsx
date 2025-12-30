@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/language-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,17 +12,34 @@ import {
   AlertCircle,
   CheckCircle,
   Trash2,
+  UserCheck,
+  UserX,
 } from 'lucide-react';
 import Image from 'next/image';
 
+interface NotificationData {
+  id: number | string;
+  type: string;
+  content: string;
+  created_at: string;
+  is_read: boolean;
+  sender_detail?: {
+    avatar?: string;
+    full_name?: string;
+  };
+  related_id?: number;
+}
+
 interface Notification {
-  id: number;
+  id: number | string;
   type: 'trip' | 'message' | 'review' | 'alert';
   title: string;
   message: string;
   timestamp: string;
   read: boolean;
   avatar?: string;
+  backendType?: string; // Type original du backend
+  relatedId?: number; // ID de la réservation
 }
 
 interface NotificationsSidebarProps {
@@ -34,86 +52,204 @@ export function NotificationsSidebar({
   onClose,
 }: NotificationsSidebarProps) {
   const { language } = useLanguage();
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: 1,
-      type: 'trip',
-      title:
-        language === 'en'
-          ? 'New Booking Request'
-          : 'Nouvelle demande de réservation',
-      message:
-        language === 'en'
-          ? 'Ahmed wants to book a seat for Algiers → Oran trip'
-          : 'Ahmed veut réserver un siège pour le trajet Alger → Oran',
-      timestamp: '5 min ago',
-      read: false,
-      avatar: '/placeholder.svg?height=40&width=40',
-    },
-    {
-      id: 2,
-      type: 'message',
-      title: language === 'en' ? 'New Message' : 'Nouveau message',
-      message:
-        language === 'en'
-          ? "Fatima sent you a message about tomorrow's trip"
-          : 'Fatima vous a envoyé un message concernant le trajet de demain',
-      timestamp: '1 hour ago',
-      read: false,
-      avatar: '/placeholder.svg?height=40&width=40',
-    },
-    {
-      id: 3,
-      type: 'review',
-      title: language === 'en' ? 'New Review' : 'Nouvel avis',
-      message:
-        language === 'en'
-          ? 'Karim left you a 5-star review'
-          : 'Karim vous a laissé un avis 5 étoiles',
-      timestamp: '2 hours ago',
-      read: true,
-      avatar: '/placeholder.svg?height=40&width=40',
-    },
-  ]);
+  const router = useRouter();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const wsRef = useRef<WebSocket | null>(null);
 
-  const markAsRead = (id: number) => {
-    setNotifications(
-      notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
+  /* =======================
+     WEBSOCKET CONNECTION
+     ======================= */
+  useEffect(() => {
+    if (!open) return;
+
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
+    const ws = new WebSocket(
+      `ws://localhost:8000/ws/notifications/?token=${token}`,
+    );
+
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('[WS] notifications connected');
+    };
+
+    ws.onmessage = (event) => {
+      console.log('[WS] raw message:', event.data);
+      const data = JSON.parse(event.data);
+      console.log('[WS] parsed:', data);
+
+      // 1) Liste de notifications non lues
+      if (data.type === 'unread_notifications' && Array.isArray(data.notifications)) {
+        const mapped: Notification[] = data.notifications.map((n: NotificationData) => 
+          mapBackendNotification(n)
+        );
+
+        setNotifications((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const merged = [
+            ...mapped.filter((m) => !existingIds.has(m.id)),
+            ...prev,
+          ];
+          console.log('[WS] notifications après unread:', merged);
+          return merged;
+        });
+
+        return;
+      }
+
+      // 2) Nouvelle notification temps réel
+      if (data.type === 'new_notification' && data.notification) {
+        const n = data.notification;
+        const newNotification = mapBackendNotification(n);
+
+        setNotifications((prev) => {
+          const exists = prev.some((p) => p.id === newNotification.id);
+          if (exists) {
+            console.log('[WS] Notification déjà présente, ignorée:', newNotification.id);
+            return prev;
+          }
+          const next = [newNotification, ...prev];
+          console.log('[WS] notifications après new_notification:', next);
+          return next;
+        });
+
+        return;
+      }
+
+      console.warn('[WS] payload inattendu:', data);
+    };
+
+    ws.onerror = (event) => {
+      const socket = event.target as WebSocket;
+      console.error('[WS] error event:', {
+        type: event.type,
+        readyState: socket.readyState,
+        url: socket.url,
+      });
+    };
+
+    ws.onclose = () => {
+      console.log('[WS] notifications closed');
+    };
+
+    return () => {
+      ws.close();
+      wsRef.current = null;
+    };
+  }, [open]);
+
+  /* =======================
+     HELPER: MAP NOTIFICATION
+     ======================= */
+  const mapBackendNotification = (n: NotificationData): Notification => {
+    const uniqueId =
+      n.id ??
+      `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    // Mapper le type backend vers le type frontend
+    let frontendType: Notification['type'] = 'alert';
+    if (n.type === 'MESSAGE_RECEIVED') frontendType = 'message';
+    else if (n.type === 'RATING_RECEIVED') frontendType = 'review';
+    else if (
+      n.type === 'RESERVATION_REQUEST' ||
+      n.type === 'RESERVATION_APPROVED' ||
+      n.type === 'RESERVATION_REJECTED' ||
+      n.type === 'RESERVATION_CANCELLED'
+    ) {
+      frontendType = 'trip';
+    }
+
+    // Titre selon le type
+    const typeLabels: { [key: string]: { en: string; fr: string } } = {
+      RESERVATION_REQUEST: { en: 'Reservation Request', fr: 'Demande de réservation' },
+      RESERVATION_APPROVED: { en: 'Reservation Approved', fr: 'Réservation acceptée' },
+      RESERVATION_REJECTED: { en: 'Reservation Rejected', fr: 'Réservation refusée' },
+      RESERVATION_CANCELLED: { en: 'Reservation Cancelled', fr: 'Réservation annulée' },
+      MESSAGE_RECEIVED: { en: 'New Message', fr: 'Nouveau message' },
+      RATING_RECEIVED: { en: 'New Review', fr: 'Nouvel avis' },
+    };
+
+    const title = typeLabels[n.type]?.[language] || n.content || 'Notification';
+
+    return {
+      id: uniqueId,
+      type: frontendType,
+      backendType: n.type, // Garder le type original
+      relatedId: n.related_id, // ID de la réservation
+      title,
+      message: n.content || '',
+      timestamp: n.created_at || new Date().toLocaleString(),
+      read: n.is_read || false,
+      avatar: n.sender_detail?.avatar,
+    };
+  };
+
+  /* =======================
+     HANDLE NOTIFICATION CLICK
+     ======================= */
+  const handleNotificationClick = (notification: Notification) => {
+    // Marquer comme lue
+    markAsRead(notification.id);
+
+    // ✅ REDIRECTION SELON LE TYPE
+    if (notification.backendType === 'MESSAGE_RECEIVED') {
+      onClose();
+      router.push('/messages');
+    } else if (
+      notification.backendType === 'RESERVATION_REQUEST' &&
+      notification.relatedId
+    ) {
+      onClose();
+      router.push(`/reservations/${notification.relatedId}`);
+    }
+    // Pour RESERVATION_APPROVED, RESERVATION_REJECTED, RESERVATION_CANCELLED -> Ne rien faire
+  };
+
+  /* =======================
+     UI HELPERS
+     ======================= */
+  const markAsRead = (id: number | string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
   };
 
   const markAllAsRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
-  const deleteNotification = (id: number) => {
-    setNotifications(notifications.filter((n) => n.id !== id));
+  const deleteNotification = (id: number | string) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'trip':
+  const getIcon = (backendType?: string) => {
+    switch (backendType) {
+      case 'RESERVATION_REQUEST':
         return <Car className="w-5 h-5 text-[#FF5722]" />;
-      case 'message':
+      case 'RESERVATION_APPROVED':
+        return <UserCheck className="w-5 h-5 text-green-500" />;
+      case 'RESERVATION_REJECTED':
+        return <UserX className="w-5 h-5 text-red-500" />;
+      case 'RESERVATION_CANCELLED':
+        return <X className="w-5 h-5 text-gray-500" />;
+      case 'MESSAGE_RECEIVED':
         return <MessageCircle className="w-5 h-5 text-blue-500" />;
-      case 'review':
+      case 'RATING_RECEIVED':
         return <Star className="w-5 h-5 text-yellow-500" />;
-      case 'alert':
-        return <AlertCircle className="w-5 h-5 text-orange-500" />;
       default:
-        return <AlertCircle className="w-5 h-5 text-gray-500" />;
+        return <AlertCircle className="w-5 h-5 text-orange-500" />;
     }
   };
 
-  // Prevent body scroll when sidebar is open
+  /* =======================
+     BODY SCROLL LOCK
+     ======================= */
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    document.body.style.overflow = open ? 'hidden' : 'unset';
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -185,9 +321,13 @@ export function NotificationsSidebar({
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 hover:bg-gray-50 transition-colors ${
-                    !notification.read ? 'bg-[#FF5722]/5' : ''
-                  }`}
+                  onClick={() => handleNotificationClick(notification)}
+                  className={`p-4 transition-colors ${
+                    notification.backendType === 'RESERVATION_REQUEST' ||
+                    notification.backendType === 'MESSAGE_RECEIVED'
+                      ? 'hover:bg-gray-50 cursor-pointer'
+                      : 'hover:bg-gray-50'
+                  } ${!notification.read ? 'bg-[#FF5722]/5' : ''}`}
                 >
                   <div className="flex items-start gap-3">
                     {notification.avatar ? (
@@ -200,7 +340,7 @@ export function NotificationsSidebar({
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                        {getIcon(notification.type)}
+                        {getIcon(notification.backendType)}
                       </div>
                     )}
 
@@ -225,7 +365,10 @@ export function NotificationsSidebar({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => markAsRead(notification.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                markAsRead(notification.id);
+                              }}
                               className="h-7 px-2 text-xs"
                             >
                               {language === 'en' ? 'Mark read' : 'Lu'}
@@ -234,7 +377,10 @@ export function NotificationsSidebar({
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => deleteNotification(notification.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteNotification(notification.id);
+                            }}
                             className="h-7 w-7"
                           >
                             <Trash2 className="w-3 h-3 text-gray-400" />
@@ -256,7 +402,7 @@ export function NotificationsSidebar({
             className="w-full"
             onClick={() => {
               onClose();
-              window.location.href = '/notifications';
+              router.push('/notifications');
             }}
           >
             {language === 'en'

@@ -41,11 +41,11 @@ INSTALLED_APPS = [
     "app.core.apps.CoreConfig",
     "app.users",
     "app.trajets",
-    "app.reservations",
     "app.messaging",
-    "app.notifications",
     "django_extensions",
     "app",
+    'app.reservations.apps.ReservationsConfig',  # ✅ Bon format
+    'app.notifications.apps.NotificationsConfig',
 ]
 
 MIDDLEWARE = [
