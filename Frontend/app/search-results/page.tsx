@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Star, MapPin, Clock, Briefcase, Loader2, Globe } from 'lucide-react';
-
+import { Header } from '@/components/header';
 const API_BASE_URL = 'http://localhost:8000';
 
 // 🌍 Traductions
@@ -296,37 +296,9 @@ export default function SearchResultsPage() {
   };
 
   return (
+  <>
+    <Header />
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
-              {searchInfo && (
-                <p className="text-gray-600 mt-1">
-                  {t.searchInfo(
-                    searchInfo.depart,
-                    searchInfo.arrivee,
-                    searchInfo.date,
-                    searchInfo.places,
-                  )}
-                </p>
-              )}
-            </div>
-
-            {/* Bouton changement de langue */}
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              <Globe className="w-5 h-5" />
-              <span className="font-medium">{lang.toUpperCase()}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       <main className="container mx-auto px-4 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar Filtres */}
@@ -615,5 +587,6 @@ export default function SearchResultsPage() {
         </div>
       </main>
     </div>
-  );
+  </>
+);
 }

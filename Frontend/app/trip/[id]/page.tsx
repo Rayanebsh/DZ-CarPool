@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { Header } from '@/components/header';
 import {
   Star,
   MapPin,
@@ -566,38 +567,25 @@ export default function TripDetailsPage() {
   };
 
   if (loading) {
-    return (
+  return (
+    <>
+      <Header />
       <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-4">
-          <button
-            onClick={toggleLanguage}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors ml-auto"
-          >
-            <Globe className="w-5 h-5" />
-            <span className="font-medium">{lang.toUpperCase()}</span>
-          </button>
-        </div>
         <main className="container mx-auto px-4 py-20">
           <div className="flex justify-center items-center">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           </div>
         </main>
       </div>
-    );
-  }
+    </>
+  );
+}
 
-  if (error || !tripData) {
-    return (
+if (error || !tripData) {
+  return (
+    <>
+      <Header />
       <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-4">
-          <button
-            onClick={toggleLanguage}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors ml-auto"
-          >
-            <Globe className="w-5 h-5" />
-            <span className="font-medium">{lang.toUpperCase()}</span>
-          </button>
-        </div>
         <main className="container mx-auto px-4 py-20">
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-2xl mx-auto">
             <h3 className="font-semibold text-red-900 mb-2">{t.error}</h3>
@@ -611,43 +599,14 @@ export default function TripDetailsPage() {
           </div>
         </main>
       </div>
-    );
-  }
+    </>
+  );
+}
 
-  return (
+return (
+  <>
+    <Header />
     <div className="min-h-screen bg-gray-50">
-      {/* Header with Language Toggle */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="text-sm text-gray-500">
-            <button
-              onClick={() => router.push('/')}
-              className="hover:text-gray-700"
-            >
-              {t.home}
-            </button>
-            {' / '}
-            <button
-              onClick={() => router.back()}
-              className="hover:text-gray-700"
-            >
-              {t.searchResults}
-            </button>
-            {' / '}
-            <span className="text-gray-900">
-              {tripData.ville_depart} {t.to} {tripData.ville_arrivee}
-            </span>
-          </div>
-          <button
-            onClick={toggleLanguage}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-          >
-            <Globe className="w-5 h-5" />
-            <span className="font-medium">{lang.toUpperCase()}</span>
-          </button>
-        </div>
-      </div>
-
       <main className="container mx-auto px-4 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
@@ -888,7 +847,7 @@ export default function TripDetailsPage() {
           {/* Booking Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sticky top-6 space-y-6">
-              {/* ✅ Avertissement de vérification AMÉLIORÉ */}
+              {/* Avertissement de vérification */}
               {showVerificationWarning &&
                 !verificationStatus.canPerformAction && (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
@@ -1065,5 +1024,6 @@ export default function TripDetailsPage() {
         </div>
       </main>
     </div>
-  );
+  </>
+);
 }

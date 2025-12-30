@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Header } from '@/components/header';
 import {
   MapPin,
   Calendar,
@@ -699,23 +700,26 @@ export default function MyBookingsPage() {
     );
   }
 
+  if (loading) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">{t.title}</h1>
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              <Globe className="w-5 h-5" />
-              <span className="font-medium">{lang.toUpperCase()}</span>
-            </button>
+    <>
+      <Header />
+      <div className="min-h-screen bg-gray-50">
+        <main className="container mx-auto px-4 py-20">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <p className="text-gray-600">{t.loading}</p>
           </div>
-        </div>
+        </main>
       </div>
+    </>
+  );
+}
 
+return (
+  <>
+    <Header />
+    <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-4 lg:px-8 py-8">
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
@@ -997,5 +1001,6 @@ export default function MyBookingsPage() {
         />
       )}
     </div>
-  );
+  </>
+);
 }
