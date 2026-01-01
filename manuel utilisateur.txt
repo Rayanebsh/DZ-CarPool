@@ -1,5 +1,0 @@
-. Manuel Utilisateur :
-o Un guide simple, potentiellement illustré de captures d'écran, expliquant comment
-utiliser les fonctionnalités principales de l'application du point de vue d'un utilisateur
-final (ex: comment un guide publie un tour sur DZ-TourGuide). Ce document prouve
-votre compréhension fonctionnelle du projet

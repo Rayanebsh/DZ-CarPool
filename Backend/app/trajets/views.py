@@ -1,12 +1,13 @@
 import logging
 import traceback
 
+from django.db import models
 from django.db.models import Avg, Q
 from django.utils import timezone
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -29,9 +30,6 @@ from .serializers import (
     TrajetSearchSerializer,
     TrajetUpdateSerializer,
 )
-from django.db import models
-
-
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +95,7 @@ class TrajetViewSet(viewsets.ModelViewSet):
             "intelligent_search",
             "driver_info",
             "passengers",
+            "fuel_prices",
             "_validate_search_params",
             "_build_base_queryset",
             "_build_city_filter",
@@ -122,13 +121,6 @@ class TrajetViewSet(viewsets.ModelViewSet):
         serializer.save()
 
     # ========== 🆕 API ENRICHIE - INFOS CONDUCTEUR ==========
-    @action(
-        detail=True,
-        methods=["get"],
-        url_path="driver_info",
-        permission_classes=[AllowAny],
-        authentication_classes=[],
-    )
     @action(
         detail=True,
         methods=["get"],
@@ -165,9 +157,9 @@ class TrajetViewSet(viewsets.ModelViewSet):
                 passager=conducteur, status="CONFIRMED"
             ).count()
 
-            # 4️⃣ Note moyenne (avis reçus) - FIX: utiliser 'rated' au lieu de 'destinataire'
+            # 4️⃣ Note moyenne (avis reçus)
             average_rating = (
-                Avis.objects.filter(rated=conducteur).aggregate(  # ✅ CORRIGÉ ICI
+                Avis.objects.filter(rated=conducteur).aggregate(
                     Avg("note")
                 )["note__avg"]
                 or 5.0
@@ -291,27 +283,29 @@ class TrajetViewSet(viewsets.ModelViewSet):
                 {"error": "Erreur lors de la récupération des passagers"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-    
+
     @action(
-    detail=True,
-    methods=["get"],
-    url_path="places",
-    permission_classes=[AllowAny],
-    authentication_classes=[],
-)
+        detail=True,
+        methods=["get"],
+        url_path="places",
+        permission_classes=[AllowAny],
+        authentication_classes=[],
+    )
     def places(self, request, pk=None):
         """Retourne le nombre de places disponibles en temps réel"""
         try:
             trajet = self.get_object()
-            
+
             # Calcul manuel FIABLE
-            reservations_confirmees = Reservation.objects.filter(
-                trajet=trajet, 
-                status__in=['PENDING', 'CONFIRMED']
-            ).aggregate(total=models.Sum('nbr_places'))['total'] or 0
-            
+            reservations_confirmees = (
+                Reservation.objects.filter(
+                    trajet=trajet, status__in=["PENDING", "CONFIRMED"]
+                ).aggregate(total=models.Sum("nbr_places"))["total"]
+                or 0
+            )
+
             places_calculees = trajet.nbr_places - reservations_confirmees
-            
+
             # ✅ Mettre à jour la base de données si nécessaire
             if trajet.places_disponibles != places_calculees:
                 logger.warning(
@@ -319,22 +313,24 @@ class TrajetViewSet(viewsets.ModelViewSet):
                     f"Calculé={places_calculees}. Correction..."
                 )
                 trajet.places_disponibles = places_calculees
-                trajet.save(update_fields=['places_disponibles'])
-            
-            return Response({
-                "places_disponibles": places_calculees,  # ✅ Retourner la valeur calculée
-                "trajet_id": trajet.id,
-                "nbr_places_total": trajet.nbr_places,
-                "reservations_total": reservations_confirmees
-            })
+                trajet.save(update_fields=["places_disponibles"])
+
+            return Response(
+                {
+                    "places_disponibles": places_calculees,
+                    "trajet_id": trajet.id,
+                    "nbr_places_total": trajet.nbr_places,
+                    "reservations_total": reservations_confirmees,
+                }
+            )
         except Exception as e:
             logger.error(f"Erreur get places: {str(e)}")
-            import traceback
             logger.error(traceback.format_exc())
             return Response(
                 {"error": "Erreur lors de la récupération des places"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
     # ========== RECHERCHE SIMPLE (PUBLIC) ==========
     @action(
         detail=False,
@@ -406,12 +402,15 @@ class TrajetViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=["post"],
-        url_path="intelligent_search",
+        url_path="intelligent-search",  # ✅ CHANGÉ: Tiret au lieu d'underscore
         permission_classes=[AllowAny],
         authentication_classes=[],
     )
     def intelligent_search(self, request):
-
+        """
+        🔍 RECHERCHE INTELLIGENTE - Avec filtres avancés
+        POST /api/v1/trajets/intelligent-search/
+        """
         try:
             data = request.data
             logger.info(f"🔍 INTELLIGENT SEARCH - Données reçues: {data}")
@@ -560,8 +559,11 @@ class TrajetViewSet(viewsets.ModelViewSet):
         """Liste les trajets de l'utilisateur connecté"""
         queryset = self.queryset.filter(conducteur=request.user)
         status_filter = request.query_params.get("status")
+        
+        # ✅ CORRECTION: Filtrer par status EXACT, pas par choix
         if status_filter:
-            queryset = queryset.filter(status=status_filter)
+            status_upper = status_filter.upper()
+            queryset = queryset.filter(status=status_filter.upper())
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -687,31 +689,33 @@ class TrajetViewSet(viewsets.ModelViewSet):
         }
 
         return Response(stats)
-
     @action(
         detail=False,
         methods=["get"],
-        url_path="fuel_prices",
+        url_path="fuel-prices",
         permission_classes=[AllowAny],
-        authentication_classes=[],  # ✅ AJOUT CRITIQUE: Désactiver l'authentification
+        authentication_classes=[],
     )
     def fuel_prices(self, request):
         """
-        🔓 Endpoint PUBLIC pour récupérer les prix du carburant
-        GET /api/v1/trajets/fuel_prices/
-
-        Accessible sans authentification
+        Liste les prix du carburant pour l'API frontend
+        GET /api/v1/trajets/fuel-prices/
         """
-        data = get_fuel_prices_summary()
-
-        if data:
-            return Response(data)
-        else:
+        try:
+            data = get_fuel_prices_summary()
+            if data:
+                return Response(data, status=status.HTTP_200_OK)
             return Response(
                 {
                     "error": "Impossible de charger les prix du carburant",
                     "message": "Le fichier prix_carburants.json est introuvable",
                 },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        except Exception as e:
+            logger.error(f"Erreur fuel_prices: {str(e)}")
+            return Response(
+                {"error": "Erreur serveur", "message": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -721,5 +725,31 @@ class FuelPriceViewSet(viewsets.ModelViewSet):
 
     queryset = FuelPrice.objects.all()
     serializer_class = FuelPriceSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.AllowAny]  # ✅ CORRECTION: Public
+    authentication_classes = []  # ✅ CORRECTION: Désactiver JWT
 
+    def list(self, request):
+        """
+        Liste tous les prix du carburant
+        GET /api/v1/trajets/fuel-prices/
+        """
+        try:
+            # Récupérer depuis utils.pricing
+            data = get_fuel_prices_summary()
+            
+            if data:
+                return Response(data, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {
+                        "error": "Impossible de charger les prix du carburant",
+                        "message": "Le fichier prix_carburants.json est introuvable",
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+        except Exception as e:
+            logger.error(f"Erreur fuel_prices: {str(e)}")
+            return Response(
+                {"error": "Erreur serveur", "message": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

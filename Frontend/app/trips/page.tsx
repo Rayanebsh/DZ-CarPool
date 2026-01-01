@@ -701,306 +701,310 @@ export default function MyBookingsPage() {
   }
 
   if (loading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-gray-50">
+          <main className="container mx-auto px-4 py-20">
+            <div className="flex flex-col items-center justify-center gap-4">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <p className="text-gray-600">{t.loading}</p>
+            </div>
+          </main>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <Header />
       <div className="min-h-screen bg-gray-50">
-        <main className="container mx-auto px-4 py-20">
-          <div className="flex flex-col items-center justify-center gap-4">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-            <p className="text-gray-600">{t.loading}</p>
-          </div>
-        </main>
-      </div>
-    </>
-  );
-}
-
-return (
-  <>
-    <Header />
-    <div className="min-h-screen bg-gray-50">
-      <main className="container mx-auto px-4 lg:px-8 py-8">
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-red-900 mb-1">{t.error}</h3>
-                <p className="text-red-700 text-sm">{error}</p>
-                <button
-                  onClick={fetchBookings}
-                  className="mt-3 text-sm text-red-600 hover:text-red-700 font-medium underline"
-                >
-                  {t.retry}
-                </button>
+        <main className="container mx-auto px-4 lg:px-8 py-8">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-red-900 mb-1">{t.error}</h3>
+                  <p className="text-red-700 text-sm">{error}</p>
+                  <button
+                    onClick={fetchBookings}
+                    className="mt-3 text-sm text-red-600 hover:text-red-700 font-medium underline"
+                  >
+                    {t.retry}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {bookings.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-            <Car className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {t.noBookings}
-            </h3>
-            <p className="text-gray-600 mb-6">{t.noBookingsDesc}</p>
-            <button
-              onClick={() => router.push('/')}
-              className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
-            >
-              {t.searchTrips}
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {bookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+          {bookings.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+              <Car className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {t.noBookings}
+              </h3>
+              <p className="text-gray-600 mb-6">{t.noBookingsDesc}</p>
+              <button
+                onClick={() => router.push('/')}
+                className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
               >
-                <div className="flex flex-col lg:flex-row gap-6">
-                  <div className="flex-1 space-y-4">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span
-                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${getStatusColor(booking.status)}`}
-                      >
-                        {getStatusIcon(booking.status)}
-                        {t.status[booking.status]}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {t.statusDesc[booking.status]}
-                      </span>
-
-                      {booking.rating && (
-                        <button
-                          onClick={() =>
-                            setExpandedRating(
-                              expandedRating === booking.id ? null : booking.id,
-                            )
-                          }
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-sm hover:bg-yellow-100 transition-colors"
+                {t.searchTrips}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {bookings.map((booking) => (
+                <div
+                  key={booking.id}
+                  className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="flex-1 space-y-4">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span
+                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${getStatusColor(booking.status)}`}
                         >
-                          <Star className="w-4 h-4 fill-yellow-400" />
-                          {booking.rating.note}/5
-                        </button>
-                      )}
-                    </div>
+                          {getStatusIcon(booking.status)}
+                          {t.status[booking.status]}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          {t.statusDesc[booking.status]}
+                        </span>
 
-                    {expandedRating === booking.id && booking.rating && (
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                        <h4 className="font-semibold text-gray-900 text-sm">
-                          {t.ratingDetails}
-                        </h4>
-
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          {booking.rating.ponctualite && (
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-gray-600" />
-                              <span className="text-gray-600">
-                                {t.punctuality}:
-                              </span>
-                              <span className="font-medium">
-                                {booking.rating.ponctualite}/5
-                              </span>
-                            </div>
-                          )}
-
-                          {booking.rating.convivialite && (
-                            <div className="flex items-center gap-2">
-                              <Smile className="w-4 h-4 text-gray-600" />
-                              <span className="text-gray-600">
-                                {t.friendliness}:
-                              </span>
-                              <span className="font-medium">
-                                {booking.rating.convivialite}/5
-                              </span>
-                            </div>
-                          )}
-
-                          {booking.rating.conduite && (
-                            <div className="flex items-center gap-2">
-                              <CarIcon className="w-4 h-4 text-gray-600" />
-                              <span className="text-gray-600">
-                                {t.driving}:
-                              </span>
-                              <span className="font-medium">
-                                {booking.rating.conduite}/5
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {booking.rating.comment && (
-                          <div className="pt-2 border-t border-gray-200">
-                            <p className="text-sm text-gray-700 italic">
-                              "{booking.rating.comment}"
-                            </p>
-                          </div>
+                        {booking.rating && (
+                          <button
+                            onClick={() =>
+                              setExpandedRating(
+                                expandedRating === booking.id
+                                  ? null
+                                  : booking.id,
+                              )
+                            }
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-sm hover:bg-yellow-100 transition-colors"
+                          >
+                            <Star className="w-4 h-4 fill-yellow-400" />
+                            {booking.rating.note}/5
+                          </button>
                         )}
                       </div>
-                    )}
 
-                    <div className="flex items-start gap-4">
-                      <div className="flex flex-col items-center gap-2">
-                        <MapPin className="w-5 h-5 text-blue-600" />
-                        <div className="w-px h-12 bg-gray-300"></div>
-                        <MapPin className="w-5 h-5 text-orange-600" />
-                      </div>
-                      <div className="space-y-3 flex-1">
-                        <div>
-                          <div className="font-semibold text-gray-900 text-lg">
-                            {booking.trajet.ville_depart}
+                      {expandedRating === booking.id && booking.rating && (
+                        <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                          <h4 className="font-semibold text-gray-900 text-sm">
+                            {t.ratingDetails}
+                          </h4>
+
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            {booking.rating.ponctualite && (
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-gray-600" />
+                                <span className="text-gray-600">
+                                  {t.punctuality}:
+                                </span>
+                                <span className="font-medium">
+                                  {booking.rating.ponctualite}/5
+                                </span>
+                              </div>
+                            )}
+
+                            {booking.rating.convivialite && (
+                              <div className="flex items-center gap-2">
+                                <Smile className="w-4 h-4 text-gray-600" />
+                                <span className="text-gray-600">
+                                  {t.friendliness}:
+                                </span>
+                                <span className="font-medium">
+                                  {booking.rating.convivialite}/5
+                                </span>
+                              </div>
+                            )}
+
+                            {booking.rating.conduite && (
+                              <div className="flex items-center gap-2">
+                                <CarIcon className="w-4 h-4 text-gray-600" />
+                                <span className="text-gray-600">
+                                  {t.driving}:
+                                </span>
+                                <span className="font-medium">
+                                  {booking.rating.conduite}/5
+                                </span>
+                              </div>
+                            )}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {t.departure}: {booking.trajet.heure_depart}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="font-semibold text-gray-900 text-lg">
-                            {booking.trajet.ville_arrivee}
-                          </div>
-                          {booking.trajet.heure_arrivee && (
-                            <div className="text-sm text-gray-500">
-                              {booking.trajet.heure_arrivee}
+
+                          {booking.rating.comment && (
+                            <div className="pt-2 border-t border-gray-200">
+                              <p className="text-sm text-gray-700 italic">
+                                "{booking.rating.comment}"
+                              </p>
                             </div>
                           )}
                         </div>
-                      </div>
-                    </div>
+                      )}
 
-                    <div className="flex items-center gap-6 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>{formatDate(booking.trajet.date)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span>
-                          {booking.nbr_places}{' '}
-                          {booking.nbr_places > 1 ? t.seats : t.seat}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="text-xs text-gray-500">
-                      {t.bookingDate}: {formatDateTime(booking.created_at)}
-                    </div>
-                  </div>
-
-                  <div className="lg:w-80 space-y-4">
-                    {booking.trajet?.conducteur ? (
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="text-sm font-medium text-gray-700 mb-3">
-                          {t.driver}
+                      <div className="flex items-start gap-4">
+                        <div className="flex flex-col items-center gap-2">
+                          <MapPin className="w-5 h-5 text-blue-600" />
+                          <div className="w-px h-12 bg-gray-300"></div>
+                          <MapPin className="w-5 h-5 text-orange-600" />
                         </div>
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={getProfilePictureUrl(
-                              booking.trajet.conducteur.profile_picture,
-                            )}
-                            alt={`${booking.trajet.conducteur.prenom || ''} ${booking.trajet.conducteur.nom || ''}`}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src =
-                                '/placeholder.svg';
-                            }}
-                          />
+                        <div className="space-y-3 flex-1">
                           <div>
-                            <div className="font-semibold text-gray-900">
-                              {booking.trajet.conducteur.prenom}{' '}
-                              {booking.trajet.conducteur.nom}
+                            <div className="font-semibold text-gray-900 text-lg">
+                              {booking.trajet.ville_depart}
                             </div>
-                            {booking.trajet.conducteur.rating !== undefined && (
-                              <div className="text-sm text-gray-600">
-                                ⭐ {booking.trajet.conducteur.rating.toFixed(1)}
+                            <div className="text-sm text-gray-500">
+                              {t.departure}: {booking.trajet.heure_depart}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-900 text-lg">
+                              {booking.trajet.ville_arrivee}
+                            </div>
+                            {booking.trajet.heure_arrivee && (
+                              <div className="text-sm text-gray-500">
+                                {booking.trajet.heure_arrivee}
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
-                    ) : (
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="text-sm font-medium text-gray-700 mb-3">
-                          {t.driver}
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-500 italic">
-                          <AlertCircle className="w-4 h-4" />
-                          {lang === 'fr'
-                            ? 'Information non disponible'
-                            : 'Information not available'}
-                        </div>
-                      </div>
-                    )}
 
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <div className="text-sm text-gray-600 mb-1">
-                        {t.total}
+                      <div className="flex items-center gap-6 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(booking.trajet.date)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          <span>
+                            {booking.nbr_places}{' '}
+                            {booking.nbr_places > 1 ? t.seats : t.seat}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-2xl font-bold text-blue-900">
-                        {booking.trajet.price * booking.nbr_places} DA
+
+                      <div className="text-xs text-gray-500">
+                        {t.bookingDate}: {formatDateTime(booking.created_at)}
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <button
-                        onClick={() =>
-                          router.push(`/trip/${booking.trajet.id}`)
-                        }
-                        className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
-                      >
-                        {t.viewDetails}
-                      </button>
-
-                      {canRate(booking) && (
-                        <button
-                          onClick={() => handleRateDriver(booking)}
-                          className="w-full px-4 py-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                        >
-                          <Star className="w-4 h-4" />
-                          {t.rateDriver}
-                        </button>
+                    <div className="lg:w-80 space-y-4">
+                      {booking.trajet?.conducteur ? (
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <div className="text-sm font-medium text-gray-700 mb-3">
+                            {t.driver}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={getProfilePictureUrl(
+                                booking.trajet.conducteur.profile_picture,
+                              )}
+                              alt={`${booking.trajet.conducteur.prenom || ''} ${booking.trajet.conducteur.nom || ''}`}
+                              className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  '/placeholder.svg';
+                              }}
+                            />
+                            <div>
+                              <div className="font-semibold text-gray-900">
+                                {booking.trajet.conducteur.prenom}{' '}
+                                {booking.trajet.conducteur.nom}
+                              </div>
+                              {booking.trajet.conducteur.rating !==
+                                undefined && (
+                                <div className="text-sm text-gray-600">
+                                  ⭐{' '}
+                                  {booking.trajet.conducteur.rating.toFixed(1)}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <div className="text-sm font-medium text-gray-700 mb-3">
+                            {t.driver}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-500 italic">
+                            <AlertCircle className="w-4 h-4" />
+                            {lang === 'fr'
+                              ? 'Information non disponible'
+                              : 'Information not available'}
+                          </div>
+                        </div>
                       )}
 
-                      {(booking.status === 'PENDING' ||
-                        booking.status === 'CONFIRMED') && (
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <div className="text-sm text-gray-600 mb-1">
+                          {t.total}
+                        </div>
+                        <div className="text-2xl font-bold text-blue-900">
+                          {booking.trajet.price * booking.nbr_places} DA
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
                         <button
-                          onClick={() => handleCancelBooking(booking.id)}
-                          disabled={cancellingId === booking.id}
-                          className="w-full px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() =>
+                            router.push(`/trip/${booking.trajet.id}`)
+                          }
+                          className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
                         >
-                          {cancellingId === booking.id ? (
-                            <span className="flex items-center justify-center gap-2">
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              {t.cancelling}
-                            </span>
-                          ) : (
-                            t.cancel
-                          )}
+                          {t.viewDetails}
                         </button>
-                      )}
+
+                        {canRate(booking) && (
+                          <button
+                            onClick={() => handleRateDriver(booking)}
+                            className="w-full px-4 py-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Star className="w-4 h-4" />
+                            {t.rateDriver}
+                          </button>
+                        )}
+
+                        {(booking.status === 'PENDING' ||
+                          booking.status === 'CONFIRMED') && (
+                          <button
+                            onClick={() => handleCancelBooking(booking.id)}
+                            disabled={cancellingId === booking.id}
+                            className="w-full px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {cancellingId === booking.id ? (
+                              <span className="flex items-center justify-center gap-2">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                {t.cancelling}
+                              </span>
+                            ) : (
+                              t.cancel
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
+              ))}
+            </div>
+          )}
+        </main>
 
-      {showRatingModal && selectedBooking && (
-        <RatingModal
-          booking={selectedBooking}
-          onClose={() => {
-            setShowRatingModal(false);
-            setSelectedBooking(null);
-          }}
-          onSuccess={handleRatingSuccess}
-          lang={lang}
-        />
-      )}
-    </div>
-  </>
-);
+        {showRatingModal && selectedBooking && (
+          <RatingModal
+            booking={selectedBooking}
+            onClose={() => {
+              setShowRatingModal(false);
+              setSelectedBooking(null);
+            }}
+            onSuccess={handleRatingSuccess}
+            lang={lang}
+          />
+        )}
+      </div>
+    </>
+  );
 }

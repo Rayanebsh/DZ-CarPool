@@ -10,8 +10,6 @@ router = DefaultRouter()
 
 # ✅ Trajets sur le préfixe racine
 router.register(r"", TrajetViewSet, basename="trajet")
-
-# ✅ Fuel prices sur son propre préfixe
 router.register(r"fuel-prices", FuelPriceViewSet, basename="fuel-price")
 
 app_name = "trajets"

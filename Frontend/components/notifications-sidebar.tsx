@@ -81,9 +81,12 @@ export function NotificationsSidebar({
       console.log('[WS] parsed:', data);
 
       // 1) Liste de notifications non lues
-      if (data.type === 'unread_notifications' && Array.isArray(data.notifications)) {
-        const mapped: Notification[] = data.notifications.map((n: NotificationData) => 
-          mapBackendNotification(n)
+      if (
+        data.type === 'unread_notifications' &&
+        Array.isArray(data.notifications)
+      ) {
+        const mapped: Notification[] = data.notifications.map(
+          (n: NotificationData) => mapBackendNotification(n),
         );
 
         setNotifications((prev) => {
@@ -107,7 +110,10 @@ export function NotificationsSidebar({
         setNotifications((prev) => {
           const exists = prev.some((p) => p.id === newNotification.id);
           if (exists) {
-            console.log('[WS] Notification déjà présente, ignorée:', newNotification.id);
+            console.log(
+              '[WS] Notification déjà présente, ignorée:',
+              newNotification.id,
+            );
             return prev;
           }
           const next = [newNotification, ...prev];
@@ -145,8 +151,7 @@ export function NotificationsSidebar({
      ======================= */
   const mapBackendNotification = (n: NotificationData): Notification => {
     const uniqueId =
-      n.id ??
-      `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      n.id ?? `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     // Mapper le type backend vers le type frontend
     let frontendType: Notification['type'] = 'alert';
@@ -163,10 +168,22 @@ export function NotificationsSidebar({
 
     // Titre selon le type
     const typeLabels: { [key: string]: { en: string; fr: string } } = {
-      RESERVATION_REQUEST: { en: 'Reservation Request', fr: 'Demande de réservation' },
-      RESERVATION_APPROVED: { en: 'Reservation Approved', fr: 'Réservation acceptée' },
-      RESERVATION_REJECTED: { en: 'Reservation Rejected', fr: 'Réservation refusée' },
-      RESERVATION_CANCELLED: { en: 'Reservation Cancelled', fr: 'Réservation annulée' },
+      RESERVATION_REQUEST: {
+        en: 'Reservation Request',
+        fr: 'Demande de réservation',
+      },
+      RESERVATION_APPROVED: {
+        en: 'Reservation Approved',
+        fr: 'Réservation acceptée',
+      },
+      RESERVATION_REJECTED: {
+        en: 'Reservation Rejected',
+        fr: 'Réservation refusée',
+      },
+      RESERVATION_CANCELLED: {
+        en: 'Reservation Cancelled',
+        fr: 'Réservation annulée',
+      },
       MESSAGE_RECEIVED: { en: 'New Message', fr: 'Nouveau message' },
       RATING_RECEIVED: { en: 'New Review', fr: 'Nouvel avis' },
     };

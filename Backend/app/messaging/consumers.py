@@ -255,7 +255,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def format_message(self, message):
-        """ Formate un message avec URLs complètes (HTTP)"""
+        """Formate un message avec URLs complètes (HTTP)"""
         # Photo de profil
         photo_url = None
         if (
@@ -264,8 +264,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         ):
             try:
                 photo_url = message.sender.profile_picture.url
-                if not photo_url.startswith('http'):
-                    backend_url = getattr(settings, 'BACKEND_URL', 'http://localhost:8000').rstrip('/')
+                if not photo_url.startswith("http"):
+                    backend_url = getattr(
+                        settings, "BACKEND_URL", "http://localhost:8000"
+                    ).rstrip("/")
                     photo_url = f"{backend_url}{photo_url}"
             except Exception as e:
                 logger.error(f"Erreur photo profil: {e}")
@@ -288,18 +290,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if message.media:
             try:
                 media_path = message.media.url
-                
-                if media_path.startswith('http'):
+
+                if media_path.startswith("http"):
                     data["media_url"] = media_path
                 else:
                     # ✅ BACKEND_URL pour HTTP, pas WEBSOCKET_URL
-                    backend_url = getattr(settings, 'BACKEND_URL', 'http://localhost:8000').rstrip('/')
+                    backend_url = getattr(
+                        settings, "BACKEND_URL", "http://localhost:8000"
+                    ).rstrip("/")
                     data["media_url"] = f"{backend_url}{media_path}"
-                
+
                 data["media_type"] = message.media_type
-                
+
                 logger.info(f"URL média construite: {data['media_url']}")
-                
+
             except Exception as e:
                 logger.error(f"Erreur construction URL média: {e}")
 

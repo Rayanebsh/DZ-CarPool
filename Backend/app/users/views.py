@@ -406,7 +406,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     # ---------- VERIFICATION EMAIL ----------
-    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated],url_path="send-email-verification")
     def send_email_verification(self, request):
         user = request.user
 
@@ -435,7 +435,7 @@ class UserViewSet(viewsets.ModelViewSet):
             }
         )
 
-    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated],url_path="verify-email")
     def verify_email(self, request):
         serializer = VerifyEmailSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -482,7 +482,7 @@ class UserViewSet(viewsets.ModelViewSet):
         )
 
     # ---------- VERIFICATION TELEPHONE ----------
-    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated],url_path="send-phone-verification")
     def send_phone_verification(self, request):
         user = request.user
 
@@ -518,7 +518,7 @@ class UserViewSet(viewsets.ModelViewSet):
             }
         )
 
-    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated],url_path="verify-phone")
     def verify_phone(self, request):
         serializer = VerifyPhoneSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -564,7 +564,7 @@ class UserViewSet(viewsets.ModelViewSet):
             {"message": "Téléphone vérifié avec succès", "phone_verified": True}
         )
 
-    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated],url_path="verification-status")
     def verification_status(self, request):
         user = request.user
         return Response(

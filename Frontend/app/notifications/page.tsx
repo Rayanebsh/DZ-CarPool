@@ -31,7 +31,7 @@ export default function NotificationsPage() {
     markAllAsRead,
     deleteNotification,
   } = useNotifications();
-  
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -64,10 +64,22 @@ export default function NotificationsPage() {
 
   const getTypeLabel = (type: string) => {
     const labels: { [key: string]: { en: string; fr: string } } = {
-      RESERVATION_REQUEST: { en: 'Reservation Request', fr: 'Demande de réservation' },
-      RESERVATION_APPROVED: { en: 'Reservation Approved', fr: 'Réservation acceptée' },
-      RESERVATION_REJECTED: { en: 'Reservation Rejected', fr: 'Réservation refusée' },
-      RESERVATION_CANCELLED: { en: 'Reservation Cancelled', fr: 'Réservation annulée' },
+      RESERVATION_REQUEST: {
+        en: 'Reservation Request',
+        fr: 'Demande de réservation',
+      },
+      RESERVATION_APPROVED: {
+        en: 'Reservation Approved',
+        fr: 'Réservation acceptée',
+      },
+      RESERVATION_REJECTED: {
+        en: 'Reservation Rejected',
+        fr: 'Réservation refusée',
+      },
+      RESERVATION_CANCELLED: {
+        en: 'Reservation Cancelled',
+        fr: 'Réservation annulée',
+      },
       MESSAGE_RECEIVED: { en: 'Message', fr: 'Message' },
       TRAJET_CANCELLED: { en: 'Trip Cancelled', fr: 'Trajet annulé' },
       WELCOME: { en: 'Welcome', fr: 'Bienvenue' },
@@ -86,7 +98,10 @@ export default function NotificationsPage() {
     if (notification.type === 'MESSAGE_RECEIVED') {
       // Rediriger vers les messages
       router.push('/messages');
-    } else if (notification.type === 'RESERVATION_REQUEST' && notification.related_id) {
+    } else if (
+      notification.type === 'RESERVATION_REQUEST' &&
+      notification.related_id
+    ) {
       // ✅ Rediriger vers la page de détails de la réservation
       router.push(`/reservations/${notification.related_id}`);
     }
@@ -204,7 +219,8 @@ export default function NotificationsPage() {
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
                     className={`bg-white rounded-xl shadow-sm border border-gray-200 p-4 transition-all hover:shadow-md ${
-                      notification.type === 'RESERVATION_REQUEST' || notification.type === 'MESSAGE_RECEIVED'
+                      notification.type === 'RESERVATION_REQUEST' ||
+                      notification.type === 'MESSAGE_RECEIVED'
                         ? 'cursor-pointer'
                         : ''
                     } ${
@@ -279,7 +295,7 @@ export default function NotificationsPage() {
                     n.type === 'RESERVATION_REJECTED' ||
                     n.type === 'RESERVATION_CANCELLED' ||
                     n.type === 'TRAJET_CANCELLED' ||
-                    n.type === 'TRAJET_MODIFIED'
+                    n.type === 'TRAJET_MODIFIED',
                 )
                 .map((notification) => (
                   <div
@@ -320,7 +336,7 @@ export default function NotificationsPage() {
                 .filter(
                   (n) =>
                     n.type === 'MESSAGE_RECEIVED' ||
-                    n.type === 'RATING_RECEIVED'
+                    n.type === 'RATING_RECEIVED',
                 )
                 .map((notification) => (
                   <div

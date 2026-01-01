@@ -3,12 +3,46 @@ Configuration Django spécifique pour les tests
 """
 
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 
-from .settings import DATABASES, MIDDLEWARE
+# Charger le fichier .env
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(env_path)
 
-# Désactiver le mode debug en test (sauf si explicitement activé)
-DEBUG = os.getenv("DEBUG", "False") == "True"
-# TOUJOURS utiliser le cache en mémoire pour les tests
+# Importer les settings de base
+from .settings import *
+
+# ==================== CONFIGURATION BASE DE DONNÉES ====================
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'test_dzcarpool',
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+        'TEST': {
+            'NAME': 'test_dzcarpool',
+        },
+    }
+}
+
+# ==================== GARDER ALLAUTH MAIS SIMPLIFIER ====================
+# Ne PAS retirer allauth des INSTALLED_APPS
+# Les INSTALLED_APPS sont déjà définis dans settings.py
+
+# Garder tous les middleware (requis pour allauth)
+# Les MIDDLEWARE sont déjà définis dans settings.py
+
+# ==================== DÉSACTIVER LA VÉRIFICATION EMAIL ====================
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_REQUIRED = False
+
+# ==================== DÉSACTIVER LES SIGNAUX POUR LES TESTS ====================
+TESTING = True  # ← Ajoutez cette ligne
+
+# ==================== CONFIGURATION CACHE ====================
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
@@ -16,29 +50,21 @@ CACHES = {
     }
 }
 
-# Session en base de données pour les tests
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
-
-# Email backend pour les tests
+# ==================== CONFIGURATION EMAIL ====================
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
-# Hasher de mot de passe rapide pour les tests
+# ==================== CONFIGURATION SESSION ====================
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+# ==================== HASHER RAPIDE ====================
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",
 ]
 
-# Désactiver les migrations pour accélérer les tests (optionnel)
-# class DisableMigrations:
-#     def __contains__(self, item):
-#         return True
-#     def __getitem__(self, item):
-#         return None
-# MIGRATION_MODULES = DisableMigrations()
-
-# Logging minimal en test
+# ==================== LOGGING MINIMAL ====================
 LOGGING = {
     "version": 1,
-    "disable_existing_loggers": False,
+    "disable_existing_loggers": True,
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
@@ -50,9 +76,18 @@ LOGGING = {
     },
 }
 
-# Désactiver les middleware non essentiels pour les tests
-MIDDLEWARE = [m for m in MIDDLEWARE if "SecurityMiddleware" not in m]
+# ==================== DÉSACTIVER DEBUG ====================
+DEBUG = False
+TEMPLATE_DEBUG = False
 
-print("✅ Test settings loaded - Using in-memory cache")
+# ==================== MESSAGES ====================
+print("=" * 80)
+print("✅ TEST SETTINGS LOADED")
 print(f"📊 Database: {DATABASES['default']['NAME']}")
-print(f"🗄️  Cache backend: {CACHES['default']['BACKEND']}")
+print(f"👤 DB User: {DATABASES['default']['USER']}")
+print(f"🔐 DB Password: {'*' * len(DATABASES['default']['PASSWORD']) if DATABASES['default']['PASSWORD'] else 'NONE'}")
+print(f"🗄️  Cache: {CACHES['default']['BACKEND']}")
+print(f"📧 Email: {EMAIL_BACKEND}")
+print(f"🔐 Allauth: ENABLED (simplified)")
+print(f"🔕 Signals: DISABLED for testing")  # ← Ajoutez cette ligne
+print("=" * 80)

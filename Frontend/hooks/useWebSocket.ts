@@ -12,7 +12,7 @@ interface Message {
   text: string;
   created_at: string;
   is_read?: boolean;
-  media_url?: string;  // ✅ Déjà l'URL complète depuis le backend
+  media_url?: string; // ✅ Déjà l'URL complète depuis le backend
   media_type?: string;
 }
 
@@ -145,29 +145,26 @@ export function useWebSocket({
     }
   }, [conversationId, conversationType, onTyping]);
 
-  const sendMessage = useCallback(
-    (text: string) => {
-      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        console.error('❌ WebSocket pas connecté');
-        setError('Non connecté');
-        return;
-      }
+  const sendMessage = useCallback((text: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      console.error('❌ WebSocket pas connecté');
+      setError('Non connecté');
+      return;
+    }
 
-      try {
-        const payload = {
-          type: 'message',
-          text,
-        };
+    try {
+      const payload = {
+        type: 'message',
+        text,
+      };
 
-        console.log('📤 Envoi:', payload);
-        wsRef.current.send(JSON.stringify(payload));
-      } catch (err) {
-        console.error('❌ Erreur envoi:', err);
-        setError('Erreur envoi message');
-      }
-    },
-    [],
-  );
+      console.log('📤 Envoi:', payload);
+      wsRef.current.send(JSON.stringify(payload));
+    } catch (err) {
+      console.error('❌ Erreur envoi:', err);
+      setError('Erreur envoi message');
+    }
+  }, []);
 
   const sendTyping = useCallback((isTyping: boolean) => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {

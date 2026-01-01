@@ -271,7 +271,7 @@ function Header({ onNotificationsClick }: HeaderProps) {
                     {language === 'en' ? 'Log in' : 'Se connecter'}
                   </Button>
                 </Link>
-                <Link href="/register">
+                <Link href="/signup">
                   <Button
                     size="sm"
                     className="bg-[#FF5722] hover:bg-[#FF5722]/90 text-white"
@@ -366,7 +366,7 @@ function Header({ onNotificationsClick }: HeaderProps) {
                     </Button>
                   </Link>
                   <Link
-                    href="/register"
+                    href="/signup"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Button

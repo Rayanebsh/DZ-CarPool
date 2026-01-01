@@ -14,7 +14,6 @@ import {
   AlertCircle,
   Minus,
   Plus,
-  Globe,
   Shield,
 } from 'lucide-react';
 
@@ -313,7 +312,7 @@ export default function TripDetailsPage() {
             errorType: null,
           });
         }
-      } catch (docError) {
+      } catch {
         setVerificationStatus({
           isAuthenticated: true,
           emailVerified: true,
@@ -325,7 +324,7 @@ export default function TripDetailsPage() {
           errorType: null,
         });
       }
-    } catch (error) {
+    } catch {
       setVerificationStatus({
         isAuthenticated: true,
         emailVerified: false,
@@ -344,10 +343,13 @@ export default function TripDetailsPage() {
     if (!tripId) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/trajets/${tripId}/`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/trajets/${tripId}/`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
 
       if (response.ok) {
         const detailsData = await response.json();
@@ -392,7 +394,7 @@ export default function TripDetailsPage() {
         setError(`${t.error} (Détails): Trajet introuvable`);
         return;
       }
-      const driverPrice = Number(detailsData.price_driver);     // "1020.00" -> 1020
+      const driverPrice = Number(detailsData.price_driver); // "1020.00" -> 1020
       const platformPrice = Number(detailsData.price_platform); // "180.00"  -> 180
       // 🔄 FUSION des 2 APIs
       const mergedData: TripDetails = {
@@ -420,18 +422,41 @@ export default function TripDetailsPage() {
           const driverData = await driverResponse.json();
           setDriverEnriched(driverData);
         } else {
-          setDriverEnriched({
-            id: mergedData.conducteur_id,
-            full_name: mergedData.conducteur_name,
-            profile_picture: mergedData.conducteur_picture,
-            rating: mergedData.conducteur_rating || 5.0,
-            trips_count: mergedData.conducteur_trips || 0,
-            is_verified: mergedData.conducteur_verified || false,
-            member_since: mergedData.conducteur_member_since || '',
-          });
+          // ✅ CORRECTION : Utiliser les données COMPLÈTES du conducteur
+          const conducteur = detailsData.conducteur;
+          
+          if (conducteur) {
+            setDriverEnriched({
+              id: conducteur.id,
+              full_name: `${conducteur.first_name} ${conducteur.last_name}`,
+              profile_picture: conducteur.profile_picture,
+              rating: parseFloat(conducteur.average_rating) || 5.0,
+              trips_count: conducteur.trips_as_driver + conducteur.trips_as_passenger,
+              trips_as_driver: conducteur.trips_as_driver,
+              trips_as_passenger: conducteur.trips_as_passenger,
+              is_verified: conducteur.documents?.some((doc: any) => doc.verified) || false,
+              member_since: conducteur.date_joined,
+            });
+          }
         }
       } catch (err) {
         console.error('❌ Exception driver_info:', err);
+        
+        // ✅ FALLBACK : Utiliser conducteur complet même en cas d'erreur
+        const conducteur = detailsData.conducteur;
+        if (conducteur) {
+          setDriverEnriched({
+            id: conducteur.id,
+            full_name: `${conducteur.first_name} ${conducteur.last_name}`,
+            profile_picture: conducteur.profile_picture,
+            rating: parseFloat(conducteur.average_rating) || 5.0,
+            trips_count: conducteur.trips_as_driver + conducteur.trips_as_passenger,
+            trips_as_driver: conducteur.trips_as_driver,
+            trips_as_passenger: conducteur.trips_as_passenger,
+            is_verified: conducteur.documents?.some((doc: any) => doc.verified) || false,
+            member_since: conducteur.date_joined,
+          });
+        }
       } finally {
         setDriverLoading(false);
       }
@@ -512,7 +537,7 @@ export default function TripDetailsPage() {
         setTimeout(async () => {
           try {
             const placesResponse = await fetch(
-              `${API_BASE_URL}/api/v1/trajets/${tripData.id}/places/`
+              `${API_BASE_URL}/api/v1/trajets/${tripData.id}/places/`,
             );
             if (placesResponse.ok) {
               const placesData = await placesResponse.json();
@@ -521,8 +546,11 @@ export default function TripDetailsPage() {
               console.log('keys:', Object.keys(placesData));
               setTripData((prev) =>
                 prev
-                  ? { ...prev, places_disponibles: placesData.places_disponibles }
-                  : null
+                  ? {
+                      ...prev,
+                      places_disponibles: placesData.places_disponibles,
+                    }
+                  : null,
               );
             }
           } catch (error) {
@@ -616,463 +644,471 @@ export default function TripDetailsPage() {
   };
 
   if (loading) {
-  return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-gray-50">
-        <main className="container mx-auto px-4 py-20">
-          <div className="flex justify-center items-center">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          </div>
-        </main>
-      </div>
-    </>
-  );
-}
-
-if (error || !tripData) {
-  return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-gray-50">
-        <main className="container mx-auto px-4 py-20">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-2xl mx-auto">
-            <h3 className="font-semibold text-red-900 mb-2">{t.error}</h3>
-            <p className="text-red-700 text-sm">{error || t.tripNotFound}</p>
-            <button
-              onClick={() => router.back()}
-              className="mt-4 text-sm text-red-600 hover:text-red-700 font-medium underline"
-            >
-              {t.backToResults}
-            </button>
-          </div>
-        </main>
-      </div>
-    </>
-  );
-}
-
-return (
-  <>
-    <Header />
-    <div className="min-h-screen bg-gray-50">
-      <main className="container mx-auto px-4 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Trip Header */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                {t.tripFrom} {tripData.ville_depart} {t.to}{' '}
-                {tripData.ville_arrivee}
-              </h1>
-              <p className="text-gray-600">
-                {formatDate(tripData.date)} {lang === 'fr' ? 'à' : 'at'}{' '}
-                {tripData.heure_depart}
-              </p>
-              {tripData.description && (
-                <p className="text-gray-600 mt-4">{tripData.description}</p>
-              )}
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-gray-50">
+          <main className="container mx-auto px-4 py-20">
+            <div className="flex justify-center items-center">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
+          </main>
+        </div>
+      </>
+    );
+  }
 
-            {/* Driver Info */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              {driverLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                </div>
-              ) : driverEnriched ? (
-                <div className="flex items-start gap-6">
-                  <div className="relative flex-shrink-0">
-                    <img
-                      src={getProfilePictureUrl(driverEnriched.profile_picture)}
-                      alt={driverEnriched.full_name}
-                      className="w-28 h-28 rounded-full object-cover ring-4 ring-gray-100 shadow-md"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/placeholder.svg';
-                      }}
-                    />
-                    {driverEnriched.is_verified && (
-                      <div className="absolute -bottom-1 -right-1 w-9 h-9 bg-green-500 rounded-full flex items-center justify-center ring-4 ring-white shadow-lg">
-                        <Shield className="w-5 h-5 text-white" />
-                      </div>
-                    )}
+  if (error || !tripData) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen bg-gray-50">
+          <main className="container mx-auto px-4 py-20">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-2xl mx-auto">
+              <h3 className="font-semibold text-red-900 mb-2">{t.error}</h3>
+              <p className="text-red-700 text-sm">{error || t.tripNotFound}</p>
+              <button
+                onClick={() => router.back()}
+                className="mt-4 text-sm text-red-600 hover:text-red-700 font-medium underline"
+              >
+                {t.backToResults}
+              </button>
+            </div>
+          </main>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Header />
+      <div className="min-h-screen bg-gray-50">
+        <main className="container mx-auto px-4 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Trip Header */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  {t.tripFrom} {tripData.ville_depart} {t.to}{' '}
+                  {tripData.ville_arrivee}
+                </h1>
+                <p className="text-gray-600">
+                  {formatDate(tripData.date)} {lang === 'fr' ? 'à' : 'at'}{' '}
+                  {tripData.heure_depart}
+                </p>
+                {tripData.description && (
+                  <p className="text-gray-600 mt-4">{tripData.description}</p>
+                )}
+              </div>
+
+              {/* Driver Info */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                {driverLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
                   </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-3">
-                      <h2 className="text-2xl font-bold text-gray-900 truncate">
-                        {driverEnriched.full_name}
-                      </h2>
+                ) : driverEnriched ? (
+                  <div className="flex items-start gap-6">
+                    <div className="relative flex-shrink-0">
+                      <img
+                        src={getProfilePictureUrl(
+                          driverEnriched.profile_picture,
+                        )}
+                        alt={driverEnriched.full_name}
+                        className="w-28 h-28 rounded-full object-cover ring-4 ring-gray-100 shadow-md"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            '/placeholder.svg';
+                        }}
+                      />
                       {driverEnriched.is_verified && (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-800 flex-shrink-0">
-                          <Check className="w-4 h-4" />
-                          {t.verified}
-                        </span>
+                        <div className="absolute -bottom-1 -right-1 w-9 h-9 bg-green-500 rounded-full flex items-center justify-center ring-4 ring-white shadow-lg">
+                          <Shield className="w-5 h-5 text-white" />
+                        </div>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex items-center gap-1.5">
-                        <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                        <span className="text-lg font-bold text-gray-900">
-                          {formatRating(driverEnriched.rating)}
-                        </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-3">
+                        <h2 className="text-2xl font-bold text-gray-900 truncate">
+                          {driverEnriched.full_name}
+                        </h2>
+                        {driverEnriched.is_verified && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-800 flex-shrink-0">
+                            <Check className="w-4 h-4" />
+                            {t.verified}
+                          </span>
+                        )}
                       </div>
-                      <span className="text-gray-600 font-medium">
-                        ({driverEnriched.trips_count || 0}{' '}
-                        {driverEnriched.trips_count > 1 ? t.trips : t.trip})
-                      </span>
-                    </div>
 
-                    <div className="space-y-2">
-                      {driverEnriched.member_since && (
-                        <div className="flex items-center gap-2 text-gray-700">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm">
-                            {t.memberSince}{' '}
-                            {formatMemberSince(driverEnriched.member_since)}
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="flex items-center gap-1.5">
+                          <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                          <span className="text-lg font-bold text-gray-900">
+                            {formatRating(driverEnriched.rating)}
                           </span>
                         </div>
-                      )}
+                        <span className="text-gray-600 font-medium">
+                          ({driverEnriched.trips_count || 0}{' '}
+                          {driverEnriched.trips_count > 1 ? t.trips : t.trip})
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        {driverEnriched.member_since && (
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm">
+                              {t.memberSince}{' '}
+                              {formatMemberSince(driverEnriched.member_since)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Passengers */}
+              {passengersLoading ? (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                  </div>
+                </div>
+              ) : (
+                passengersEnriched.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-5">
+                      {t.confirmedPassengers} ({passengersEnriched.length})
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {passengersEnriched.map((passenger) => (
+                        <div
+                          key={passenger.id}
+                          className="flex items-center gap-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:shadow-md hover:border-blue-200 transition-all duration-200"
+                        >
+                          <img
+                            src={getProfilePictureUrl(
+                              passenger.profile_picture,
+                            )}
+                            alt={passenger.full_name}
+                            className="w-16 h-16 rounded-full object-cover ring-4 ring-white shadow-md flex-shrink-0"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src =
+                                '/placeholder.svg';
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-gray-900 text-base truncate">
+                              {passenger.full_name}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Users className="w-4 h-4 text-blue-600" />
+                              <span className="text-sm font-medium text-blue-700">
+                                {passenger.nbr_places}{' '}
+                                {passenger.nbr_places > 1
+                                  ? t.seats
+                                  : lang === 'fr'
+                                    ? 'place'
+                                    : 'seat'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              )}
+
+              {/* Vehicle Information */}
+              {tripData.vehicule_modele && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    {t.vehicleInfo}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
+                      <img
+                        src={getProfilePictureUrl(
+                          tripData.vehicule_photo || null,
+                        )}
+                        alt={tripData.vehicule_modele}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            '/placeholder.svg';
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="font-semibold text-gray-900 text-lg">
+                          {tripData.vehicule_modele}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {tripData.vehicule_annee &&
+                            `${tripData.vehicule_annee} • `}
+                          {tripData.vehicule_couleur}
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        {tripData.vehicule_places && (
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <Users className="w-5 h-5 text-gray-400" />
+                            <span>
+                              {tripData.vehicule_places} {t.seats}
+                            </span>
+                          </div>
+                        )}
+                        {tripData.vehicule_climatisation && (
+                          <div className="flex items-center gap-2 text-green-600">
+                            <Check className="w-5 h-5" />
+                            <span>{t.airConditioning}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              ) : null}
-            </div>
+              )}
 
-            {/* Passengers */}
-            {passengersLoading ? (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                </div>
-              </div>
-            ) : (
-              passengersEnriched.length > 0 && (
+              {/* Préférences du trajet */}
+              {tripData.preferences && tripData.preferences.length > 0 && (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-5">
-                    {t.confirmedPassengers} ({passengersEnriched.length})
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    {t.driverPreferences}
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {passengersEnriched.map((passenger) => (
-                      <div
-                        key={passenger.id}
-                        className="flex items-center gap-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:shadow-md hover:border-blue-200 transition-all duration-200"
+                  <div className="flex flex-wrap gap-2">
+                    {tripData.preferences.map((pref) => (
+                      <span
+                        key={pref.id}
+                        className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
                       >
-                        <img
-                          src={getProfilePictureUrl(passenger.profile_picture)}
-                          alt={passenger.full_name}
-                          className="w-16 h-16 rounded-full object-cover ring-4 ring-white shadow-md flex-shrink-0"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src =
-                              '/placeholder.svg';
-                          }}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 text-base truncate">
-                            {passenger.full_name}
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Users className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm font-medium text-blue-700">
-                              {passenger.nbr_places}{' '}
-                              {passenger.nbr_places > 1
-                                ? t.seats
-                                : lang === 'fr'
-                                  ? 'place'
-                                  : 'seat'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                        {pref.icon && (
+                          <span className="mr-2 text-base">{pref.icon}</span>
+                        )}
+                        {lang === 'fr' ? pref.name_fr : pref.name_en}
+                      </span>
                     ))}
                   </div>
                 </div>
-              )
-            )}
+              )}
 
-            {/* Vehicle Information */}
-            {tripData.vehicule_modele && (
+              {/* Trip Features */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  {t.vehicleInfo}
+                  {t.tripFeatures}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
-                    <img
-                      src={getProfilePictureUrl(
-                        tripData.vehicule_photo || null,
-                      )}
-                      alt={tripData.vehicule_modele}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/placeholder.svg';
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-semibold text-gray-900 text-lg">
-                        {tripData.vehicule_modele}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {tripData.vehicule_annee &&
-                          `${tripData.vehicule_annee} • `}
-                        {tripData.vehicule_couleur}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      {tripData.vehicule_places && (
-                        <div className="flex items-center gap-2 text-gray-700">
-                          <Users className="w-5 h-5 text-gray-400" />
-                          <span>
-                            {tripData.vehicule_places} {t.seats}
-                          </span>
-                        </div>
-                      )}
-                      {tripData.vehicule_climatisation && (
-                        <div className="flex items-center gap-2 text-green-600">
-                          <Check className="w-5 h-5" />
-                          <span>{t.airConditioning}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Préférences du trajet */}
-            {tripData.preferences && tripData.preferences.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  {t.driverPreferences}
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {tripData.preferences.map((pref) => (
-                    <span
-                      key={pref.id}
-                      className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
-                    >
-                      {pref.icon && (
-                        <span className="mr-2 text-base">{pref.icon}</span>
-                      )}
-                      {lang === 'fr' ? pref.name_fr : pref.name_en}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Trip Features */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {t.tripFeatures}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  {tripData.luggage_allowed ? (
-                    <Check className="w-6 h-6 text-green-600" />
-                  ) : (
-                    <X className="w-6 h-6 text-red-600" />
-                  )}
-                  <span className="text-sm font-medium text-gray-700">
-                    {t.luggageAllowed}
-                  </span>
-                </div>
-                {tripData.is_confort && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-3">
-                    <Check className="w-6 h-6 text-green-600" />
-                    <span className="text-sm font-medium text-gray-700">
-                      {t.comfortTrip}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Booking Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sticky top-6 space-y-6">
-              {/* Avertissement de vérification */}
-              {showVerificationWarning &&
-                !verificationStatus.canPerformAction && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-amber-900 mb-1">
-                          {verificationStatus.errorType === 'login' &&
-                            t.loginRequired}
-                          {verificationStatus.errorType === 'email_phone' &&
-                            t.emailVerificationRequired}
-                          {verificationStatus.errorType === 'documents' &&
-                            t.verificationRequired}
-                        </h4>
-                        <p className="text-sm text-amber-700 mb-3">
-                          {verificationStatus.message}
-                        </p>
-                        <button
-                          onClick={handleVerificationRedirect}
-                          className="w-full px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
-                        >
-                          {getVerificationButtonText()}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-              {bookingSuccess && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-green-800">
-                    <Check className="w-5 h-5" />
-                    <span className="font-medium">{t.bookingSuccess}</span>
-                  </div>
-                  <p className="text-sm text-green-700 mt-1">{t.redirecting}</p>
-                </div>
-              )}
-
-              {bookingError && verificationStatus.canPerformAction && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-start gap-2 text-red-800">
-                    <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-medium block">
-                        {t.bookingError}
-                      </span>
-                      <span className="text-sm text-red-700">
-                        {bookingError}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm text-gray-600">
-                    {t.pricePerSeat}
-                  </span>
-                  <span className="text-3xl font-bold text-gray-900">
-                    {tripData.price} DA
-                  </span>
-                </div>
-                <div className="text-sm text-green-600 font-medium">
-                  {tripData.places_disponibles}{' '}
-                  {tripData.places_disponibles > 1
-                    ? t.availablePlural
-                    : t.available}
-                </div>
-              </div>
-
-              {/* Sélecteur de nombre de places */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-gray-700 block">
-                  {t.seatsToBook}
-                </label>
-                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
-                  <button
-                    onClick={decrementPlaces}
-                    disabled={nbr_places <= 1}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white border-2 border-gray-300 hover:bg-gray-100 hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </button>
-                  <span className="text-3xl font-bold text-gray-900">
-                    {nbr_places}
-                  </span>
-                  <button
-                    onClick={incrementPlaces}
-                    disabled={nbr_places >= tripData.places_disponibles}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white border-2 border-gray-300 hover:bg-gray-100 hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="text-center py-3 bg-blue-50 rounded-lg">
-                  <span className="text-sm text-gray-600">{t.total}: </span>
-                  <span className="text-2xl font-bold text-blue-900">
-                    {tripData.price * nbr_places} DA
-                  </span>
-                </div>
-              </div>
-
-              {/* Trip Summary */}
-              <div className="space-y-3 py-4 border-y border-gray-200">
-                <div className="flex items-center gap-3 text-sm">
-                  <MapPin className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <div className="font-semibold text-gray-900">
-                      {tripData.ville_depart}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {t.departure}: {tripData.heure_depart}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <MapPin className="w-5 h-5 text-orange-600" />
-                  <div>
-                    <div className="font-semibold text-gray-900">
-                      {tripData.ville_arrivee}
-                    </div>
-                    {tripData.heure_arrivee && (
-                      <div className="text-xs text-gray-500">
-                        {t.arrival}: {tripData.heure_arrivee}
-                      </div>
+                    {tripData.luggage_allowed ? (
+                      <Check className="w-6 h-6 text-green-600" />
+                    ) : (
+                      <X className="w-6 h-6 text-red-600" />
                     )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Calendar className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-700">
-                    {formatDate(tripData.date)}
-                  </span>
-                </div>
-                {tripData.duree_estimee && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Clock className="w-5 h-5 text-gray-400" />
-                    <span className="text-gray-700">
-                      {t.duration}: {tripData.duree_estimee}
+                    <span className="text-sm font-medium text-gray-700">
+                      {t.luggageAllowed}
                     </span>
                   </div>
-                )}
+                  {tripData.is_confort && (
+                    <div className="flex items-center gap-3">
+                      <Check className="w-6 h-6 text-green-600" />
+                      <span className="text-sm font-medium text-gray-700">
+                        {t.comfortTrip}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
+            </div>
 
-              <button
-                onClick={handleBooking}
-                disabled={
-                  bookingLoading ||
-                  bookingSuccess ||
-                  tripData.places_disponibles === 0
-                }
-                className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-semibold text-base rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-              >
-                {bookingLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    {t.booking}
-                  </span>
-                ) : bookingSuccess ? (
-                  t.bookingConfirmed
-                ) : tripData.places_disponibles === 0 ? (
-                  t.full
-                ) : (
-                  t.bookNow
+            {/* Booking Sidebar */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sticky top-6 space-y-6">
+                {/* Avertissement de vérification */}
+                {showVerificationWarning &&
+                  !verificationStatus.canPerformAction && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-amber-900 mb-1">
+                            {verificationStatus.errorType === 'login' &&
+                              t.loginRequired}
+                            {verificationStatus.errorType === 'email_phone' &&
+                              t.emailVerificationRequired}
+                            {verificationStatus.errorType === 'documents' &&
+                              t.verificationRequired}
+                          </h4>
+                          <p className="text-sm text-amber-700 mb-3">
+                            {verificationStatus.message}
+                          </p>
+                          <button
+                            onClick={handleVerificationRedirect}
+                            className="w-full px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
+                          >
+                            {getVerificationButtonText()}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                {bookingSuccess && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-green-800">
+                      <Check className="w-5 h-5" />
+                      <span className="font-medium">{t.bookingSuccess}</span>
+                    </div>
+                    <p className="text-sm text-green-700 mt-1">
+                      {t.redirecting}
+                    </p>
+                  </div>
                 )}
-              </button>
 
-              <p className="text-xs text-center text-gray-500">
-                {t.noChargeYet}
-              </p>
+                {bookingError && verificationStatus.canPerformAction && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-start gap-2 text-red-800">
+                      <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-medium block">
+                          {t.bookingError}
+                        </span>
+                        <span className="text-sm text-red-700">
+                          {bookingError}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm text-gray-600">
+                      {t.pricePerSeat}
+                    </span>
+                    <span className="text-3xl font-bold text-gray-900">
+                      {tripData.price} DA
+                    </span>
+                  </div>
+                  <div className="text-sm text-green-600 font-medium">
+                    {tripData.places_disponibles}{' '}
+                    {tripData.places_disponibles > 1
+                      ? t.availablePlural
+                      : t.available}
+                  </div>
+                </div>
+
+                {/* Sélecteur de nombre de places */}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-gray-700 block">
+                    {t.seatsToBook}
+                  </label>
+                  <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                    <button
+                      onClick={decrementPlaces}
+                      disabled={nbr_places <= 1}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-white border-2 border-gray-300 hover:bg-gray-100 hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <Minus className="w-5 h-5" />
+                    </button>
+                    <span className="text-3xl font-bold text-gray-900">
+                      {nbr_places}
+                    </span>
+                    <button
+                      onClick={incrementPlaces}
+                      disabled={nbr_places >= tripData.places_disponibles}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-white border-2 border-gray-300 hover:bg-gray-100 hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="text-center py-3 bg-blue-50 rounded-lg">
+                    <span className="text-sm text-gray-600">{t.total}: </span>
+                    <span className="text-2xl font-bold text-blue-900">
+                      {tripData.price * nbr_places} DA
+                    </span>
+                  </div>
+                </div>
+
+                {/* Trip Summary */}
+                <div className="space-y-3 py-4 border-y border-gray-200">
+                  <div className="flex items-center gap-3 text-sm">
+                    <MapPin className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        {tripData.ville_depart}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {t.departure}: {tripData.heure_depart}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <MapPin className="w-5 h-5 text-orange-600" />
+                    <div>
+                      <div className="font-semibold text-gray-900">
+                        {tripData.ville_arrivee}
+                      </div>
+                      {tripData.heure_arrivee && (
+                        <div className="text-xs text-gray-500">
+                          {t.arrival}: {tripData.heure_arrivee}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <Calendar className="w-5 h-5 text-gray-400" />
+                    <span className="text-gray-700">
+                      {formatDate(tripData.date)}
+                    </span>
+                  </div>
+                  {tripData.duree_estimee && (
+                    <div className="flex items-center gap-3 text-sm">
+                      <Clock className="w-5 h-5 text-gray-400" />
+                      <span className="text-gray-700">
+                        {t.duration}: {tripData.duree_estimee}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleBooking}
+                  disabled={
+                    bookingLoading ||
+                    bookingSuccess ||
+                    tripData.places_disponibles === 0
+                  }
+                  className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-semibold text-base rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  {bookingLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      {t.booking}
+                    </span>
+                  ) : bookingSuccess ? (
+                    t.bookingConfirmed
+                  ) : tripData.places_disponibles === 0 ? (
+                    t.full
+                  ) : (
+                    t.bookNow
+                  )}
+                </button>
+
+                <p className="text-xs text-center text-gray-500">
+                  {t.noChargeYet}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
-  </>
-);
+        </main>
+      </div>
+    </>
+  );
 }

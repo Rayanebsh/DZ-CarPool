@@ -1,3 +1,15 @@
 {
-  "/trip/[id]/page": "app/trip/[id]/page.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/documents/page": "app/documents/page.js",
+  "/login/page": "app/login/page.js",
+  "/messages/page": "app/messages/page.js",
+  "/notifications/page": "app/notifications/page.js",
+  "/offer-ride/page": "app/offer-ride/page.js",
+  "/page": "app/page.js",
+  "/reservations/[id]/page": "app/reservations/[id]/page.js",
+  "/search-results/page": "app/search-results/page.js",
+  "/signup/page": "app/signup/page.js",
+  "/trip/[id]/page": "app/trip/[id]/page.js",
+  "/trips/page": "app/trips/page.js",
+  "/verify/page": "app/verify/page.js"
 }

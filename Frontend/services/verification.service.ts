@@ -1,91 +1,93 @@
-// services/verification.service.ts
-import apiClient from './api.client';
+// services/verification.service.ts - VERSION COMPLÈTE
 
-export interface VerificationResponse {
-  message: string;
-  expires_at: string;
-}
+import api from './api.client';
 
+// ✅ Interface mise à jour avec les nouveaux champs
 export interface VerificationStatus {
   email_verified: boolean;
   phone_verified: boolean;
-  email: string;
-  phone_number: string;
+  phone_number?: string | null;
+  has_phone_number: boolean;  // ✅ Ajouté
+  first_login: boolean;        // ✅ Ajouté
 }
 
 class VerificationService {
   /**
-   * Envoie un code de vérification par email
-   */
-  async sendEmailVerification(): Promise<VerificationResponse> {
-    try {
-      const response = await apiClient.post('/users/send_email_verification/');
-      return response.data;
-    } catch (error: any) {
-      // Gérer le cas où l'email est déjà vérifié
-      if (error.response?.status === 400) {
-        const message =
-          error.response?.data?.message || error.response?.data?.error;
-        if (message?.includes('déjà vérifié')) {
-          console.log('ℹ️ Email déjà vérifié');
-          throw new Error('EMAIL_ALREADY_VERIFIED');
-        }
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Vérifie le code email
-   */
-  async verifyEmail(
-    code: string,
-  ): Promise<{ message: string; email_verified: boolean }> {
-    const response = await apiClient.post('/users/verify_email/', { code });
-    return response.data;
-  }
-
-  /**
-   * Envoie un code de vérification par téléphone
-   */
-  async sendPhoneVerification(): Promise<VerificationResponse> {
-    try {
-      const response = await apiClient.post('/users/send_phone_verification/');
-      return response.data;
-    } catch (error: any) {
-      // Gérer le cas où le téléphone est déjà vérifié
-      if (error.response?.status === 400) {
-        const message =
-          error.response?.data?.message || error.response?.data?.error;
-        if (message?.includes('déjà vérifié')) {
-          console.log('ℹ️ Téléphone déjà vérifié');
-          throw new Error('PHONE_ALREADY_VERIFIED');
-        }
-        if (message?.includes('Aucun numéro')) {
-          console.log('ℹ️ Aucun numéro de téléphone');
-          throw new Error('NO_PHONE_NUMBER');
-        }
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Vérifie le code téléphone
-   */
-  async verifyPhone(
-    code: string,
-  ): Promise<{ message: string; phone_verified: boolean }> {
-    const response = await apiClient.post('/users/verify_phone/', { code });
-    return response.data;
-  }
-
-  /**
-   * Récupère le statut de vérification
+   * ✅ Récupère le statut de vérification de l'utilisateur
+   * Retourne si l'email et le téléphone sont vérifiés,
+   * ainsi que si c'est la première connexion
    */
   async getVerificationStatus(): Promise<VerificationStatus> {
-    const response = await apiClient.get('/users/verification_status/');
-    return response.data;
+    try {
+      const response = await api.get('/users/verification-status/');
+      const data = response.data;
+      
+      return {
+        email_verified: data.email_verified || false,
+        phone_verified: data.phone_verified || false,
+        phone_number: data.phone_number,
+        has_phone_number: !!data.phone_number || data.has_phone_number || false,
+        first_login: data.first_login || false,
+      };
+    } catch (error: any) {
+      console.error('Error getting verification status:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * ✅ Envoie un code de vérification par email
+   */
+  async sendEmailVerification(): Promise<void> {
+    try {
+      await api.post('/users/send-email-verification/');
+    } catch (error: any) {
+      if (error.response?.data?.error === 'EMAIL_ALREADY_VERIFIED') {
+        throw new Error('EMAIL_ALREADY_VERIFIED');
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * ✅ Envoie un code de vérification par SMS
+   */
+  async sendPhoneVerification(): Promise<void> {
+    try {
+      await api.post('/users/send-phone-verification/');
+    } catch (error: any) {
+      if (error.response?.data?.error === 'PHONE_ALREADY_VERIFIED') {
+        throw new Error('PHONE_ALREADY_VERIFIED');
+      }
+      if (error.response?.data?.error === 'NO_PHONE_NUMBER') {
+        throw new Error('NO_PHONE_NUMBER');
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * ✅ Vérifie l'email avec le code reçu
+   * @param code - Code de vérification à 6 chiffres
+   */
+  async verifyEmail(code: string): Promise<void> {
+    try {
+      await api.post('/users/verify-email/', { code });
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
+   * ✅ Vérifie le téléphone avec le code reçu par SMS
+   * @param code - Code de vérification à 6 chiffres
+   */
+  async verifyPhone(code: string): Promise<void> {
+    try {
+      await api.post('/users/verify-phone/', { code });
+    } catch (error: any) {
+      throw error;
+    }
   }
 }
 

@@ -6,14 +6,7 @@ import { Footer } from '@/components/footer';
 import { useLanguage } from '@/contexts/language-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Send,
-  Paperclip,
-  Loader2,
-  AlertCircle,
-  Search,
-  X,
-} from 'lucide-react';
+import { Send, Paperclip, Loader2, AlertCircle, Search, X } from 'lucide-react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import messagingService, {
   ConversationListItem,
@@ -480,12 +473,16 @@ export default function MessagesPage() {
                                       alt="Pièce jointe"
                                       className="rounded-lg max-w-full h-auto"
                                       onError={(e) => {
-                                        console.error('❌ Erreur chargement image:', {
-                                          url: message.media_url,
-                                          message_id: message.id,
-                                        });
+                                        console.error(
+                                          '❌ Erreur chargement image:',
+                                          {
+                                            url: message.media_url,
+                                            message_id: message.id,
+                                          },
+                                        );
                                         e.currentTarget.style.display = 'none';
-                                        const parent = e.currentTarget.parentElement;
+                                        const parent =
+                                          e.currentTarget.parentElement;
                                         if (parent) {
                                           parent.innerHTML = `
                                             <div class="bg-gray-200 rounded-lg p-4 text-center text-sm text-gray-600">

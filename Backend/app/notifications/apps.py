@@ -11,11 +11,13 @@ class NotificationsConfig(AppConfig):
         print("=" * 80)
         print("NotificationsConfig.ready() appelé")
         print("=" * 80)
-        
+
         try:
             import app.notifications.signals  # noqa: F401
+
             print("Signals notifications chargés avec succès")
         except Exception as e:
             print(f"Erreur chargement signals: {e}")
             import traceback
+
             traceback.print_exc()

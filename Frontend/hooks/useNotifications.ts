@@ -48,115 +48,121 @@ export function useNotifications(): UseNotificationsReturn {
   const unreadCount = notifications.filter((n) => n.is_read === false).length;
 
   const connect = useCallback(() => {
-  const token = localStorage.getItem('access_token');
-  if (!token) return;
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
 
-  if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) return;
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) return;
 
-  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsHost = process.env.NEXT_PUBLIC_WS_URL?.replace(/^https?:\/\//, '') || 'localhost:8000';
-  const url = `${wsProtocol}//${wsHost}/ws/notifications/?token=${token}`;
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost =
+      process.env.NEXT_PUBLIC_WS_URL?.replace(/^https?:\/\//, '') ||
+      'localhost:8000';
+    const url = `${wsProtocol}//${wsHost}/ws/notifications/?token=${token}`;
 
-  const ws = new WebSocket(url);
-  wsRef.current = ws;
+    const ws = new WebSocket(url);
+    wsRef.current = ws;
 
-  ws.onopen = () => {
-    console.log('✅ WS Notifications connecté');
-    setIsConnected(true);
-    reconnectAttemptsRef.current = 0;
-  };
-
-  ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  console.log('🔔 PARSED WS message:', data);
-
-  // 1) Liste de notifications non lues envoyée au connect
-  if (data.type === 'unread_notifications' && Array.isArray(data.notifications)) {
-    const mapped: Notification[] = data.notifications.map((n: any) => ({
-      id: n.id,
-      type: n.type,
-      content: n.content,
-      created_at: n.created_at,
-      timestamp: n.created_at,
-      read: n.is_read,
-      is_read: n.is_read,
-      sender: n.sender_detail,
-      sender_detail: n.sender_detail,
-      related_model: n.related_model,
-      related_id: n.related_id,
-      related_object: n.related_object,
-    }));
-
-    setNotifications(mapped);
-    return;
-  }
-
-  // 2) Nouvelle notification temps réel
-  if (data.type === 'new_notification' && data.notification) {
-    const n = data.notification;
-
-    const newNotification: Notification = {
-      id: n.id,
-      type: n.type,
-      content: n.content,
-      created_at: n.created_at,
-      timestamp: n.created_at,
-      read: n.is_read,
-      is_read: n.is_read,
-      sender: n.sender_detail,
-      sender_detail: n.sender_detail,
-      related_model: n.related_model,
-      related_id: n.related_id,
-      related_object: n.related_object,
+    ws.onopen = () => {
+      console.log('✅ WS Notifications connecté');
+      setIsConnected(true);
+      reconnectAttemptsRef.current = 0;
     };
 
-    setNotifications((prev) => [newNotification, ...prev]);
-    return;
-  }
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('🔔 PARSED WS message:', data);
 
-  console.warn('⚠️ Payload WS inattendu:', data);
-};
+      // 1) Liste de notifications non lues envoyée au connect
+      if (
+        data.type === 'unread_notifications' &&
+        Array.isArray(data.notifications)
+      ) {
+        const mapped: Notification[] = data.notifications.map((n: any) => ({
+          id: n.id,
+          type: n.type,
+          content: n.content,
+          created_at: n.created_at,
+          timestamp: n.created_at,
+          read: n.is_read,
+          is_read: n.is_read,
+          sender: n.sender_detail,
+          sender_detail: n.sender_detail,
+          related_model: n.related_model,
+          related_id: n.related_id,
+          related_object: n.related_object,
+        }));
 
-
-  ws.onerror = (err) => console.error('❌ WS erreur:', err);
-
-  ws.onclose = (event) => {
-    console.log('🔌 WS fermé', event.code, event.reason);
-    setIsConnected(false);
-
-    if (event.code !== 1000 && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
-      const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 10000);
-      reconnectAttemptsRef.current++;
-      setTimeout(connect, delay);
-    }
-  };
-}, []);
-
-
-  const markAsRead = useCallback(
-    (id: number) => {
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(
-          JSON.stringify({
-            action: 'mark_as_read',
-            notification_id: id,
-          })
-        );
+        setNotifications(mapped);
+        return;
       }
 
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+      // 2) Nouvelle notification temps réel
+      if (data.type === 'new_notification' && data.notification) {
+        const n = data.notification;
+
+        const newNotification: Notification = {
+          id: n.id,
+          type: n.type,
+          content: n.content,
+          created_at: n.created_at,
+          timestamp: n.created_at,
+          read: n.is_read,
+          is_read: n.is_read,
+          sender: n.sender_detail,
+          sender_detail: n.sender_detail,
+          related_model: n.related_model,
+          related_id: n.related_id,
+          related_object: n.related_object,
+        };
+
+        setNotifications((prev) => [newNotification, ...prev]);
+        return;
+      }
+
+      console.warn('⚠️ Payload WS inattendu:', data);
+    };
+
+    ws.onerror = (err) => console.error('❌ WS erreur:', err);
+
+    ws.onclose = (event) => {
+      console.log('🔌 WS fermé', event.code, event.reason);
+      setIsConnected(false);
+
+      if (
+        event.code !== 1000 &&
+        reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS
+      ) {
+        const delay = Math.min(
+          1000 * Math.pow(2, reconnectAttemptsRef.current),
+          10000,
+        );
+        reconnectAttemptsRef.current++;
+        setTimeout(connect, delay);
+      }
+    };
+  }, []);
+
+  const markAsRead = useCallback((id: number) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          action: 'mark_as_read',
+          notification_id: id,
+        }),
       );
-    },
-    []
-  );
+    }
+
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
+    );
+  }, []);
 
   const markAllAsRead = useCallback(() => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({
           action: 'mark_all_read',
-        })
+        }),
       );
     }
 
@@ -168,15 +174,12 @@ export function useNotifications(): UseNotificationsReturn {
 
     // Appel API pour supprimer côté serveur
     const token = localStorage.getItem('access_token');
-    fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications/${id}/`,
-      {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    ).catch((err) => console.error('Erreur suppression notification:', err));
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications/${id}/`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }).catch((err) => console.error('Erreur suppression notification:', err));
   }, []);
 
   const reconnect = useCallback(() => {

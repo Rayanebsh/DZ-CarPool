@@ -11,9 +11,7 @@ class Message(models.Model):
     """Modèle pour les messages entre utilisateurs"""
 
     sender = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
-        related_name="sent_messages"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sent_messages"
     )
     receiver = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -72,12 +70,14 @@ class Message(models.Model):
     def __str__(self):
         if self.is_group_message:
             return f"Message de {self.sender.full_name} dans groupe trajet {self.trajet_id}"
-        return f"Message de {self.sender.full_name} à {self.receiver.full_name if self.receiver else 'groupe'}"
+        receiver_name = self.receiver.full_name if self.receiver else "groupe"
+        return f"Message de {self.sender.full_name} à {receiver_name}"
 
     def mark_as_read(self):
         """Marque le message comme lu"""
         if not self.is_read:
             from django.utils import timezone
+
             self.is_read = True
             self.read_at = timezone.now()
             self.save()
@@ -87,8 +87,7 @@ class Conversation(models.Model):
     """Modèle pour regrouper les messages en conversations"""
 
     participants = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, 
-        related_name="conversations"
+        settings.AUTH_USER_MODEL, related_name="conversations"
     )
     trajet = models.ForeignKey(
         "trajets.Trajet",
@@ -101,11 +100,7 @@ class Conversation(models.Model):
     is_group = models.BooleanField(default=False, db_index=True)
 
     last_message = models.ForeignKey(
-        Message, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name="+"
+        Message, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
     )
     last_activity = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -130,18 +125,14 @@ class Conversation(models.Model):
         if self.is_group:
             return (
                 Message.objects.filter(
-                    trajet=self.trajet, 
-                    is_group_message=True, 
-                    is_read=False
+                    trajet=self.trajet, is_group_message=True, is_read=False
                 )
                 .exclude(sender=user)
                 .count()
             )
         else:
             return Message.objects.filter(
-                receiver=user, 
-                is_read=False, 
-                sender__in=self.participants.all()
+                receiver=user, is_read=False, sender__in=self.participants.all()
             ).count()
 
 
@@ -163,9 +154,7 @@ class Notification(models.Model):
     ]
 
     recipient = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
-        related_name="notifications"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"
     )
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -203,6 +192,7 @@ class Notification(models.Model):
         """Marque la notification comme lue"""
         if not self.is_read:
             from django.utils import timezone
+
             self.is_read = True
             self.read_at = timezone.now()
             self.save()
@@ -214,7 +204,7 @@ class Notification(models.Model):
 
         try:
             from django.apps import apps
-            
+
             model_class = apps.get_model(
                 app_label=(
                     "reservations" if "Reservation" in self.related_model else "trajets"

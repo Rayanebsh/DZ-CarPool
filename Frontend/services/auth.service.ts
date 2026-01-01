@@ -57,6 +57,15 @@ export interface AuthResponse {
   redirect_url?: string;
 }
 
+export interface RidePreferences {
+  smoking_allowed?: boolean;
+  pets_allowed?: boolean;
+  music_allowed?: boolean;
+  conversation_level?: 'quiet' | 'moderate' | 'chatty';
+  max_detour_minutes?: number;
+  preferred_departure_time?: string;
+}
+
 class AuthService {
   private tokenKey = 'access_token';
   private refreshKey = 'refresh_token';
@@ -229,6 +238,49 @@ class AuthService {
     }
 
     return response.data;
+  }
+
+  // ========== ONBOARDING & RIDE PREFERENCES ==========
+
+  /**
+   * ✅ Sauvegarde les préférences de covoiturage
+   * @param preferences - Préférences de trajet (fumeur, animaux, musique, etc.)
+   */
+  async saveRidePreferences(preferences: RidePreferences): Promise<any> {
+    const response = await axios.post(
+      `${API_URL}/users/ride-preferences/`,
+      preferences,
+      {
+        headers: {
+          Authorization: `Bearer ${this.getAccessToken()}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    return response.data;
+  }
+
+  /**
+   * ✅ Marque l'onboarding comme terminé
+   * Ceci met first_login à false pour l'utilisateur
+   */
+  async completeOnboarding(): Promise<void> {
+    await axios.post(
+      `${API_URL}/users/complete-onboarding/`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${this.getAccessToken()}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    // Mettre à jour le cache local
+    const user = this.getStoredUser();
+    if (user) {
+      this.setUser(user);
+    }
   }
 
   // ========== DOCUMENTS ==========

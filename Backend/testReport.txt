@@ -1,0 +1,22 @@
+Couverture de code du backend
+Pour le backend DZ‑CarPool, une campagne de tests automatisés a été mise en place sur les modules critiques (modèles, vues, permissions, serializers et services des applications users et trajets). La couverture de code est mesurée avec l’outil coverage.py, qui indique quelle proportion du code source est effectivement exécutée lors des tests automatisés.
+​
+
+Sur l’ensemble du backend, la couverture atteint environ 86% des lignes et plus de 70% des branches, avec des valeurs supérieures à 90% sur les modèles, permissions et serializers les plus sensibles (gestion des utilisateurs et des trajets). Ces résultats dépassent le seuil de 80% souvent retenu comme compromis raisonnable entre effort de test et confiance dans le code dans l’industrie.
+​
+
+Les fichiers de vues présentent une couverture légèrement plus faible (environ 77–85% de lignes), ce qui s’explique par la présence de nombreux scénarios métiers et branches conditionnelles. Cette situation reste acceptable, les chemins principaux étant couverts, et elle met en évidence des axes d’amélioration possibles si un renforcement des tests est nécessaire (tests supplémentaires sur certains cas limites ou erreurs HTTP).
+
+
+app \ trajets \ models.py	 	92.71%	96	7	8	 	83.33%	6	1	 	92.16%
+app \ trajets \ permissions.py	 	92.31%	39	3	0	 	83.33%	24	4	 	88.89%
+app \ trajets \ serializers.py	 	87.72%	114	14	0	 	54.17%	24	5	 	81.88%
+app \ trajets \ urls.py	 	100.00%	8	0	0	 	100.00%	0	0	 	100.00%
+app \ trajets \ views.py	 	84.56%	285	44	0	 	74.24%	66	15	 	82.62%
+app \ users \ models.py	 	95.76%	165	7	14	 	75.00%	20	5	 	93.51%
+app \ users \ permessions.py	 	100.00%	0	0	0	 	100.00%	0	0	 	100.00%
+app \ users \ serializers.py	 	92.31%	117	9	0	 	66.67%	24	4	 	87.94%
+app \ users \ services.py	 	89.66%	29	3	0	 	100.00%	4	0	 	90.91%
+app \ users \ urls.py	 	100.00%	12	0	0	 	100.00%	0	0	 	100.00%
+app \ users \ views.py	 	76.69%	296	69	0	 	65.15%	66	7	 	74.59%
+Total	 	86.56%	1161	156	22	 	70.51%	234	41	 	83.87%

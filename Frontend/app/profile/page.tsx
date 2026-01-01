@@ -392,7 +392,9 @@ export default function ProfilePage() {
                       <Car className="w-6 h-6 text-[#FF5722]" />
                     </div>
                     <div className="text-sm font-medium text-[#FF5722]">
-                      {(userData?.trips_as_driver || 0) > 0 ? t.driver : t.passenger}
+                      {(userData?.trips_as_driver || 0) > 0
+                        ? t.driver
+                        : t.passenger}
                     </div>
                   </div>
                 </div>

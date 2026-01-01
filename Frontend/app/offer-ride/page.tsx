@@ -145,7 +145,7 @@ export default function OfferRidePage() {
   const loadFuelPrices = async () => {
     try {
       const response = await fetch(
-        'http://localhost:8000/api/v1/trajets/fuel_prices/',
+        'http://localhost:8000/api/v1/trajets/fuel-prices/',
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

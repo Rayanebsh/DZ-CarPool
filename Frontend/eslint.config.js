@@ -7,7 +7,7 @@ import prettier from 'eslint-plugin-prettier';
 import globals from 'globals';
 
 export default [
-  // 🚫 Fichiers à ignorer
+  // Ignore
   {
     ignores: [
       'node_modules/**',
@@ -18,25 +18,19 @@ export default [
     ],
   },
 
-  // ✅ Base JS
+  // Base JS
   js.configs.recommended,
 
-  // ✅ TypeScript + React (browser)
+  // TS / React
   {
-    files: ['**/*.{ts,tsx,js,jsx}'],
+    files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
       parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        ecmaFeatures: { jsx: true },
-      },
+      ecmaVersion: 'latest',
+      sourceType: 'module',
       globals: {
         ...globals.browser,
         ...globals.es2021,
-        process: 'readonly',
-        localStorage: 'readonly',
-        React: 'readonly',
       },
     },
     plugins: {
@@ -45,25 +39,25 @@ export default [
       'react-hooks': reactHooks,
       prettier,
     },
-    settings: {
-      react: { version: 'detect' },
-    },
     rules: {
       'prettier/prettier': 'error',
+
       'react/react-in-jsx-scope': 'off',
-
-      // ⛔️ IMPORTANT : no-undef casse TypeScript
       'no-undef': 'off',
-
       'no-unused-vars': 'off',
+
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {
-          varsIgnorePattern: '^_',
           argsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
         },
       ],
+    },
+    settings: {
+      react: {
+        version: 'detect',
+      },
     },
   },
 ];

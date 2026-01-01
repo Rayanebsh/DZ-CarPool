@@ -3,8 +3,10 @@ app/notifications/consumers.py - Consumer WebSocket pour notifications
 """
 
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer
+
 from channels.db import database_sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
+
 from .models import Notification
 from .serializers import NotificationSerializer
 
@@ -23,10 +25,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         self.notification_group = f"notifications_{self.user.id}"
 
         # Rejoindre le groupe de notifications de l'utilisateur
-        await self.channel_layer.group_add(
-            self.notification_group, 
-            self.channel_name
-        )
+        await self.channel_layer.group_add(self.notification_group, self.channel_name)
 
         await self.accept()
         print("=" * 80)
@@ -43,8 +42,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         """Déconnexion WebSocket"""
         if hasattr(self, "notification_group"):
             await self.channel_layer.group_discard(
-                self.notification_group, 
-                self.channel_name
+                self.notification_group, self.channel_name
             )
             print(f"❌ {self.user.full_name} déconnecté des notifications")
 
@@ -67,6 +65,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             print(f"❌ Erreur receive: {e}")
             import traceback
+
             traceback.print_exc()
 
     async def notification_message(self, event):
@@ -75,56 +74,58 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         Appelé quand channel_layer.group_send() envoie un message de type "notification_message"
         """
         print("=" * 80)
-        print(f"📨 notification_message handler appelé")
-        print(f"   User: {self.user.full_name}")
+        print("notification_message handler appelé")
+        print(f"User: {self.user.full_name}")
         print(f"   Event keys: {event.keys()}")
         print("=" * 80)
-        
+
         notification = event.get("notification")
-        
+
         if not notification:
             print("❌ Pas de notification dans l'event")
             return
-        
+
         print(f"✅ Envoi notification WS à {self.user.full_name}")
         print(f"   Type: {notification.get('type')}")
         print(f"   Content: {notification.get('content')}")
-        
+
         # Envoyer au client
-        await self.send(text_data=json.dumps({
-            "type": "new_notification",
-            "notification": notification
-        }))
-        
-        print(f"✅ Notification envoyée au client")
+        await self.send(
+            text_data=json.dumps(
+                {"type": "new_notification", "notification": notification}
+            )
+        )
+
+        print("Notification envoyée au client")
 
     @database_sync_to_async
     def get_unread_notifications_sync(self):
         """Récupère les notifications non lues depuis la base"""
-        notifications = Notification.objects.filter(
-            recipient=self.user, 
-            is_read=False
-        ).select_related("sender").order_by("-created_at")[:20]
-        
+        notifications = (
+            Notification.objects.filter(recipient=self.user, is_read=False)
+            .select_related("sender")
+            .order_by("-created_at")[:20]
+        )
+
         return NotificationSerializer(notifications, many=True).data
-    
+
     async def send_unread_notifications(self):
         """Envoie les notifications non lues au client"""
         notifications = await self.get_unread_notifications_sync()
         print(f"📬 Envoi de {len(notifications)} notifications non lues")
-        
-        await self.send(text_data=json.dumps({
-            "type": "unread_notifications", 
-            "notifications": notifications
-        }))
+
+        await self.send(
+            text_data=json.dumps(
+                {"type": "unread_notifications", "notifications": notifications}
+            )
+        )
 
     @database_sync_to_async
     def mark_notification_as_read(self, notification_id):
         """Marque une notification comme lue"""
         try:
             notification = Notification.objects.get(
-                id=notification_id, 
-                recipient=self.user
+                id=notification_id, recipient=self.user
             )
             notification.mark_as_read()
             print(f"✅ Notification {notification_id} marquée comme lue")
@@ -136,10 +137,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def mark_all_as_read(self):
         """Marque toutes les notifications comme lues"""
-        count = Notification.objects.filter(
-            recipient=self.user, 
-            is_read=False
-        ).update(is_read=True)
-        
+        count = Notification.objects.filter(recipient=self.user, is_read=False).update(
+            is_read=True
+        )
+
         print(f"✅ {count} notifications marquées comme lues")
         return count

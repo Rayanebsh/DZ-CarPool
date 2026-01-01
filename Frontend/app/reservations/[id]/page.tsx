@@ -7,12 +7,7 @@ import { Footer } from '@/components/footer';
 import { useLanguage } from '@/contexts/language-context';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   User,
   Phone,
@@ -29,7 +24,7 @@ import {
 interface Passenger {
   id: number;
   first_name: string;
-  last_name : string;
+  last_name: string;
   email: string;
   phone_number?: string;
   profile_picture?: string;
@@ -79,7 +74,7 @@ export default function ReservationDetailPage() {
 
       const response = await fetch(
         `${apiUrl}/api/v1/reservations/${reservationId}/`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       if (!response.ok) throw new Error('Erreur chargement réservation');
@@ -108,7 +103,7 @@ export default function ReservationDetailPage() {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -122,15 +117,15 @@ export default function ReservationDetailPage() {
       alert(
         language === 'en'
           ? 'Reservation confirmed successfully!'
-          : 'Réservation confirmée avec succès !'
+          : 'Réservation confirmée avec succès !',
       );
-      router.push('/my-trips');
+      router.push('/messages');
     } catch (error) {
       console.error('❌ Erreur:', error);
       alert(
         language === 'en'
           ? 'Error confirming reservation'
-          : 'Erreur lors de la confirmation'
+          : 'Erreur lors de la confirmation',
       );
     } finally {
       setActionLoading(false);
@@ -151,7 +146,7 @@ export default function ReservationDetailPage() {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -162,18 +157,14 @@ export default function ReservationDetailPage() {
       const data = await response.json();
       console.log('✅ Réponse:', data);
 
-      alert(
-        language === 'en'
-          ? 'Reservation rejected'
-          : 'Réservation refusée'
-      );
+      alert(language === 'en' ? 'Reservation rejected' : 'Réservation refusée');
       router.push('/my-trips');
     } catch (error) {
       console.error('❌ Erreur:', error);
       alert(
         language === 'en'
           ? 'Error rejecting reservation'
-          : 'Erreur lors du rejet'
+          : 'Erreur lors du rejet',
       );
     } finally {
       setActionLoading(false);
@@ -208,13 +199,29 @@ export default function ReservationDetailPage() {
     const statusConfig: {
       [key: string]: { color: string; label: { en: string; fr: string } };
     } = {
-      PENDING: { color: 'bg-yellow-500', label: { en: 'Pending', fr: 'En attente' } },
-      CONFIRMED: { color: 'bg-green-500', label: { en: 'Confirmed', fr: 'Confirmée' } },
-      REJECTED: { color: 'bg-red-500', label: { en: 'Rejected', fr: 'Refusée' } },
-      CANCELLED: { color: 'bg-gray-500', label: { en: 'Cancelled', fr: 'Annulée' } },
+      PENDING: {
+        color: 'bg-yellow-500',
+        label: { en: 'Pending', fr: 'En attente' },
+      },
+      CONFIRMED: {
+        color: 'bg-green-500',
+        label: { en: 'Confirmed', fr: 'Confirmée' },
+      },
+      REJECTED: {
+        color: 'bg-red-500',
+        label: { en: 'Rejected', fr: 'Refusée' },
+      },
+      CANCELLED: {
+        color: 'bg-gray-500',
+        label: { en: 'Cancelled', fr: 'Annulée' },
+      },
     };
     const config = statusConfig[status] || statusConfig.PENDING;
-    return <Badge className={`${config.color} text-white`}>{config.label[language]}</Badge>;
+    return (
+      <Badge className={`${config.color} text-white`}>
+        {config.label[language]}
+      </Badge>
+    );
   };
 
   const passenger = reservation.passager_detail;
@@ -227,7 +234,9 @@ export default function ReservationDetailPage() {
         <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {language === 'en' ? 'Reservation Request' : 'Demande de réservation'}
+              {language === 'en'
+                ? 'Reservation Request'
+                : 'Demande de réservation'}
             </h1>
             <p className="text-gray-600">
               {language === 'en'
@@ -256,12 +265,15 @@ export default function ReservationDetailPage() {
                       />
                     ) : (
                       <span className="text-2xl font-bold text-[#FF5722]">
-                        {passenger?.first_name ? passenger.first_name[0] : '?'} {passenger?.last_name}
+                        {passenger?.first_name ? passenger.first_name[0] : '?'}{' '}
+                        {passenger?.last_name}
                       </span>
                     )}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">{passenger?.first_name} {passenger?.last_name}</h3>
+                    <h3 className="font-semibold text-lg">
+                      {passenger?.first_name} {passenger?.last_name}
+                    </h3>
                     {passenger?.rating && (
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -289,8 +301,12 @@ export default function ReservationDetailPage() {
                 {passenger?.total_trips && (
                   <div className="pt-4 border-t">
                     <p className="text-sm text-gray-600">
-                      {language === 'en' ? 'Total trips: ' : 'Trajets effectués: '}
-                      <span className="font-semibold">{passenger.total_trips}</span>
+                      {language === 'en'
+                        ? 'Total trips: '
+                        : 'Trajets effectués: '}
+                      <span className="font-semibold">
+                        {passenger.total_trips}
+                      </span>
                     </p>
                   </div>
                 )}
@@ -324,7 +340,7 @@ export default function ReservationDetailPage() {
                     <p className="font-medium">
                       {trajet?.date_depart &&
                         new Date(trajet.date_depart).toLocaleDateString(
-                          language === 'en' ? 'en-US' : 'fr-FR'
+                          language === 'en' ? 'en-US' : 'fr-FR',
                         )}
                     </p>
                   </div>
@@ -341,19 +357,29 @@ export default function ReservationDetailPage() {
                 <div className="pt-4 border-t space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
-                      {language === 'en' ? 'Seats requested' : 'Places demandées'}
+                      {language === 'en'
+                        ? 'Seats requested'
+                        : 'Places demandées'}
                     </span>
-                    <span className="font-semibold">{reservation?.nbr_places}</span>
+                    <span className="font-semibold">
+                      {reservation?.nbr_places}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">
                       {language === 'en' ? 'Price per seat' : 'Prix par place'}
                     </span>
-                    <span className="font-semibold">{trajet?.prix_par_place} DA</span>
+                    <span className="font-semibold">
+                      {trajet?.prix_par_place} DA
+                    </span>
                   </div>
                   <div className="flex justify-between pt-2 border-t">
-                    <span className="font-semibold">{language === 'en' ? 'Total' : 'Total'}</span>
-                    <span className="font-bold text-lg text-[#FF5722]">{reservation?.total_price} DA</span>
+                    <span className="font-semibold">
+                      {language === 'en' ? 'Total' : 'Total'}
+                    </span>
+                    <span className="font-bold text-lg text-[#FF5722]">
+                      {reservation?.total_price} DA
+                    </span>
                   </div>
                 </div>
               </CardContent>

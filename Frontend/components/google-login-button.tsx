@@ -16,7 +16,7 @@ export default function GoogleLoginButton({
   onError,
 }: GoogleLoginButtonProps) {
   const router = useRouter();
-  const { updateUser, checkAuth } = useAuth(); // ✅ Utiliser updateUser et checkAuth
+  const { updateUser, checkAuth, determineRedirectUrl } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const googleLogin = useGoogleLogin({
@@ -26,25 +26,24 @@ export default function GoogleLoginButton({
       try {
         console.log('✅ Token Google reçu:', tokenResponse.access_token);
 
-        // Envoyer le token au backend
+        // 1️⃣ Envoyer le token au backend
         const authResponse = await authService.googleAuth(
           tokenResponse.access_token,
         );
 
         console.log('✅ Authentification réussie:', authResponse);
 
-        // ✅ Mettre à jour le contexte avec updateUser
+        // 2️⃣ Mettre à jour le contexte
         if (authResponse.user) {
           updateUser(authResponse.user);
         }
 
-        // ✅ Vérifier l'authentification pour mettre à jour isAuthenticated
+        // 3️⃣ Vérifier l'authentification
         await checkAuth();
 
-        // Redirection
-        const redirectUrl = '/verify';
-        console.log('🔄 Redirection vers:', redirectUrl);
-
+        // 4️⃣ Déterminer et effectuer la redirection intelligente
+        const redirectUrl = await determineRedirectUrl();
+        console.log('🔄 Redirection Google Auth vers:', redirectUrl);
         router.push(redirectUrl);
       } catch (error: any) {
         console.error('❌ Erreur Google Auth:', error);

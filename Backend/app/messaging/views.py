@@ -94,7 +94,10 @@ class MessageViewSet(viewsets.ModelViewSet):
             return Response(
                 {
                     "error": "Accès non autorisé",
-                    "message": "Vous devez avoir une réservation confirmée pour accéder à ce groupe",
+                    "message": (
+                        "Vous devez avoir une réservation confirmée",
+                        "pour accéder à ce groupe",
+                    ),
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )
@@ -224,146 +227,27 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"], url_path="upload-media")
     def upload_media(self, request):
-        """
-        Upload d'un fichier média pour un message
-        POST /api/v1/messages/upload-media/
-        Body: {
-            "conversation_type": "group" | "private",
-            "conversation_id": "123" | "1_2",
-            "text": "Message texte",
-            "media": "data:image/png;base64,iVBORw0KG...",
-            "media_type": "image/png",
-            "media_name": "photo.png"
-        }
-        """
         try:
-            conversation_type = request.data.get("conversation_type")
-            conversation_id = request.data.get("conversation_id")
-            text = request.data.get("text", "").strip()
-            media_base64 = request.data.get("media")
-            media_type = request.data.get("media_type")
-            media_name = request.data.get("media_name", "file")
+            # Validate and extract request data
+            validation_error = self._validate_upload_request(request)
+            if validation_error:
+                return validation_error
 
-            # Validation
-            if not conversation_type or not conversation_id:
-                return Response(
-                    {"error": "conversation_type et conversation_id requis"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            # Prepare message data
+            message_data = self._prepare_message_data(request)
+            if isinstance(message_data, Response):  # Error response
+                return message_data
 
-            if not text and not media_base64:
-                return Response(
-                    {"error": "Message vide"}, status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Préparer les données du message
-            message_data = {
-                "sender": request.user,
-                "text": text,
-            }
-
-            # Traiter le fichier si présent
-            if media_base64:
-                try:
-                    # Retirer le préfixe data:image/...;base64, si présent
-                    if "," in media_base64:
-                        media_base64 = media_base64.split(",")[1]
-
-                    # Décoder le base64
-                    file_data = base64.b64decode(media_base64)
-
-                    # Générer un nom de fichier unique
-                    file_extension = (
-                        media_name.split(".")[-1] if "." in media_name else "jpg"
-                    )
-                    unique_filename = f"{uuid.uuid4()}.{file_extension}"
-
-                    # Créer un ContentFile
-                    media_file = ContentFile(file_data, name=unique_filename)
-                    message_data["media"] = media_file
-                    message_data["media_type"] = media_type
-
-                    logger.info(
-                        f"📎 Fichier uploadé: {unique_filename} ({len(file_data)} bytes)"
-                    )
-                except Exception as e:
-                    logger.error(f"❌ Erreur décodage fichier: {e}")
-                    return Response(
-                        {"error": "Erreur lors du traitement du fichier"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-            # Déterminer le type de conversation et créer le message
-            if conversation_type == "group":
-                from app.reservations.models import Reservation
-                from app.trajets.models import Trajet
-
-                try:
-                    trajet_id = int(conversation_id)
-                    trajet = Trajet.objects.get(id=trajet_id)
-
-                    # Vérifier permission
-                    is_driver = trajet.conducteur == request.user
-                    has_reservation = Reservation.objects.filter(
-                        trajet_id=trajet_id, passager=request.user, status="CONFIRMED"
-                    ).exists()
-
-                    if not is_driver and not has_reservation:
-                        return Response(
-                            {"error": "Accès non autorisé"},
-                            status=status.HTTP_403_FORBIDDEN,
-                        )
-
-                    message_data["trajet"] = trajet
-                    message_data["is_group_message"] = True
-                    message_data["receiver"] = None
-
-                except (Trajet.DoesNotExist, ValueError):
-                    return Response(
-                        {"error": "Trajet non trouvé"}, status=status.HTTP_404_NOT_FOUND
-                    )
-
-            elif conversation_type == "private":
-                from django.contrib.auth import get_user_model
-
-                User = get_user_model()
-
-                try:
-                    user_ids = [int(uid) for uid in conversation_id.split("_")]
-                    if request.user.id not in user_ids:
-                        return Response(
-                            {"error": "Accès non autorisé"},
-                            status=status.HTTP_403_FORBIDDEN,
-                        )
-
-                    other_user_id = [uid for uid in user_ids if uid != request.user.id][
-                        0
-                    ]
-                    receiver = User.objects.get(id=other_user_id)
-
-                    message_data["receiver"] = receiver
-                    message_data["is_group_message"] = False
-
-                except (User.DoesNotExist, ValueError, IndexError):
-                    return Response(
-                        {"error": "Utilisateur non trouvé"},
-                        status=status.HTTP_404_NOT_FOUND,
-                    )
-            else:
-                return Response(
-                    {"error": "Type de conversation invalide"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # Créer le message
+            # Create the message
             from app.notifications.models import Message
 
             message = Message.objects.create(**message_data)
 
-            # Mettre à jour la conversation
+            # Update conversation
+            conversation_type = request.data.get("conversation_type")
             self._update_conversation(message, conversation_type)
 
-            # Sérialiser et retourner
+            # Return response
             serializer = self.get_serializer(message)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -371,6 +255,164 @@ class MessageViewSet(viewsets.ModelViewSet):
             logger.error(f"Erreur upload media: {e}", exc_info=True)
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def _validate_upload_request(self, request):
+        """Validate basic request parameters."""
+        conversation_type = request.data.get("conversation_type")
+        conversation_id = request.data.get("conversation_id")
+        text = request.data.get("text", "").strip()
+        media_base64 = request.data.get("media")
+
+        if not conversation_type or not conversation_id:
+            return Response(
+                {"error": "conversation_type et conversation_id requis"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not text and not media_base64:
+            return Response(
+                {"error": "Message vide"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return None
+
+    def _prepare_message_data(self, request):
+        """Prepare message data including media file and conversation details."""
+        text = request.data.get("text", "").strip()
+        media_base64 = request.data.get("media")
+        conversation_type = request.data.get("conversation_type")
+        conversation_id = request.data.get("conversation_id")
+
+        message_data = {
+            "sender": request.user,
+            "text": text,
+        }
+
+        # Process media file if present
+        if media_base64:
+            media_error = self._process_media_file(request, message_data)
+            if media_error:
+                return media_error
+
+        # Add conversation-specific data
+        conversation_error = self._add_conversation_data(
+            request, message_data, conversation_type, conversation_id
+        )
+        if conversation_error:
+            return conversation_error
+
+        return message_data
+
+    def _process_media_file(self, request, message_data):
+        """Process and attach media file to message data."""
+        try:
+            media_base64 = request.data.get("media")
+            media_type = request.data.get("media_type")
+            media_name = request.data.get("media_name", "file")
+
+            # Remove data URL prefix if present
+            if "," in media_base64:
+                media_base64 = media_base64.split(",")[1]
+
+            # Decode base64
+            file_data = base64.b64decode(media_base64)
+
+            # Generate unique filename
+            file_extension = media_name.split(".")[-1] if "." in media_name else "jpg"
+            unique_filename = f"{uuid.uuid4()}.{file_extension}"
+
+            # Create ContentFile
+            media_file = ContentFile(file_data, name=unique_filename)
+            message_data["media"] = media_file
+            message_data["media_type"] = media_type
+
+            logger.info(
+                f"📎 Fichier uploadé: {unique_filename} ({len(file_data)} bytes)"
+            )
+            return None
+
+        except Exception as e:
+            logger.error(f"❌ Erreur décodage fichier: {e}")
+            return Response(
+                {"error": "Erreur lors du traitement du fichier"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    def _add_conversation_data(
+        self, request, message_data, conversation_type, conversation_id
+    ):
+        """Add conversation-specific data based on conversation type."""
+        if conversation_type == "group":
+            return self._add_group_conversation_data(
+                request, message_data, conversation_id
+            )
+        elif conversation_type == "private":
+            return self._add_private_conversation_data(
+                request, message_data, conversation_id
+            )
+        else:
+            return Response(
+                {"error": "Type de conversation invalide"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    def _add_group_conversation_data(self, request, message_data, conversation_id):
+        """Add group conversation data (trajet)."""
+        from app.reservations.models import Reservation
+        from app.trajets.models import Trajet
+
+        try:
+            trajet_id = int(conversation_id)
+            trajet = Trajet.objects.get(id=trajet_id)
+
+            # Check permissions
+            is_driver = trajet.conducteur == request.user
+            has_reservation = Reservation.objects.filter(
+                trajet_id=trajet_id, passager=request.user, status="CONFIRMED"
+            ).exists()
+
+            if not is_driver and not has_reservation:
+                return Response(
+                    {"error": "Accès non autorisé"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            message_data["trajet"] = trajet
+            message_data["is_group_message"] = True
+            message_data["receiver"] = None
+            return None
+
+        except (Trajet.DoesNotExist, ValueError):
+            return Response(
+                {"error": "Trajet non trouvé"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    def _add_private_conversation_data(self, request, message_data, conversation_id):
+        """Add private conversation data (receiver)."""
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+
+        try:
+            user_ids = [int(uid) for uid in conversation_id.split("_")]
+            if request.user.id not in user_ids:
+                return Response(
+                    {"error": "Accès non autorisé"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            other_user_id = [uid for uid in user_ids if uid != request.user.id][0]
+            receiver = User.objects.get(id=other_user_id)
+
+            message_data["receiver"] = receiver
+            message_data["is_group_message"] = False
+            return None
+
+        except (User.DoesNotExist, ValueError, IndexError):
+            return Response(
+                {"error": "Utilisateur non trouvé"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
     def _update_conversation(self, message, conversation_type):

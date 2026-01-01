@@ -233,14 +233,14 @@ class ReservationViewSet(viewsets.ModelViewSet):
     def confirm(self, request, pk=None):
         """Confirme une réservation (conducteur uniquement)"""
         reservation = self.get_object()
-        
+
         print("=" * 80)
         print(f"CONFIRM appelé pour réservation #{pk}")
         print(f"Status AVANT: {reservation.status}")
         print(f"Conducteur: {reservation.trajet.conducteur.full_name}")
         print(f"User: {request.user.full_name}")
         print("=" * 80)
-        
+
         # Vérifier que c'est bien le conducteur
         if reservation.trajet.conducteur != request.user:
             return Response(
@@ -257,7 +257,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
         # CRITIQUE: Changer le status et sauvegarder SANS update_fields
         reservation.status = "CONFIRMED"
         reservation.save()  # Sans update_fields pour déclencher le signal
-        
+
         print(f"🔵 APRÈS SAVE - Status: {reservation.status}")
         print("=" * 80)
 
@@ -269,7 +269,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 "reservation": self.get_serializer(reservation).data,
             }
         )
-    
+
     @action(detail=True, methods=["post"])
     def reject(self, request, pk=None):
         """Rejette une réservation (conducteur uniquement)"""
@@ -290,13 +290,15 @@ class ReservationViewSet(viewsets.ModelViewSet):
         # Libérer les places AVANT de changer le status
         trajet = reservation.trajet
         trajet.places_disponibles += reservation.nbr_places
-        trajet.save(update_fields=['places_disponibles'])
+        trajet.save(update_fields=["places_disponibles"])
 
         # Changer status
         reservation.status = "REJECTED"
-        reservation.save(update_fields=['status'])
+        reservation.save(update_fields=["status"])
 
-        logger.info(f"Réservation {pk} rejetée - {reservation.nbr_places} places libérées")
+        logger.info(
+            f"Réservation {pk} rejetée - {reservation.nbr_places} places libérées"
+        )
 
         return Response(
             {
@@ -325,13 +327,15 @@ class ReservationViewSet(viewsets.ModelViewSet):
         # Libérer les places (peu importe le status)
         trajet = reservation.trajet
         trajet.places_disponibles += reservation.nbr_places
-        trajet.save(update_fields=['places_disponibles'])
-        
+        trajet.save(update_fields=["places_disponibles"])
+
         # Changer status
         reservation.status = "CANCELLED"
-        reservation.save(update_fields=['status'])
+        reservation.save(update_fields=["status"])
 
-        logger.info(f"Réservation {pk} annulée - {reservation.nbr_places} places libérées")
+        logger.info(
+            f"Réservation {pk} annulée - {reservation.nbr_places} places libérées"
+        )
 
         return Response(
             {
@@ -475,6 +479,3 @@ class ReservationsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "app.reservations"
     verbose_name = "Réservations"
-
-    def ready(self):
-        import app.reservations.signals
