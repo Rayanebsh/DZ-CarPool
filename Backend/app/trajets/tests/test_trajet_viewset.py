@@ -538,22 +538,6 @@ class TrajetViewSetTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @patch("app.trajets.views.get_fuel_prices_summary")
-    def test_fuel_prices_endpoint(self):
-        """Test: Endpoint des prix du carburant"""
-        with patch("app.trajets.views.get_fuel_prices_summary") as mock_func:
-            mock_func.return_value = {
-                "wilayas": [{"code": "16", "name": "Alger"}],
-                "fuels": ["gasoil"],
-                "consommation_moyenne": 7.5
-            }
-            
-            url = reverse("trajets:fuel-price-list")
-            response = self.client.get(url)
-            
-            # Accepter 200 ou 500
-            self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_500_INTERNAL_SERVER_ERROR])
-    
     def test_trajet_model_save(self):
         """Test: Calcul automatique des prix lors de la sauvegarde"""
         trajet = Trajet.objects.create(

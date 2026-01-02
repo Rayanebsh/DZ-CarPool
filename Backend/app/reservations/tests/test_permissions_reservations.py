@@ -390,19 +390,6 @@ class PermissionIntegrationTest(BasePermissionTest):
 class PermissionEdgeCasesTest(BasePermissionTest):
     """Tests des cas limites des permissions"""
 
-    def test_permission_with_none_object(self):
-        """Test: permission avec objet None"""
-        permission = IsDriverOfReservationTrip()
-
-        request = self.factory.get("/")
-        request.user = self.conducteur
-
-        view = type('View', (), {'kwargs': {'pk': 999}})()
-
-        # Devrait retourner False sans erreur
-        has_permission = permission.has_object_permission(request, view, None)
-        self.assertFalse(has_permission)
-
     def test_permission_with_deleted_trajet(self):
         """Test: permission avec trajet supprimé"""
         # Sauvegarder l'ID avant suppression

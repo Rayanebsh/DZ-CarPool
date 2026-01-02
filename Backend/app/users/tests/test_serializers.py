@@ -62,7 +62,11 @@ class PreferenceSerializerTests(TestCase):
 
     def setUp(self):
         self.preference = Preference.objects.create(
-            name_en="NO_SMOKING", description="Pas de fumée dans le véhicule"
+            name_en="NO_SMOKING",
+            name_fr="PAS_DE_FUMEE",
+            category="RULE",
+            icon="🚭",
+            description="Pas de fumée dans le véhicule"
         )
 
     def test_preference_serialization(self):
@@ -71,16 +75,19 @@ class PreferenceSerializerTests(TestCase):
         data = serializer.data
 
         self.assertEqual(data["name_en"], "NO_SMOKING")
+        self.assertEqual(data["name_fr"], "PAS_DE_FUMEE")
+        self.assertEqual(data["category"], "RULE")
+        self.assertEqual(data["icon"], "🚭")
         self.assertEqual(data["description"], "Pas de fumée dans le véhicule")
+        self.assertIn("id", data)
 
     def test_preference_fields(self):
         """Test que tous les champs sont présents"""
         serializer = PreferenceSerializer(self.preference)
         data = serializer.data
 
-        expected_fields = {"id", "name", "description"}
+        expected_fields = {"id", "name_en", "name_fr", "category", "icon", "description"}
         self.assertEqual(set(data.keys()), expected_fields)
-
 
 class UserDocumentSerializerTests(TestCase):
     """Tests pour UserDocumentSerializer"""

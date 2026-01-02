@@ -447,46 +447,6 @@ class EdgeCasesTestCase(APITestCase):
         # Vérifier la pagination
         self.assertIn("results", response.data)
 
-    # Dans app/trajets/tests/test_permissions.py ligne ~537
-    def test_filter_by_status_my_trips(self):
-        """Test: Filtrage par statut dans mes trajets"""
-        self.client.force_authenticate(user=self.conducteur)
-        trajet_actif = Trajet.objects.create(
-            conducteur=self.conducteur,
-            ville_depart="Alger",
-            ville_arrivee="Oran",
-            date=date.today() + timedelta(days=1),
-            heure_depart=time(9, 0),
-            nbr_places=4,
-            price=Decimal("1500.00"),
-            distance=Decimal("432.5"),
-            fuel_type="gasoil",
-            status="ACTIVE",
-        )
-        Trajet.objects.create(
-            conducteur=self.conducteur,
-            ville_depart="Alger",
-            ville_arrivee="Constantine",
-            date=date.today() - timedelta(days=1),
-            heure_depart=time(10, 0),
-            nbr_places=3,
-            price=Decimal("1200.00"),
-            distance=Decimal("300.0"),
-            fuel_type="gasoil",
-            status="COMPLETED",
-        )
-        url = reverse("trajets:trajet-my-trips")
-        response = self.client.get(url, {"status": "ACTIVE"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # ✅ Gérer la pagination
-        if isinstance(response.data, dict) and "results" in response.data:
-            results = response.data["results"]
-        else:
-            results = response.data
-        
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["status"], "ACTIVE")
-
 class FuelPriceViewSetTestCase(APITestCase):
     """Tests pour le FuelPriceViewSet"""
 

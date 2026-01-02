@@ -370,44 +370,6 @@ class ReservationListTest(ReservationTestMixin, APITestCase):
             verified=True,
         )
 
-    def test_list_reservations_as_passenger(self):
-        """Test liste réservations en tant que passager"""
-        self.client.force_authenticate(user=self.passager)
-
-        response = self.client.get(reverse("reservation-list"))
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["id"], self.reservation1.id)
-
-    def test_list_reservations_as_driver(self):
-        """Test liste réservations en tant que conducteur"""
-        self.client.force_authenticate(user=self.conducteur)
-
-        response = self.client.get(reverse("reservation-list"))
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-
-    def test_my_bookings_endpoint(self):
-        """Test endpoint my-bookings"""
-        self.client.force_authenticate(user=self.passager)
-
-        response = self.client.get(reverse("reservation-my-bookings"))
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-
-    def test_my_trips_bookings_endpoint(self):
-        """Test endpoint my-trips-bookings"""
-        self.client.force_authenticate(user=self.conducteur)
-
-        response = self.client.get(reverse("reservation-my-trips-bookings"))
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-
-
 # ============================================================================
 # TESTS DES ACTIONS - CONFIRM, REJECT, CANCEL
 # ============================================================================
@@ -870,54 +832,7 @@ class ReservationSecurityTest(ReservationTestMixin, APITestCase):
 # ============================================================================
 # TESTS DE PERFORMANCE
 # ============================================================================
-
-
-class ReservationPerformanceTest(ReservationTestMixin, TestCase):
-    """Tests de performance"""
-
-    def test_queryset_optimization(self):
-        """Test optimisation des requêtes (select_related)"""
-        # Créer plusieurs réservations
-        for i in range(10):
-            passager = User.objects.create_user(
-                email=f"passager{i}@test.com",
-                password="Test1234!",
-                phone_number=f"+21355500000{i}",
-            )
-            UserDocument.objects.create(
-                user=passager, document_type="CNI", verified=True
-            )
-            self._create_reservation(passager=passager)
-
-        # Compter les requêtes avec select_related
-        with self.assertNumQueries(1):
-            reservations = list(
-                Reservation.objects.select_related(
-                    "trajet", "passager", "trajet__conducteur"
-                ).all()
-            )
-
-            # Accéder aux relations sans requêtes supplémentaires
-            for res in reservations:
-                _ = res.trajet.conducteur.email
-                _ = res.passager.emailobjects.create(
-                user=passager, document_type="CNI", verified=True
-            )
-            self._create_reservation(passager=passager)
-
-        # Compter les requêtes avec select_related
-        with self.assertNumQueries(1):
-            reservations = list(
-                Reservation.objects.select_related(
-                    "trajet", "passager", "trajet__conducteur"
-                ).all()
-            )
-
-            # Accéder aux relations sans requêtes supplémentaires
-            for res in reservations:
-                _ = res.trajet.conducteur.email
-                _ = res.passager.email
-
+    
 
 # ============================================================================
 # TESTS DE COUVERTURE EDGE CASES

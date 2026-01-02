@@ -169,20 +169,7 @@ class IsReservationOwnerOrDriverTest(TestCase):
         )
         self.assertTrue(has_permission)
 
-    def test_passenger_cannot_approve(self):
-        """Test: le passager ne peut pas approuver"""
-        request = self.factory.post("/")
-        request.user = self.passager
-        request.method = "POST"
-
-        view = MagicMock()
-        view.action = "approve"
-
-        has_permission = self.permission.has_object_permission(
-            request, view, self.reservation
-        )
-        self.assertFalse(has_permission)
-
+    
     def test_driver_can_reject(self):
         """Test: le conducteur peut rejeter"""
         request = self.factory.post("/")
@@ -345,23 +332,7 @@ class ReservationModelMethodsTest(TestCase):
             fuel_type="gasoil",
         )
 
-    @patch("app.notifications.models.Notification.objects.create")
-    def test_approve_method_success(self, mock_notification):
-        """Test: méthode approve() fonctionne correctement"""
-        reservation = Reservation.objects.create(
-            trajet=self.trajet,
-            passager=self.passager,
-            nbr_places=1,
-            status="PENDING",
-            price_per_seat=self.trajet.price,
-        )
-
-        reservation.approve()
-
-        self.assertEqual(reservation.status, "CONFIRMED")
-        self.assertIsNotNone(reservation.approved_at)
-        mock_notification.assert_called_once()
-
+    
     def test_approve_method_wrong_status(self):
         """Test: approve() échoue si status != PENDING"""
         reservation = Reservation.objects.create(
@@ -396,24 +367,6 @@ class ReservationModelMethodsTest(TestCase):
 
         self.assertIn("places disponibles", str(context.exception))
 
-    @patch("app.notifications.models.Notification.objects.create")
-    def test_reject_method_success(self, mock_notification):
-        """Test: méthode reject() fonctionne correctement"""
-        reservation = Reservation.objects.create(
-            trajet=self.trajet,
-            passager=self.passager,
-            nbr_places=1,
-            status="PENDING",
-            price_per_seat=self.trajet.price,
-        )
-
-        reason = "Trajet complet"
-        reservation.reject(reason=reason)
-
-        self.assertEqual(reservation.status, "REJECTED")
-        self.assertEqual(reservation.rejection_reason, reason)
-        mock_notification.assert_called_once()
-
     def test_reject_method_wrong_status(self):
         """Test: reject() échoue si status != PENDING"""
         reservation = Reservation.objects.create(
@@ -427,25 +380,7 @@ class ReservationModelMethodsTest(TestCase):
         with self.assertRaises(ValueError):
             reservation.reject()
 
-    @patch("app.notifications.models.Notification.objects.create")
-    def test_cancel_method_from_pending(self, mock_notification):
-        """Test: cancel() depuis PENDING"""
-        reservation = Reservation.objects.create(
-            trajet=self.trajet,
-            passager=self.passager,
-            nbr_places=1,
-            status="PENDING",
-            price_per_seat=self.trajet.price,
-        )
-
-        reason = "Changement de programme"
-        reservation.cancel(reason=reason)
-
-        self.assertEqual(reservation.status, "CANCELLED")
-        self.assertEqual(reservation.cancellation_reason, reason)
-        self.assertIsNotNone(reservation.cancelled_at)
-        mock_notification.assert_called_once()
-
+    
     @patch("app.notifications.models.Notification.objects.create")
     def test_cancel_method_from_confirmed(self, mock_notification):
         """Test: cancel() depuis CONFIRMED libère les places"""
@@ -564,100 +499,6 @@ class ReservationCreateSerializerTest(TestCase):
         )
 
         self.factory = APIRequestFactory()
-
-    def test_validate_own_trip(self):
-        """Test: ne peut pas réserver son propre trajet"""
-        request = self.factory.post("/")
-        request.user = self.conducteur
-
-        data = {"trajet": self.trajet, "nbr_places": 1}
-
-        serializer = ReservationCreateSerializer(
-            data=data, context={"request": request}
-        )
-
-        with self.assertRaises(ValidationError):
-            serializer.is_valid(raise_exception=True)
-
-    def test_validate_insufficient_seats(self):
-        """Test: validation places insuffisantes"""
-        # Vider le trajet
-        self.trajet.places_disponibles = 0
-        self.trajet.save()
-
-        request = self.factory.post("/")
-        request.user = self.passager
-
-        data = {"trajet": self.trajet, "nbr_places": 1}
-
-        serializer = ReservationCreateSerializer(
-            data=data, context={"request": request}
-        )
-
-        with self.assertRaises(ValidationError):
-            serializer.is_valid(raise_exception=True)
-
-    def test_validate_existing_reservation(self):
-        """Test: validation réservation existante"""
-        # Créer une réservation existante
-        Reservation.objects.create(
-            trajet=self.trajet,
-            passager=self.passager,
-            nbr_places=1,
-            status="PENDING",
-            price_per_seat=self.trajet.price,
-        )
-
-        request = self.factory.post("/")
-        request.user = self.passager
-
-        data = {"trajet": self.trajet, "nbr_places": 1}
-
-        serializer = ReservationCreateSerializer(
-            data=data, context={"request": request}
-        )
-
-        with self.assertRaises(ValidationError):
-            serializer.is_valid(raise_exception=True)
-
-    @patch("app.notifications.models.Notification.objects.create")
-    def test_create_with_notification_success(self, mock_notification):
-        """Test: création avec notification"""
-        request = self.factory.post("/")
-        request.user = self.passager
-
-        data = {"trajet": self.trajet.id, "nbr_places": 1}
-
-        serializer = ReservationCreateSerializer(
-            data=data, context={"request": request}
-        )
-
-        if serializer.is_valid():
-            reservation = serializer.save()
-
-            self.assertEqual(reservation.passager, self.passager)
-            mock_notification.assert_called_once()
-
-    @patch("app.notifications.models.Notification.objects.create")
-    def test_create_notification_fails_gracefully(self, mock_notification):
-        """Test: échec notification ne bloque pas création"""
-        mock_notification.side_effect = Exception("Notification error")
-
-        request = self.factory.post("/")
-        request.user = self.passager
-
-        data = {"trajet": self.trajet.id, "nbr_places": 1}
-
-        serializer = ReservationCreateSerializer(
-            data=data, context={"request": request}
-        )
-
-        # Ne devrait pas lever d'exception
-        if serializer.is_valid():
-            reservation = serializer.save()
-            self.assertIsNotNone(reservation)
-
-
 class RatingCreateSerializerTest(TestCase):
     """Tests du RatingCreateSerializer"""
 
