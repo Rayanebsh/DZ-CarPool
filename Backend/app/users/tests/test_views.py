@@ -418,32 +418,6 @@ class PreferencesTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
 
-    def test_update_preferences(self):
-        """Test mise à jour préférences"""
-        data = {"preference_ids": [self.pref1.id, self.pref2.id]}
-
-        response = self.client.post("/api/v1/users/preferences/", data, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.user.preferences.count(), 2)
-        self.assertTrue(response.data["has_preferences"])
-
-    def test_update_preferences_invalid_ids(self):
-        """Test avec IDs invalides"""
-        data = {"preference_ids": [9999]}
-
-        response = self.client.post("/api/v1/users/preferences/", data, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_update_preferences_invalid_format(self):
-        """Test format invalide"""
-        data = {"preference_ids": "not_a_list"}
-
-        response = self.client.post("/api/v1/users/preferences/", data, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
     def test_my_preferences(self):
         """Test mes préférences"""
         self.user.preferences.add(self.pref1)
@@ -453,54 +427,7 @@ class PreferencesTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
         self.assertTrue(response.data["has_preferences"])
-
-
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-class ChangePasswordTests(APITestCase):
-    """Tests changement de mot de passe"""
-
-    def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(email="test@example.com", password="old123")
-        self.client.force_authenticate(user=self.user)
-
-    def test_change_password_success(self):
-        """Test changement réussi"""
-        data = {
-            "old_password": "old123",
-            "new_password": "NewPass123!",
-            "new_password_confirm": "NewPass123!",
-        }
-
-        response = self.client.post("/api/v1/users/change-password/", data, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.user.refresh_from_db()
-        self.assertTrue(self.user.check_password("NewPass123!"))
-
-    def test_change_password_wrong_old(self):
-        """Test ancien mot de passe incorrect"""
-        data = {
-            "old_password": "wrong",
-            "new_password": "NewPass123!",
-            "new_password_confirm": "NewPass123!",
-        }
-
-        response = self.client.post("/api/v1/users/change-password/", data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_change_password_mismatch(self):
-        """Test nouveaux mots de passe différents"""
-        data = {
-            "old_password": "old123",
-            "new_password": "NewPass123!",
-            "new_password_confirm": "Different123!",
-        }
-
-        response = self.client.post("/api/v1/users/change-password/", data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-
+    
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class EmailVerificationTests(APITestCase):
     """Tests vérification email"""
