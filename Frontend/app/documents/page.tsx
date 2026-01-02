@@ -4,9 +4,17 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
+interface Document {
+  id: number;
+  document_type: string;
+  uploaded_at: string;
+  verified: boolean;
+  rejection_reason: string | null;
+}
+
 export default function DocumentsPage() {
   const router = useRouter();
-  const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState('CNI');
   const [loading, setLoading] = useState(false);
@@ -54,7 +62,10 @@ export default function DocumentsPage() {
   const authenticatedFetch = useCallback(
     async (url: string, options: RequestInit = {}) => {
       let token = getAuthToken();
-      if (!token) throw new Error('Token manquant');
+      if (!token) {
+        setUploadError('Token manquant');
+        throw new Error('Token manquant');
+      }
 
       let response = await fetch(url, {
         ...options,
@@ -77,16 +88,22 @@ export default function DocumentsPage() {
               Authorization: `Bearer ${token}`,
             },
           });
+        } else {
+          // Si refresh échoue, rediriger
+          setIsAuthenticated(false);
+          alert('Session expirée. Redirection vers connexion...');
+          router.push('/login');
+          throw new Error('Session expirée');
         }
       }
 
       return response;
     },
-    [],
+    [router],
   );
 
-  // ✅ fetchDocuments avec authentification
-  const fetchDocuments = async () => {
+  // ✅ fetchDocuments avec gestion d'erreur améliorée
+  const fetchDocuments = useCallback(async () => {
     try {
       const response = await authenticatedFetch(
         'http://localhost:8000/api/v1/users/documents/',
@@ -107,11 +124,12 @@ export default function DocumentsPage() {
       }
 
       const data = await response.json();
-      setDocuments(data);
+      console.log('✅ Documents récupérés:', data);
+      setDocuments(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('❌ fetchDocuments erreur:', error);
     }
-  };
+  }, [authenticatedFetch, router]);
 
   // ✅ handleFileChange
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,7 +139,7 @@ export default function DocumentsPage() {
     }
   };
 
-  // ✅ handleUpload avec redirection vers home
+  // ✅ handleUpload avec redirection vers home CORRIGÉE
   const handleUpload = async () => {
     if (!selectedFile) {
       alert('Veuillez sélectionner un fichier');
@@ -165,7 +183,10 @@ export default function DocumentsPage() {
         } catch {
           errorMessage += `: ${errorText.slice(0, 100)}`;
         }
-        throw new Error(errorMessage);
+        
+        // ✅ Afficher l'erreur dans l'UI au lieu de throw
+        setUploadError(errorMessage);
+        return; // Ne pas throw, juste return
       }
 
       const successData = await response.json();
@@ -174,6 +195,9 @@ export default function DocumentsPage() {
       alert(
         "✅ Document téléchargé avec succès ! Redirection vers l'accueil...",
       );
+
+      // ✅ Rafraîchir la liste des documents
+      await fetchDocuments();
 
       // ✅ Redirection vers la page d'accueil après upload réussi
       setTimeout(() => {
@@ -188,9 +212,10 @@ export default function DocumentsPage() {
     }
   };
 
+  // ✅ Charger documents au montage
   useEffect(() => {
     fetchDocuments();
-  }, []);
+  }, [fetchDocuments]);
 
   if (!isAuthenticated) {
     return (
@@ -344,7 +369,7 @@ export default function DocumentsPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {documents.map((doc: any) => (
+                {documents.map((doc) => (
                   <div
                     key={doc.id}
                     className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"

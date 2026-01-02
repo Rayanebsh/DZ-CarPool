@@ -1,10 +1,10 @@
 # run_all_tests.ps1
-# Script PowerShell pour executer TOUS les tests (users + trajets)
+# Script PowerShell pour executer TOUS les tests (users + trajets + reservations + notifications)
 # DZ-CarPool Backend Tests
 
 Write-Host ""
 Write-Host "===============================================" -ForegroundColor Cyan
-Write-Host "   TESTS COMPLETS: USERS + TRAJETS            " -ForegroundColor Cyan
+Write-Host "   TESTS COMPLETS: TOUS LES MODULES           " -ForegroundColor Cyan
 Write-Host "   DZ-CarPool Backend Test Suite              " -ForegroundColor Cyan
 Write-Host "===============================================" -ForegroundColor Cyan
 Write-Host ""
@@ -74,7 +74,8 @@ $requiredPackages = @(
     "django",
     "djangorestframework",
     "pytest-django",
-    "pytest-cov"
+    "pytest-cov",
+    "channels"
 )
 
 $missingPackages = @()
@@ -95,7 +96,7 @@ if ($missingPackages.Count -gt 0) {
     Write-Host (" Packages manquants: " + ($missingPackages -join ", ")) -ForegroundColor Yellow
     Write-Host " Installation automatique..." -ForegroundColor Yellow
 
-    pip install pytest coverage pytest-django pytest-cov djangorestframework -q
+    pip install pytest coverage pytest-django pytest-cov djangorestframework channels -q
 
     Write-Host "   OK: Installation terminee" -ForegroundColor Green
 }
@@ -133,10 +134,11 @@ $startTime = Get-Date
 Write-Host (" Debut: " + $startTime.ToString("HH:mm:ss")) -ForegroundColor Gray
 Write-Host ""
 
+# CORRECTION: app.notifications (pas app.notificatios)
 python -m coverage run `
-    --source='app.users,app.trajets' `
-    --omit='*/migrations/*,*/tests/*,*/test_*.py,*/__init__.py,*/admin.py,*/apps.py' `
-    manage.py test app.users.tests app.trajets.tests `
+    --source='app.users,app.trajets,app.reservations,app.notifications' `
+    --omit='*/migrations/*,*/tests/*,*/test_*.py,*/__init__.py,*/admin.py,*/apps.py,*/consumers.py,*/routing.py,*/asgi.py' `
+    manage.py test app.notifications.tests app.reservations.tests app.users.tests app.trajets.tests `
     --settings=config.settings_test `
     --verbosity=2 `
     --keepdb
@@ -223,10 +225,29 @@ Write-Host "   - Console: ci-dessus"
 Write-Host "   - HTML:   htmlcov/index.html"
 Write-Host "   - XML:    coverage.xml"
 
+Write-Host ""
+Write-Host " Fichiers exclus de la couverture:" -ForegroundColor Gray
+Write-Host "   - */migrations/*"
+Write-Host "   - */tests/*"
+Write-Host "   - */test_*.py"
+Write-Host "   - */__init__.py"
+Write-Host "   - */admin.py"
+Write-Host "   - */apps.py"
+Write-Host "   - */consumers.py (WebSocket - difficilement testable)"
+Write-Host "   - */routing.py (Configuration WebSocket)"
+Write-Host "   - */asgi.py (Configuration ASGI)"
+
+Write-Host ""
+Write-Host " NOTE:" -ForegroundColor Yellow
+Write-Host "   Les fichiers WebSocket (consumers.py, routing.py) sont exclus car" -ForegroundColor Gray
+Write-Host "   les tests asynchrones ne sont pas correctement detectes par coverage." -ForegroundColor Gray
+Write-Host "   Ces fichiers sont testes fonctionnellement mais exclus du calcul." -ForegroundColor Gray
+
 # ==================================================
 # 11. OUVERTURE RAPPORT HTML (OPTIONNEL)
 # ==================================================
 
+Write-Host ""
 $openReport = Read-Host "Ouvrir le rapport HTML dans le navigateur ? (o/N)"
 if ($openReport -eq "o" -or $openReport -eq "O") {
     if (Test-Path "htmlcov/index.html") {

@@ -32,7 +32,7 @@ class AdditionalVerificationTests(APITestCase):
 
     def test_send_email_verification_service_failure(self):
         """Test échec du service d'envoi email"""
-        url = "/api/v1/users/send_email_verification/"
+        url = "/api/v1/users/send-email-verification/"
 
         with patch("app.users.views.EmailService.send_verification_code") as mock_send:
             mock_send.return_value = False
@@ -42,7 +42,7 @@ class AdditionalVerificationTests(APITestCase):
 
     def test_send_phone_verification_service_failure(self):
         """Test échec du service d'envoi SMS"""
-        url = "/api/v1/users/send_phone_verification/"
+        url = "/api/v1/users/send-phone-verification/"
 
         with patch("app.users.views.SMSService.send_verification_code") as mock_send:
             mock_send.return_value = False
@@ -55,7 +55,7 @@ class AdditionalVerificationTests(APITestCase):
         self.user.phone_verified = True
         self.user.save()
 
-        url = "/api/v1/users/send_phone_verification/"
+        url = "/api/v1/users/send-phone-verification/"
         response = self.client.post(url, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -93,7 +93,7 @@ class AdditionalVerificationTests(APITestCase):
 
     def test_multiple_verification_codes(self):
         """Test invalidation des anciens codes lors d'un nouvel envoi"""
-        url = "/api/v1/users/send_email_verification/"
+        url = "/api/v1/users/send-email-verification/"
 
         with patch("app.users.views.EmailService.send_verification_code") as mock_send:
             mock_send.return_value = True
@@ -275,7 +275,7 @@ class AuthenticationEdgeCasesTests(APITestCase):
     def test_send_verification_without_auth(self):
         """Test envoi de vérification sans authentification"""
         client = APIClient()
-        url = "/api/v1/users/send_email_verification/"
+        url = "/api/v1/users/send-email-verification/"
 
         response = client.post(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -283,7 +283,7 @@ class AuthenticationEdgeCasesTests(APITestCase):
     def test_verify_email_without_auth(self):
         """Test vérification email sans authentification"""
         client = APIClient()
-        url = "/api/v1/users/verify_email/"
+        url = "/api/v1/users/verify-email/"
         data = {"code": "123456"}
 
         response = client.post(url, data, format="json")

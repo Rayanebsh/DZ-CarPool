@@ -24,6 +24,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { MapModal } from '@/components/map-modal';
 import authService from '@/services/auth.service';
 import { useRouter } from 'next/navigation';
+
 interface PreferenceType {
   id: number;
   name: string;
@@ -137,7 +138,7 @@ export default function OfferRidePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Charger les prix du carburant au montage
+  // ✅ Charger les prix du carburant au montage
   useEffect(() => {
     loadFuelPrices();
   }, []);
@@ -159,7 +160,7 @@ export default function OfferRidePage() {
     }
   };
 
-  // Calculer le prix suggéré
+  // ✅ Calculer le prix suggéré
   useEffect(() => {
     if (distance && departure && fuelPricesData) {
       calculateSuggestedPrice();
@@ -303,9 +304,34 @@ export default function OfferRidePage() {
     }
   };
 
-  const platformFee = Math.round(price * 0.15);
-  const passengerPays = price + platformFee;
+  // ✅ Calcul du prix CORRIGÉ avec option Comfort
+  const basePrice = price;
+  const finalPrice = comfortOption ? Math.round(basePrice * 1.3) : basePrice;
+  const platformFee = Math.round(finalPrice * 0.15);
+  const passengerPays = finalPrice + platformFee;
+  
   const numberOfBreaks = distance ? calculateBreaks(distance) : 0;
+
+  // ✅ Charger les préférences
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const prefs = await authService.getPreferences();
+        setAllPreferences(prefs);
+        console.log('✅ Préférences récupérées:', prefs);
+      } catch (err: any) {
+        console.error('❌ Erreur fetch preferences:', err);
+        setError('Impossible de charger les préférences');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPreferences();
+  }, []);
+
+  // Voir partie 2 pour handleSubmit
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -337,7 +363,7 @@ export default function OfferRidePage() {
         console.log('⚠️ DOCS check skip');
       }
 
-      // ✅ 2. TRAJETS : Données corrigées + anti-crash
+      // ✅ 2. TRAJETS : Données corrigées
       setIsSubmitting(true);
       setSubmitError(null);
       setSubmitSuccess(false);
@@ -346,15 +372,18 @@ export default function OfferRidePage() {
         const token = localStorage.getItem('access_token');
         if (!token) throw new Error('Token manquant');
 
+        // ✅ Calcul du prix final avec Comfort
+        const finalSubmitPrice = comfortOption ? Math.round(price * 1.3) : price;
+
         const trajetData = {
-          ville_depart: departure || 'Alger', // ✅ Fallback
-          ville_arrivee: arrival || 'Oran', // ✅ Fallback
+          ville_depart: departure || 'Alger',
+          ville_arrivee: arrival || 'Oran',
           adresse_depart: departure || 'Alger',
           adresse_arrivee: arrival || 'Oran',
-          date: date || '2025-12-25', // ✅ YYYY-MM-DD
-          heure_depart: time || '14:00', // ✅ HH:MM
+          date: date || '2025-12-25',
+          heure_depart: time || '14:00',
           nbr_places: seats || 1,
-          price: price || 1000,
+          price: finalSubmitPrice, // ✅ Prix avec Comfort appliqué
           distance: distance || 300,
           is_confort: comfortOption || false,
           fuel_type: fuelType || 'gasoil',
@@ -411,35 +440,21 @@ export default function OfferRidePage() {
       time,
       seats,
       price,
+      comfortOption, // ✅ Ajouté
       additionalDetails,
-      comfortOption,
       noSmoking,
       musicAllowed,
+      smallLuggage,
+      distance,
+      fuelType,
+      fuelConsumption,
+      selectedPreferences,
       router,
     ],
   );
 
-  // ... TOUS vos autres useEffect (loadPreferences, etc.)
-  useEffect(() => {
-    const loadPreferences = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const prefs = await authService.getPreferences();
-        setAllPreferences(prefs);
-        console.log('✅ Préférences récupérées:', prefs);
-      } catch (err: any) {
-        console.error('❌ Erreur fetch preferences:', err);
-        setError('Impossible de charger les préférences');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadPreferences();
-  }, []);
-
-  if (loading) return <p>Chargement...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
   return (
     <div className="min-h-screen bg-background">
       <Header />
