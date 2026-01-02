@@ -88,7 +88,7 @@ class URLResolutionTests(TestCase):
 
     def test_verify_phone_url_resolves(self):
         """Test que l'URL verify_phone se résout correctement"""
-        url = "/api/v1/users/verify_phone/"
+        url = "/api/v1/users/verify-phone/"
         resolver = resolve(url)
 
         self.assertEqual(resolver.func.cls, UserViewSet)
@@ -96,7 +96,7 @@ class URLResolutionTests(TestCase):
 
     def test_verification_status_url_resolves(self):
         """Test que l'URL verification_status se résout correctement"""
-        url = "/api/v1/users/verification_status/"
+        url = "/api/v1/users/verification-status/"
         resolver = resolve(url)
 
         self.assertEqual(resolver.func.cls, UserViewSet)

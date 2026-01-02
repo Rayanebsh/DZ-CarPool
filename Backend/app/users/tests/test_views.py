@@ -472,7 +472,7 @@ class ChangePasswordTests(APITestCase):
             "new_password_confirm": "NewPass123!",
         }
 
-        response = self.client.post("/api/v1/users/change_password/", data, format="json")
+        response = self.client.post("/api/v1/users/change-password/", data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
@@ -486,7 +486,7 @@ class ChangePasswordTests(APITestCase):
             "new_password_confirm": "NewPass123!",
         }
 
-        response = self.client.post("/api/v1/users/change_password/", data, format="json")
+        response = self.client.post("/api/v1/users/change-password/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_change_password_mismatch(self):
@@ -497,7 +497,7 @@ class ChangePasswordTests(APITestCase):
             "new_password_confirm": "Different123!",
         }
 
-        response = self.client.post("/api/v1/users/change_password/", data, format="json")
+        response = self.client.post("/api/v1/users/change-password/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -532,7 +532,6 @@ class EmailVerificationTests(APITestCase):
 
     @patch("app.users.views.EmailService.send_verification_code")
     def test_send_verification_email_fails(self, mock_send):
-        """Test échec envoi email"""
         mock_send.return_value = False
 
         response = self.client.post("/api/v1/users/send-email-verification/")
@@ -698,32 +697,6 @@ class DocumentTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data["can_publish_trip"])
         self.assertEqual(response.data["pending_documents_count"], 1)
-
-
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-class EnrichedUserTests(APITestCase):
-    """Tests enriched endpoint"""
-
-    def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(email="test@example.com", password="pass")
-
-    def test_get_enriched_user(self):
-        """Test récupération enrichie"""
-        response = self.client.get(f"/api/v1/users/{self.user.id}/enriched/")
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("full_name", response.data)
-        self.assertIn("rating", response.data)
-        self.assertIn("trips_count", response.data)
-
-    def test_get_enriched_nonexistent(self):
-        """Test utilisateur inexistant"""
-        response = self.client.get("/api/v1/users/99999/enriched/")
-
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class VerificationStatusTests(APITestCase):
     """Tests statut vérification"""

@@ -15,6 +15,7 @@ class RoleSerializer(serializers.ModelSerializer):
     """Serializer pour les rôles"""
 
     class Meta:
+        db_table = "roles"
         model = Role
         fields = ["id", "name", "description"]
 

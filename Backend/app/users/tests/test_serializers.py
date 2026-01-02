@@ -24,7 +24,6 @@ from app.users.serializers import (
 
 User = get_user_model()
 
-
 class RoleSerializerTests(TestCase):
     """Tests pour RoleSerializer"""
 
@@ -38,9 +37,17 @@ class RoleSerializerTests(TestCase):
         serializer = RoleSerializer(self.role)
         data = serializer.data
 
+        # Affichage pour debug si jamais une clé manque
+        print("Serialized data:", data)
+
+        # Vérifie que les champs essentiels existent avant de tester la valeur
+        self.assertIn("id", data)
+        self.assertIn("name", data)
+        self.assertIn("description", data)
+
+        # Vérifie les valeurs
         self.assertEqual(data["name"], "DRIVER")
         self.assertEqual(data["description"], "Conducteur de covoiturage")
-        self.assertIn("id", data)
 
     def test_role_fields(self):
         """Test que tous les champs sont présents"""
@@ -50,13 +57,12 @@ class RoleSerializerTests(TestCase):
         expected_fields = {"id", "name", "description"}
         self.assertEqual(set(data.keys()), expected_fields)
 
-
 class PreferenceSerializerTests(TestCase):
     """Tests pour PreferenceSerializer"""
 
     def setUp(self):
         self.preference = Preference.objects.create(
-            name="NO_SMOKING", description="Pas de fumée dans le véhicule"
+            name_en="NO_SMOKING", description="Pas de fumée dans le véhicule"
         )
 
     def test_preference_serialization(self):
@@ -64,7 +70,7 @@ class PreferenceSerializerTests(TestCase):
         serializer = PreferenceSerializer(self.preference)
         data = serializer.data
 
-        self.assertEqual(data["name"], "NO_SMOKING")
+        self.assertEqual(data["name_en"], "NO_SMOKING")
         self.assertEqual(data["description"], "Pas de fumée dans le véhicule")
 
     def test_preference_fields(self):

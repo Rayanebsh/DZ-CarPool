@@ -1,8 +1,3 @@
-"""
-Tests additionnels pour augmenter la couverture à 75%+
-Placer dans: app/users/tests/test_additional_coverage.py
-"""
-
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -62,7 +57,7 @@ class AdditionalVerificationTests(APITestCase):
 
     def test_verify_phone_invalid_code(self):
         """Test vérification téléphone avec code invalide"""
-        url = "/api/v1/users/verify_phone/"
+        url = "/api/v1/users/verify-phone/"
         data = {"code": "000000"}
 
         response = self.client.post(url, data, format="json")
@@ -74,7 +69,7 @@ class AdditionalVerificationTests(APITestCase):
         verification.expires_at = timezone.now() - timedelta(hours=1)
         verification.save()
 
-        url = "/api/v1/users/verify_phone/"
+        url = "/api/v1/users/verify-phone/"
         data = {"code": verification.code}
 
         response = self.client.post(url, data, format="json")
@@ -82,7 +77,7 @@ class AdditionalVerificationTests(APITestCase):
 
     def test_verify_phone_max_attempts(self):
         """Test vérification téléphone avec trop de tentatives"""
-        url = "/api/v1/users/verify_phone/"
+        url = "/api/v1/users/verify-phone/"
         data = {"code": "wrongcode"}
         # 3 tentatives
         for _ in range(3):
@@ -118,7 +113,7 @@ class AdditionalVerificationTests(APITestCase):
         self.user.phone_verified = True
         self.user.save()
 
-        url = "/api/v1/users/verification_status/"
+        url = "/api/v1/users/verification-status/"
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
