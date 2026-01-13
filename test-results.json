@@ -1,0 +1,597 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\playwright.config.ts",
+    "rootDir": "C:/Users/DELL/Desktop/Projet_GL/covoiturage/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/Users/DELL/Desktop/Projet_GL/covoiturage/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/DELL/Desktop/Projet_GL/covoiturage/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "01-user-registration.spec.ts",
+      "file": "01-user-registration.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Inscription utilisateur",
+          "file": "01-user-registration.spec.ts",
+          "line": 20,
+          "column": 6,
+          "specs": [
+            {
+              "title": "01 - Inscription complète avec succès",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 11120,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/Sign up|Inscription/i\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 10000ms\u001b[22m\n\u001b[2m    13 × unexpected value \"\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/Sign up|Inscription/i\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 10000ms\u001b[22m\n\u001b[2m    13 × unexpected value \"\"\u001b[22m\n\n    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts:41:24",
+                        "location": {
+                          "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                          "column": 24,
+                          "line": 41
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[90m// ACT - Aller sur la page d'inscription\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'/signup'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveTitle(\u001b[35m/Sign up|Inscription/i\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[90m// Vérifier que le formulaire est visible\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'h2:has-text(\"Créer votre compte\")'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                            "column": 24,
+                            "line": 41
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveTitle\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/Sign up|Inscription/i\u001b[39m\nReceived string:  \u001b[31m\"\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveTitle\" with timeout 10000ms\u001b[22m\n\u001b[2m    13 × unexpected value \"\"\u001b[22m\n\n\n\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[90m// ACT - Aller sur la page d'inscription\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'/signup'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveTitle(\u001b[35m/Sign up|Inscription/i\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[90m// Vérifier que le formulaire est visible\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'h2:has-text(\"Créer votre compte\")'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts:41:24\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "📝 Creating user: test.1767995364015.k22en@example.com\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-09T21:49:23.800Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-5ecf8-iption-complète-avec-succès-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-5ecf8-iption-complète-avec-succès-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-5ecf8-iption-complète-avec-succès-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                        "column": 24,
+                        "line": 41
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "6628f5909c87d357a0b3-943423b9bfd7d0c44e04",
+              "file": "01-user-registration.spec.ts",
+              "line": 29,
+              "column": 7
+            },
+            {
+              "title": "02 - Validation des erreurs du formulaire",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 6010,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/ne correspondent pas|do not match/i')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/ne correspondent pas|do not match/i')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/ne correspondent pas|do not match/i')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/ne correspondent pas|do not match/i')\u001b[22m\n\n    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts:109:32",
+                        "location": {
+                          "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                          "column": 32,
+                          "line": 109
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 107 |\u001b[39m     \u001b[90m// Vérifier le message d'erreur\u001b[39m\n \u001b[90m 108 |\u001b[39m     \u001b[36mconst\u001b[39m errorMessage \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=/ne correspondent pas|do not match/i'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 109 |\u001b[39m     \u001b[36mawait\u001b[39m expect(errorMessage)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m5000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 110 |\u001b[39m\n \u001b[90m 111 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'✅ Validation des erreurs OK'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 112 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                            "column": 32,
+                            "line": 109
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/ne correspondent pas|do not match/i')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/ne correspondent pas|do not match/i')\u001b[22m\n\n\n\u001b[0m \u001b[90m 107 |\u001b[39m     \u001b[90m// Vérifier le message d'erreur\u001b[39m\n \u001b[90m 108 |\u001b[39m     \u001b[36mconst\u001b[39m errorMessage \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=/ne correspondent pas|do not match/i'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 109 |\u001b[39m     \u001b[36mawait\u001b[39m expect(errorMessage)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m5000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 110 |\u001b[39m\n \u001b[90m 111 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'✅ Validation des erreurs OK'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 112 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts:109:32\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-09T21:49:35.891Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-1f4f5-n-des-erreurs-du-formulaire-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-1f4f5-n-des-erreurs-du-formulaire-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-1f4f5-n-des-erreurs-du-formulaire-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                        "column": 32,
+                        "line": 109
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "6628f5909c87d357a0b3-a87a10210a8d1f6d50a6",
+              "file": "01-user-registration.spec.ts",
+              "line": 84,
+              "column": 7
+            },
+            {
+              "title": "03 - Configuration des préférences après inscription",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 12851,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n  navigated to \"http://localhost:3000/verify\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n  navigated to \"http://localhost:3000/verify\"\n============================================================\n    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts:132:16",
+                        "location": {
+                          "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                          "column": 16,
+                          "line": 132
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 130 |\u001b[39m\n \u001b[90m 131 |\u001b[39m     \u001b[90m// Devrait être sur /preferences\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 132 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[35m/preferences/\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m10000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 133 |\u001b[39m\n \u001b[90m 134 |\u001b[39m     \u001b[90m// Vérifier le titre de la page\u001b[39m\n \u001b[90m 135 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'h1'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[35m/Parlez-nous de vous|Tell us about yourself/i\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                            "column": 16,
+                            "line": 132
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n  navigated to \"http://localhost:3000/verify\"\n============================================================\n\n\u001b[0m \u001b[90m 130 |\u001b[39m\n \u001b[90m 131 |\u001b[39m     \u001b[90m// Devrait être sur /preferences\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 132 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[35m/preferences/\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m10000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 133 |\u001b[39m\n \u001b[90m 134 |\u001b[39m     \u001b[90m// Vérifier le titre de la page\u001b[39m\n \u001b[90m 135 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'h1'\u001b[39m))\u001b[33m.\u001b[39mtoContainText(\u001b[35m/Parlez-nous de vous|Tell us about yourself/i\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts:132:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "📝 Testing preferences flow for: test.1767995383119.4kwpan@example.com\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-09T21:49:42.924Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-9d143-éférences-après-inscription-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-9d143-éférences-après-inscription-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-9d143-éférences-après-inscription-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                        "column": 16,
+                        "line": 132
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "6628f5909c87d357a0b3-d20bfad38d849f3d5b92",
+              "file": "01-user-registration.spec.ts",
+              "line": 114,
+              "column": 7
+            },
+            {
+              "title": "04 - Inscription avec Google (OAuth)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 721,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "⚠️  Test OAuth Google nécessite une configuration supplémentaire\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-09T21:49:56.947Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6628f5909c87d357a0b3-7b2beebc13d732e9514e",
+              "file": "01-user-registration.spec.ts",
+              "line": 165,
+              "column": 7
+            },
+            {
+              "title": "05 - Toggle langue français/anglais",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 11853,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/Sign up/i')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/Sign up/i')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/Sign up/i')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/Sign up/i')\u001b[22m\n\n    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts:191:55",
+                        "location": {
+                          "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                          "column": 55,
+                          "line": 191
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 189 |\u001b[39m\n \u001b[90m 190 |\u001b[39m         \u001b[90m// Vérifier le changement\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 191 |\u001b[39m         \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=/Sign up/i'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 192 |\u001b[39m\n \u001b[90m 193 |\u001b[39m         \u001b[90m// Retour en français\u001b[39m\n \u001b[90m 194 |\u001b[39m         \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"EN\")'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                            "column": 55,
+                            "line": 191
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/Sign up/i')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/Sign up/i')\u001b[22m\n\n\n\u001b[0m \u001b[90m 189 |\u001b[39m\n \u001b[90m 190 |\u001b[39m         \u001b[90m// Vérifier le changement\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 191 |\u001b[39m         \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=/Sign up/i'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                       \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 192 |\u001b[39m\n \u001b[90m 193 |\u001b[39m         \u001b[90m// Retour en français\u001b[39m\n \u001b[90m 194 |\u001b[39m         \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'button:has-text(\"EN\")'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts:191:55\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-09T21:49:57.830Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-8d426-gle-langue-français-anglais-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-8d426-gle-langue-français-anglais-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-8d426-gle-langue-français-anglais-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                        "column": 55,
+                        "line": 191
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "6628f5909c87d357a0b3-6eacca93ac84ce2c98a5",
+              "file": "01-user-registration.spec.ts",
+              "line": 176,
+              "column": 7
+            },
+            {
+              "title": "06 - Email déjà existant",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 9117,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/existe déjà|already exists|email.*taken/i')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/existe déjà|already exists|email.*taken/i')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/existe déjà|already exists|email.*taken/i')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/existe déjà|already exists|email.*taken/i')\u001b[22m\n\n    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts:235:32",
+                        "location": {
+                          "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                          "column": 32,
+                          "line": 235
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 233 |\u001b[39m     \u001b[90m// Vérifier le message d'erreur\u001b[39m\n \u001b[90m 234 |\u001b[39m     \u001b[36mconst\u001b[39m errorMessage \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=/existe déjà|already exists|email.*taken/i'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 235 |\u001b[39m     \u001b[36mawait\u001b[39m expect(errorMessage)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m5000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 236 |\u001b[39m     \n \u001b[90m 237 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'✅ Détection de doublon email OK'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 238 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                            "column": 32,
+                            "line": 235
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/existe déjà|already exists|email.*taken/i')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/existe déjà|already exists|email.*taken/i')\u001b[22m\n\n\n\u001b[0m \u001b[90m 233 |\u001b[39m     \u001b[90m// Vérifier le message d'erreur\u001b[39m\n \u001b[90m 234 |\u001b[39m     \u001b[36mconst\u001b[39m errorMessage \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=/existe déjà|already exists|email.*taken/i'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 235 |\u001b[39m     \u001b[36mawait\u001b[39m expect(errorMessage)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m5000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 236 |\u001b[39m     \n \u001b[90m 237 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'✅ Détection de doublon email OK'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 238 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts:235:32\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "📝 Testing duplicate email for: test.1767995411033.1v35bc@example.com\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-09T21:50:10.819Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-fba80-ur-06---Email-déjà-existant-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-fba80-ur-06---Email-déjà-existant-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-fba80-ur-06---Email-déjà-existant-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                        "column": 32,
+                        "line": 235
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "6628f5909c87d357a0b3-e84d945c7b6d8dcc5782",
+              "file": "01-user-registration.spec.ts",
+              "line": 203,
+              "column": 7
+            },
+            {
+              "title": "07 - Flow complet avec skip des étapes optionnelles",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 13054,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mverify\u001b[27m\"\u001b[39m\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/verify\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mverify\u001b[27m\"\u001b[39m\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/verify\"\u001b[22m\n\n    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts:253:24",
+                        "location": {
+                          "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                          "column": 24,
+                          "line": 253
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 251 |\u001b[39m\n \u001b[90m 252 |\u001b[39m     \u001b[90m// Vérifier qu'on est sur l'accueil\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 253 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[32m'/'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 254 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=/Trouvez votre trajet|Find your ride/i'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 255 |\u001b[39m\n \u001b[90m 256 |\u001b[39m     \u001b[90m// Vérifier que l'utilisateur est connecté\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                            "column": 24,
+                            "line": 253
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected: \u001b[32m\"http://localhost:3000/\"\u001b[39m\nReceived: \u001b[31m\"http://localhost:3000/\u001b[7mverify\u001b[27m\"\u001b[39m\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/verify\"\u001b[22m\n\n\n\u001b[0m \u001b[90m 251 |\u001b[39m\n \u001b[90m 252 |\u001b[39m     \u001b[90m// Vérifier qu'on est sur l'accueil\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 253 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[32m'/'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 254 |\u001b[39m     \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=/Trouvez votre trajet|Find your ride/i'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 255 |\u001b[39m\n \u001b[90m 256 |\u001b[39m     \u001b[90m// Vérifier que l'utilisateur est connecté\u001b[39m\u001b[0m\n\u001b[2m    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts:253:24\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "📝 Testing complete flow for: test.1767995421273.28r3p@example.com\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-09T21:50:21.029Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-f2505-kip-des-étapes-optionnelles-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-f2505-kip-des-étapes-optionnelles-chromium\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\01-user-registration-Inscr-f2505-kip-des-étapes-optionnelles-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\01-user-registration.spec.ts",
+                        "column": 24,
+                        "line": 253
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "6628f5909c87d357a0b3-68ad7e7a78a20242ead7",
+              "file": "01-user-registration.spec.ts",
+              "line": 240,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-01-09T21:49:22.527Z",
+    "duration": 71854.013,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 6,
+    "flaky": 0
+  }
+}

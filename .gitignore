@@ -42,3 +42,19 @@ htmlcov/
 .env.example
 .env.prod
 .env
+
+# Ajoutez ces lignes à votre .gitignore
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+*.zip
+
+# Screenshots et vidéos de tests
+**/test-results/**/*.png
+**/test-results/**/*.webm
+**/test-results/**/*.mp4
+
+# Traces Playwright
+trace.zip

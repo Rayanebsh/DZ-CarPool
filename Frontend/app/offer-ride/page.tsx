@@ -291,18 +291,34 @@ export default function OfferRidePage() {
   };
 
   const handleDepartureChange = (value: string, location?: LocationData) => {
-    setDeparture(value);
-    if (location) {
-      setDepartureCoords({ lat: location.lat, lon: location.lon });
-    }
-  };
+  setDeparture(value);
+  if (location) {
+    setDepartureCoords({ lat: location.lat, lon: location.lon });
+    
+    // ✅ AJOUT : Forcer la fermeture en retirant le focus
+    setTimeout(() => {
+      const input = document.activeElement as HTMLElement;
+      if (input && input.tagName === 'INPUT') {
+        input.blur();
+      }
+    }, 100);
+  }
+};
 
-  const handleArrivalChange = (value: string, location?: LocationData) => {
-    setArrival(value);
-    if (location) {
-      setArrivalCoords({ lat: location.lat, lon: location.lon });
-    }
-  };
+const handleArrivalChange = (value: string, location?: LocationData) => {
+  setArrival(value);
+  if (location) {
+    setArrivalCoords({ lat: location.lat, lon: location.lon });
+    
+    // ✅ AJOUT : Forcer la fermeture en retirant le focus
+    setTimeout(() => {
+      const input = document.activeElement as HTMLElement;
+      if (input && input.tagName === 'INPUT') {
+        input.blur();
+      }
+    }, 100);
+  }
+};
 
   // ✅ Calcul du prix CORRIGÉ avec option Comfort
   const basePrice = price;

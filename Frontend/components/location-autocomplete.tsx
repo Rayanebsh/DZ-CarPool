@@ -36,6 +36,7 @@ export function LocationAutocomplete({
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSelected, setIsSelected] = useState(false); // ✅ NOUVEAU : Track si une sélection a été faite
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -56,6 +57,7 @@ export function LocationAutocomplete({
       if (value.length < 2) {
         setSuggestions([]);
         setError(null);
+        setIsSelected(false); // ✅ Reset si on efface
         return;
       }
 
@@ -84,7 +86,7 @@ export function LocationAutocomplete({
 
         const data = await response.json();
         setSuggestions(data);
-        setShowSuggestions(data.length > 0);
+        setShowSuggestions(data.length > 0 && !isSelected); // ✅ Ne pas ouvrir si déjà sélectionné
       } catch (error) {
         console.error('[v0] Error fetching location suggestions:', error);
         setError('Impossible de charger les suggestions');
@@ -96,7 +98,7 @@ export function LocationAutocomplete({
 
     const debounce = setTimeout(fetchSuggestions, 400);
     return () => clearTimeout(debounce);
-  }, [value]);
+  }, [value, isSelected]); // ✅ Ajout de isSelected dans les dépendances
 
   const handleSelect = (location: Location) => {
     // Format display name to show city/town first
@@ -110,7 +112,8 @@ export function LocationAutocomplete({
 
     onChange(displayName, location);
     setShowSuggestions(false);
-    setSuggestions([]);
+    setSuggestions([]); // ✅ Vider les suggestions
+    setIsSelected(true); // ✅ Marquer comme sélectionné
   };
 
   const handleCurrentLocation = () => {
@@ -140,6 +143,7 @@ export function LocationAutocomplete({
               ? `${cityName}, ${data.address?.state || 'Algeria'}`
               : data.display_name;
             onChange(displayName, data);
+            setIsSelected(true); // ✅ Marquer comme sélectionné
           } catch (error) {
             console.error('[v0] Error getting current location:', error);
             setError("Impossible d'obtenir votre position");
@@ -156,6 +160,14 @@ export function LocationAutocomplete({
     }
   };
 
+  // ✅ NOUVEAU : Gérer le changement manuel de texte
+  const handleInputChange = (newValue: string) => {
+    onChange(newValue);
+    if (newValue.length < 2) {
+      setIsSelected(false); // Reset si on efface
+    }
+  };
+
   return (
     <div ref={wrapperRef} className={`relative flex-1 ${className}`}>
       <div className="flex items-center gap-2 px-4 py-3 bg-background rounded-lg border border-border focus-within:ring-2 focus-within:ring-[#FF5722]/20 focus-within:border-[#FF5722] transition-all">
@@ -163,8 +175,13 @@ export function LocationAutocomplete({
         <input
           type="text"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+          onChange={(e) => handleInputChange(e.target.value)}
+          onFocus={() => {
+            // ✅ CORRIGÉ : Ne réouvre QUE si pas encore sélectionné ET qu'il y a des suggestions
+            if (!isSelected && suggestions.length > 0) {
+              setShowSuggestions(true);
+            }
+          }}
           placeholder={placeholder}
           className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
           autoComplete="off"
@@ -197,6 +214,7 @@ export function LocationAutocomplete({
             return (
               <button
                 key={location.place_id}
+                type="button"
                 onClick={() => handleSelect(location)}
                 className="w-full px-4 py-3 text-left hover:bg-accent/50 transition-colors flex items-start gap-3 border-b border-border last:border-b-0 group"
               >
