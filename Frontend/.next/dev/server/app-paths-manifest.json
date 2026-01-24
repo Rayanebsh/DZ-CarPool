@@ -1,18 +1,11 @@
 {
-  "/about/page": "app/about/page.js",
-  "/careers/page": "app/careers/page.js",
-  "/contact/page": "app/contact/page.js",
-  "/documents/page": "app/documents/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/forgot-password/page": "app/forgot-password/page.js",
   "/login/page": "app/login/page.js",
   "/messages/page": "app/messages/page.js",
-  "/notifications/page": "app/notifications/page.js",
-  "/offer-ride/page": "app/offer-ride/page.js",
   "/page": "app/page.js",
   "/profile/page": "app/profile/page.js",
-  "/reservations/[id]/page": "app/reservations/[id]/page.js",
-  "/search-results/page": "app/search-results/page.js",
-  "/signup/page": "app/signup/page.js",
-  "/trip/[id]/page": "app/trip/[id]/page.js",
-  "/trips/page": "app/trips/page.js",
-  "/verify/page": "app/verify/page.js"
+  "/reset-password/page": "app/reset-password/page.js",
+  "/trips/page": "app/trips/page.js"
 }

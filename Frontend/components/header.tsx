@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Bell, User, ChevronDown, Globe } from 'lucide-react';
+import { Menu, X, Bell, User, ChevronDown, Globe, Shield } from 'lucide-react';
 import { useLanguage } from '@/contexts/language-context';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +34,7 @@ function Header({ onNotificationsClick }: HeaderProps) {
     console.log('User keys:', user ? Object.keys(user) : 'No user');
     console.log('Profile picture value:', user?.profile_picture);
     console.log('Type of profile_picture:', typeof user?.profile_picture);
+    console.log('Is staff:', user?.is_staff);
     console.log('===================');
   }, [user]);
 
@@ -254,6 +255,20 @@ function Header({ onNotificationsClick }: HeaderProps) {
                         {language === 'en' ? 'Messages' : 'Messages'}
                       </Link>
                     </DropdownMenuItem>
+                    
+                    {/* Admin Dashboard - Only for staff/admin users */}
+                    {user.is_staff && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin" className="cursor-pointer text-orange-600 font-semibold">
+                            <Shield className="w-4 h-4 mr-2" />
+                            {language === 'en' ? 'Admin Dashboard' : 'Tableau de bord Admin'}
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={logout}
@@ -344,6 +359,19 @@ function Header({ onNotificationsClick }: HeaderProps) {
                   >
                     {language === 'en' ? 'Messages' : 'Messages'}
                   </Link>
+                  
+                  {/* Admin Dashboard - Mobile */}
+                  {user.is_staff && (
+                    <Link
+                      href="/admin"
+                      className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors text-left px-3 py-2 flex items-center gap-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Shield className="w-4 h-4" />
+                      {language === 'en' ? 'Admin Dashboard' : 'Tableau de bord Admin'}
+                    </Link>
+                  )}
+                  
                   <button
                     onClick={() => {
                       logout();

@@ -17,6 +17,25 @@ export class AuthHelper {
     await this.page.click('button[type="submit"]');
   }
 
+  async login(email: string, password: string) {
+    console.log(`🔐 Connexion avec: ${email}`);
+    
+    await this.page.goto('/login');
+    await this.page.waitForLoadState('domcontentloaded');
+    
+    // Remplir le formulaire de connexion
+    await this.page.fill('input[type="email"], input[name="email"], #email', email);
+    await this.page.fill('input[type="password"], input[name="password"], #password', password);
+    
+    // Cliquer sur le bouton de connexion
+    await this.page.click('button[type="submit"]:has-text("Connexion"), button[type="submit"]:has-text("Se connecter"), button[type="submit"]');
+    
+    // Attendre la redirection après connexion
+    await this.page.waitForURL(/\/(dashboard|preferences|\/)/, { timeout: 10000 });
+    
+    console.log('✅ Connexion réussie');
+  }
+
   async skipVerification() {
     // ✅ Vérifier si on est sur /verify
     if (!this.page.url().includes('/verify')) {

@@ -19,7 +19,39 @@ class RoleSerializer(serializers.ModelSerializer):
         model = Role
         fields = ["id", "name", "description"]
 
+# Dans users/serializers.py - Ajouter à la fin du fichier
 
+class ForgotPasswordSerializer(serializers.Serializer):
+    """Serializer pour demander la réinitialisation du mot de passe"""
+    email = serializers.EmailField(required=True)
+    
+    def validate_email(self, value):
+        """Valide le format de l'email (ne révèle pas si l'email existe)"""
+        return value.lower().strip()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    """Serializer pour réinitialiser le mot de passe"""
+    token = serializers.CharField(required=True)
+    new_password = serializers.CharField(
+        required=True,
+        write_only=True,
+        validators=[validate_password],
+        style={"input_type": "password"}
+    )
+    new_password_confirm = serializers.CharField(
+        required=True, 
+        write_only=True,
+        style={"input_type": "password"}
+    )
+    
+    def validate(self, attrs):
+        """Valide que les mots de passe correspondent"""
+        if attrs['new_password'] != attrs['new_password_confirm']:
+            raise serializers.ValidationError({
+                "new_password": "Les mots de passe ne correspondent pas."
+            })
+        return attrs
 class PreferenceSerializer(serializers.ModelSerializer):
     """Serializer pour les préférences avec support multilingue"""
 
@@ -115,6 +147,7 @@ class UserSerializer(serializers.ModelSerializer):
             "average_rating",
             "date_joined",
             "is_active",
+            "is_staff",
         ]
         read_only_fields = [
             "id",

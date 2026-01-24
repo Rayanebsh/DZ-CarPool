@@ -6,6 +6,7 @@ AVEC VÉRIFICATION DES PRÉFÉRENCES ET REDIRECTION
 import logging
 import traceback
 
+from django.conf import settings
 from django.db.models import Avg
 from django.utils import timezone
 
@@ -31,8 +32,12 @@ from .serializers import (
     UserUpdateSerializer,
     VerifyEmailSerializer,
     VerifyPhoneSerializer,
+    ForgotPasswordSerializer,
+    ResetPasswordSerializer,
 )
 from .services import EmailService, SMSService
+from .models import PasswordResetToken
+from .serializers import ResetPasswordSerializer, ForgotPasswordSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +66,8 @@ class UserViewSet(viewsets.ModelViewSet):
                 or (path.endswith("/login/") and method == "POST")
                 or (path.endswith("/google_auth/") and method == "POST")
                 or (path.endswith("/users/") and method == "POST")
+                or (path.endswith("/forgot-password/") and method == "POST")
+                or (path.endswith("/reset-password/") and method == "POST")
             ):
                 return []
 
@@ -71,7 +78,7 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         Permissions selon l'action
         """
-        if self.action in ["register", "login", "create", "google_auth"]:
+        if self.action in ["register", "login", "create", "google_auth","forgot_password","reset_password"]:
             return [AllowAny()]
         return [IsAuthenticated()]
 
@@ -685,7 +692,362 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    # ========== ADMIN - GESTION DES DOCUMENTS ==========
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="admin/pending-documents",
+        permission_classes=[IsAuthenticated],
+    )
+    def admin_pending_documents(self, request):
+        """
+        Liste tous les documents en attente de vérification (ADMIN ONLY)
+        GET /api/v1/users/admin/pending-documents/
+        """
+        # Vérifier que l'utilisateur est admin/staff
+        if not request.user.is_staff:
+            return Response(
+                {"error": "Accès non autorisé. Réservé aux administrateurs."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
+        try:
+            pending_docs = UserDocument.objects.filter(verified=False).select_related(
+                "user"
+            )
+
+            serializer = UserDocumentSerializer(
+                pending_docs, many=True, context={"request": request}
+            )
+
+            logger.info(
+                f"Admin {request.user.email}: {pending_docs.count()} documents en attente"
+            )
+
+            return Response(
+                {
+                    "count": pending_docs.count(),
+                    "documents": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            logger.error(f"Erreur admin_pending_documents: {str(e)}")
+            logger.error(traceback.format_exc())
+            return Response(
+                {"error": "Erreur serveur", "message": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="admin/all-documents",
+        permission_classes=[IsAuthenticated],
+    )
+    def admin_all_documents(self, request):
+        """
+        Liste TOUS les documents (ADMIN ONLY)
+        GET /api/v1/users/admin/all-documents/
+        """
+        if not request.user.is_staff:
+            return Response(
+                {"error": "Accès non autorisé"}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            all_docs = UserDocument.objects.all().select_related("user", "verified_by")
+
+            serializer = UserDocumentSerializer(
+                all_docs, many=True, context={"request": request}
+            )
+
+            return Response(
+                {
+                    "count": all_docs.count(),
+                    "documents": serializer.data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            logger.error(f"Erreur admin_all_documents: {str(e)}")
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+        # Dans users/views.py - MODIFIER les endpoints admin
+
+    @action(
+    detail=False,
+    methods=["post"],
+    url_path="admin/verify-document",
+    permission_classes=[IsAuthenticated],
+)
+    def admin_verify_document(self, request):
+        """
+        Approuve un document (ADMIN ONLY)
+        POST /api/v1/users/admin/verify-document/
+        Body: { "document_id": 123 }
+        """
+        if not request.user.is_staff:
+            return Response(
+                {"error": "Accès non autorisé"}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            document_id = request.data.get("document_id")
+
+            if not document_id:
+                return Response(
+                    {"error": "document_id requis"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            document = UserDocument.objects.get(id=document_id)
+
+            if document.verified:
+                return Response(
+                    {"error": "Document déjà vérifié"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            document.verified = True
+            document.verified_by = request.user
+            document.verified_at = timezone.now()
+            document.save()
+
+            logger.info(
+                f"Document {document_id} vérifié par admin {request.user.email}"
+            )
+
+            return Response(
+                {
+                    "success": True,
+                    "message": "Document approuvé avec succès",
+                    "document": UserDocumentSerializer(
+                        document, context={"request": request}
+                    ).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except UserDocument.DoesNotExist:
+            return Response(
+                {"error": "Document non trouvé"}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Erreur verify_document: {str(e)}")
+            logger.error(traceback.format_exc())
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="admin/reject-document",
+        permission_classes=[IsAuthenticated],
+    )
+    def admin_reject_document(self, request):
+        """
+        Rejette un document (ADMIN ONLY)
+        POST /api/v1/users/admin/reject-document/
+        Body: { "document_id": 123, "reason": "..." }
+        """
+        if not request.user.is_staff:
+            return Response(
+                {"error": "Accès non autorisé"}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            document_id = request.data.get("document_id")
+            reason = request.data.get("reason", "Non conforme")
+
+            if not document_id:
+                return Response(
+                    {"error": "document_id requis"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            document = UserDocument.objects.get(id=document_id)
+            document.delete()
+
+            logger.info(
+                f"Document {document_id} rejeté par admin {request.user.email}: {reason}"
+            )
+
+            return Response(
+                {
+                    "success": True,
+                    "message": f"Document rejeté: {reason}",
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except UserDocument.DoesNotExist:
+            return Response(
+                {"error": "Document non trouvé"}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(f"Erreur reject_document: {str(e)}")
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="admin/stats",
+        permission_classes=[IsAuthenticated],
+    )
+    def admin_stats(self, request):
+
+        if not request.user.is_staff:
+            return Response(
+                {"error": "Accès non autorisé"}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            from app.trajets.models import Trajet
+
+            total_users = User.objects.count()
+            active_users = User.objects.filter(is_active=True).count()
+            verified_users = (
+                User.objects.filter(documents__verified=True).distinct().count()
+            )
+            pending_documents = UserDocument.objects.filter(verified=False).count()
+            total_trips = Trajet.objects.count()
+            active_trips = Trajet.objects.filter(status="ACTIVE").count()
+
+            return Response(
+                {
+                    "totalUsers": total_users,
+                    "activeUsers": active_users,
+                    "verifiedUsers": verified_users,
+                    "pendingDocuments": pending_documents,
+                    "totalTrips": total_trips,
+                    "activeTrips": active_trips,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            logger.error(f"Erreur admin_stats: {str(e)}")
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny], url_path="forgot-password")
+    def forgot_password(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data['email']
+        
+        try:
+            user = User.objects.get(email=email)
+            
+            # Invalider les anciens tokens
+            PasswordResetToken.objects.filter(user=user, used=False).update(used=True)
+            
+            # Créer un nouveau token
+            reset_token = PasswordResetToken.objects.create(user=user)
+            
+            # Créer le lien de réinitialisation
+            reset_url = f"http://localhost:3000/reset-password?token={reset_token.token}"
+            
+            # Envoyer l'email
+            email_sent = EmailService.send_password_reset_email(user, reset_url)
+            
+            # ✅ CORRECTION: En dev, on peut montrer si l'email a vraiment échoué
+            if not email_sent and settings.DEBUG:
+                logger.error(f"❌ Échec de l'envoi de l'email à {user.email}")
+                # En dev, on peut retourner l'erreur pour déboguer
+                return Response({
+                    "error": "Erreur lors de l'envoi de l'email. Vérifiez la configuration EMAIL.",
+                    "debug_info": "Vérifiez les logs Django pour plus de détails."
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            # ✅ Toujours retourner un succès pour la sécurité
+            logger.info(f"✅ Demande de réinitialisation pour {email}")
+            return Response({
+                "message": "Si cet email existe, un lien de réinitialisation a été envoyé.",
+                "success": True
+            }, status=status.HTTP_200_OK)
+            
+        except User.DoesNotExist:
+            # Pour la sécurité, on retourne la même réponse
+            logger.info(f"⚠️ Tentative de réinitialisation pour email inexistant: {email}")
+            return Response({
+                "message": "Si cet email existe, un lien de réinitialisation a été envoyé.",
+                "success": True
+            }, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            logger.error(f"❌ Erreur forgot_password: {str(e)}")
+            logger.error(traceback.format_exc())
+            return Response({
+                "error": "Erreur lors du traitement de la demande",
+                "message": str(e) if settings.DEBUG else "Erreur serveur"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny], url_path="reset-password")
+    def reset_password(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        token = serializer.validated_data['token']
+        new_password = serializer.validated_data['new_password']
+        
+        try:
+            reset_token = PasswordResetToken.objects.get(token=token)
+            
+            if not reset_token.is_valid():
+                return Response(
+                    {"error": "Token invalide ou expiré"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Réinitialiser le mot de passe
+            user = reset_token.user
+            user.set_password(new_password)
+            user.save()
+            
+            # Marquer le token comme utilisé
+            reset_token.used = True
+            reset_token.save()
+            
+            # Envoyer un email de confirmation
+            EmailService.send_password_changed_confirmation(user)
+            
+            logger.info(f"Mot de passe réinitialisé pour {user.email}")
+            
+            return Response({
+                "message": "Mot de passe réinitialisé avec succès",
+                "success": True
+            }, status=status.HTTP_200_OK)
+            
+        except PasswordResetToken.DoesNotExist:
+            return Response(
+                {"error": "Token invalide"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        except Exception as e:
+            logger.error(f"Erreur reset_password: {str(e)}")
+            logger.error(traceback.format_exc())
+            return Response(
+                {"error": "Erreur lors de la réinitialisation"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 # ---------- AUTRES VIEWSETS ----------
 class RoleViewSet(viewsets.ReadOnlyModelViewSet):

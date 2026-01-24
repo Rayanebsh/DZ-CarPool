@@ -17,6 +17,11 @@ export interface User {
   preferences?: number[];
   has_preferences?: boolean;
   preferences_count?: number;
+  is_staff: boolean;
+  is_active: boolean;
+  average_rating?: number;
+  date_joined: string;
+  first_login: boolean;
 }
 
 export interface Preference {

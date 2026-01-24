@@ -18,7 +18,13 @@ export const testUsers = {
     password: 'ExistingPassword123!',
   },
   
+  // ✅ AJOUT : Compte vérifié pour les tests de création de trajet
   verifiedUser: {
+    email: 'r_bessah@estin.dz',
+    password: 'Besray@1953/*',
+  },
+  
+  verifiedUserAlt: {
     firstName: 'Fatima',
     lastName: 'Kaci',
     email: `verified.${Date.now()}@example.com`,

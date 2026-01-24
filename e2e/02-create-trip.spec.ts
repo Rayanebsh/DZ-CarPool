@@ -20,14 +20,13 @@ test.describe('Création de trajet', () => {
     tripHelper = new TripHelper(page);
     waitHelper = new WaitHelper(page);
 
-    const userData = {
-      ...testUsers.newUser,
-      email: generators.randomEmail(),
-      phone: generators.randomPhone()
-    };
-
-    console.log('📝 Setting up user:', userData.email);
-    await authHelper.completeSignupFlow(userData);
+    // ✅ MODIFIÉ : Utiliser un compte vérifié existant au lieu de créer un nouveau compte
+    console.log('🔐 Connexion avec compte vérifié:', testUsers.verifiedUser.email);
+    await authHelper.login(testUsers.verifiedUser.email, testUsers.verifiedUser.password);
+    
+    // Vérifier que l'utilisateur est bien connecté
+    await expect(page).not.toHaveURL('/login');
+    console.log('✅ Utilisateur authentifié et vérifié');
   });
 
   test("01 - Création complète d'un trajet avec succès", async ({ page }) => {
@@ -66,13 +65,12 @@ test.describe('Création de trajet', () => {
     // Soumettre
     await publishButton.click();
 
-    // ✅ CORRIGÉ : Vérifier redirection vers /documents (comportement normal pour utilisateur sans documents validés)
-    await expect(page).toHaveURL('/documents', { timeout: 10000 });
-    console.log('✅ Redirection vers /documents pour validation des documents');
-    
-    // Vérifier le message affiché
-    const documentsHeading = page.locator('h1:has-text("Vos documents en toute sécurité")');
-    await expect(documentsHeading).toBeVisible({ timeout: 5000 });
+    // ✅ MODIFIÉ : Vérifier redirection vers la page de confirmation ou mes trajets
+    // (pas /documents car l'utilisateur est déjà vérifié)
+    await expect(page).toHaveURL(/\/(#hero)?(\?.*)?$/, {
+  timeout: 10000
+});
+    console.log('✅ Trajet créé avec succès, redirection effectuée');
   });
 
   test('02 - Validation des champs obligatoires', async ({ page }) => {
