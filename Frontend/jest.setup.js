@@ -1,8 +1,14 @@
+// ============================================
+// jest.setup.js - À la RACINE du projet
+// ============================================
 import '@testing-library/jest-dom';
 
-// Mock localStorage
+// ============================================
+// 1. MOCK DE LOCALSTORAGE
+// ============================================
 const localStorageMock = (() => {
   let store = {};
+
   return {
     getItem: jest.fn((key) => store[key] || null),
     setItem: jest.fn((key, value) => {
@@ -17,46 +23,71 @@ const localStorageMock = (() => {
   };
 })();
 
+global.localStorage = localStorageMock;
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// Mock WebSocket
-class WebSocketMock {
-  static CONNECTING = 0;
-  static OPEN = 1;
-  static CLOSING = 2;
-  static CLOSED = 3;
+// ============================================
+// 2. MOCK DE NEXT/NAVIGATION
+// ============================================
+const mockPush = jest.fn();
+const mockReplace = jest.fn();
+const mockBack = jest.fn();
+const mockPrefetch = jest.fn();
 
-  readyState = WebSocket.OPEN;
-  send = jest.fn();
-  close = jest.fn();
-  addEventListener = jest.fn();
-  removeEventListener = jest.fn();
-}
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(() => ({
+    push: mockPush,
+    replace: mockReplace,
+    prefetch: mockPrefetch,
+    back: mockBack,
+    pathname: '/',
+    query: {},
+  })),
+  usePathname: jest.fn(() => '/'),
+  useSearchParams: jest.fn(() => new URLSearchParams()),
+  useParams: jest.fn(() => ({})),
+}));
 
-global.WebSocket = WebSocketMock;
+// ============================================
+// 3. MOCK DE NEXT/IMAGE
+// ============================================
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: (props) => {
+    // eslint-disable-next-line jsx-a11y/alt-text, @next/next/no-img-element
+    return <img {...props} />;
+  },
+}));
 
-// Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  takeRecords() {
-    return [];
-  }
-  unobserve() {}
-};
+// ============================================
+// 4. MOCK DE USE-AUTH
+// ============================================
+jest.mock('@/hooks/use-auth', () => ({
+  useAuth: jest.fn(() => ({
+    user: null,
+    loading: false,
+    error: null,
+    checkAuth: jest.fn().mockResolvedValue(undefined),
+    login: jest.fn().mockResolvedValue({ success: true }),
+    logout: jest.fn().mockResolvedValue(undefined),
+    register: jest.fn().mockResolvedValue({ success: true }),
+    isAuthenticated: false,
+  })),
+}));
 
-// Mock ResizeObserver
-global.ResizeObserver = class ResizeObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-};
+// ============================================
+// 5. MOCK DE GOOGLE OAUTH
+// ============================================
+jest.mock('@react-oauth/google', () => ({
+  GoogleOAuthProvider: ({ children }) => children,
+  useGoogleLogin: jest.fn(() => jest.fn()),
+}));
 
-// Mock matchMedia
+// ============================================
+// 6. MOCK DE WINDOW.MATCHMEDIA
+// ============================================
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: jest.fn().mockImplementation((query) => ({
@@ -71,15 +102,37 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Mock fetch
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    ok: true,
-    json: () => Promise.resolve({}),
-  }),
-);
+// ============================================
+// 7. MOCK DE INTERSECTIONOBSERVER
+// ============================================
+global.IntersectionObserver = class IntersectionObserver {
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  takeRecords() {
+    return [];
+  }
+  unobserve() {}
+};
 
-// Console warnings/errors in tests
+// ============================================
+// 8. MOCK DE RESIZEOBSERVER
+// ============================================
+global.ResizeObserver = class ResizeObserver {
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  unobserve() {}
+};
+
+// ============================================
+// 9. MOCK DE FETCH (pour les appels API)
+// ============================================
+global.fetch = jest.fn();
+
+// ============================================
+// 10. SUPPRESSION DES WARNINGS INUTILES
+// ============================================
 const originalError = console.error;
 const originalWarn = console.warn;
 
@@ -88,7 +141,8 @@ beforeAll(() => {
     if (
       typeof args[0] === 'string' &&
       (args[0].includes('Warning: ReactDOM.render') ||
-        args[0].includes('Not implemented: HTMLFormElement.prototype.submit'))
+        args[0].includes('Not implemented: HTMLFormElement.prototype.submit') ||
+        args[0].includes('Error: Not implemented: HTMLFormElement.prototype.requestSubmit'))
     ) {
       return;
     }
@@ -98,7 +152,7 @@ beforeAll(() => {
   console.warn = (...args) => {
     if (
       typeof args[0] === 'string' &&
-      args[0].includes('componentWillReceiveProps')
+      args[0].includes('Warning: An update to')
     ) {
       return;
     }
@@ -110,3 +164,27 @@ afterAll(() => {
   console.error = originalError;
   console.warn = originalWarn;
 });
+
+// ============================================
+// 11. RESET DES MOCKS ENTRE CHAQUE TEST
+// ============================================
+beforeEach(() => {
+  // Reset localStorage
+  localStorageMock.clear();
+  jest.clearAllMocks();
+  
+  // Reset navigation mocks
+  mockPush.mockClear();
+  mockReplace.mockClear();
+  mockBack.mockClear();
+  mockPrefetch.mockClear();
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
+// ============================================
+// 12. EXPORT DES MOCKS POUR LES TESTS
+// ============================================
+export { mockPush, mockReplace, mockBack, mockPrefetch, localStorageMock };

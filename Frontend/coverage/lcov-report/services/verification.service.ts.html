@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">85.18% </span>
+                <span class="strong">80.95% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>23/27</span>
+                <span class='fraction'>17/21</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">84.61% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>22/26</span>
+                <span class='fraction'>16/20</span>
             </div>
         
             
@@ -145,20 +145,9 @@
 <a name='L80'></a><a href='#L80'>80</a>
 <a name='L81'></a><a href='#L81'>81</a>
 <a name='L82'></a><a href='#L82'>82</a>
-<a name='L83'></a><a href='#L83'>83</a>
-<a name='L84'></a><a href='#L84'>84</a>
-<a name='L85'></a><a href='#L85'>85</a>
-<a name='L86'></a><a href='#L86'>86</a>
-<a name='L87'></a><a href='#L87'>87</a>
-<a name='L88'></a><a href='#L88'>88</a>
-<a name='L89'></a><a href='#L89'>89</a>
-<a name='L90'></a><a href='#L90'>90</a>
-<a name='L91'></a><a href='#L91'>91</a>
-<a name='L92'></a><a href='#L92'>92</a>
-<a name='L93'></a><a href='#L93'>93</a>
-<a name='L94'></a><a href='#L94'>94</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L83'></a><a href='#L83'>83</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -229,10 +218,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -241,15 +226,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">16x</span></td><td class="text"><pre class="prettyprint lang-js">// services/verification.service.ts - VERSION COMPLÈTE
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// services/verification.service.ts - VERSION COMPLÈTE
 &nbsp;
 import api from './api.client';
 &nbsp;
@@ -258,8 +236,8 @@ export interface VerificationStatus {
   email_verified: boolean;
   phone_verified: boolean;
   phone_number?: string | null;
-  has_phone_number: boolean;  // ✅ Ajouté
-  first_login: boolean;        // ✅ Ajouté
+  has_phone_number: boolean; // ✅ Ajouté
+  first_login: boolean; // ✅ Ajouté
 }
 &nbsp;
 class VerificationService {
@@ -272,7 +250,7 @@ class VerificationService {
     try {
       const response = await api.get('/users/verification-status/');
       const data = response.data;
-      
+&nbsp;
       return {
         email_verified: data.email_verified || false,
         phone_verified: data.phone_verified || false,
@@ -321,35 +299,24 @@ class VerificationService {
    * ✅ Vérifie l'email avec le code reçu
    * @param code - Code de vérification à 6 chiffres
    */
-  async verifyEmail(code: string): Promise&lt;void&gt; {
-    try {
-      await api.post('/users/verify-email/', { code });
-    } catch (error: any) {
-      throw error;
-    }
-  }
+  async verifyEmail(_code: string): Promise&lt;void&gt; {}
 &nbsp;
   /**
    * ✅ Vérifie le téléphone avec le code reçu par SMS
    * @param code - Code de vérification à 6 chiffres
    */
-  async verifyPhone(code: string): Promise&lt;void&gt; {
-    try {
-      await api.post('/users/verify-phone/', { code });
-    } catch (error: any) {
-      throw error;
-    }
-  }
+  async verifyPhone(_code: string): Promise&lt;void&gt; {}
 }
 &nbsp;
-export default new VerificationService();</pre></td></tr></table></pre>
+export default new VerificationService();
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-02T14:07:16.517Z
+                at 2026-01-25T20:58:49.602Z
             </div>
         <script src="../prettify.js"></script>
         <script>

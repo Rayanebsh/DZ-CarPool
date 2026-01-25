@@ -158,7 +158,7 @@ export default function ReservationDetailPage() {
       console.log('✅ Réponse:', data);
 
       alert(language === 'en' ? 'Reservation rejected' : 'Réservation refusée');
-      router.push('/my-trips');
+      router.push('/trips');
     } catch (error) {
       console.error('❌ Erreur:', error);
       alert(

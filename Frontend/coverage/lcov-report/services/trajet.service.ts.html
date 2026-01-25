@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>8/8</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
@@ -324,10 +324,8 @@
 <a name='L259'></a><a href='#L259'>259</a>
 <a name='L260'></a><a href='#L260'>260</a>
 <a name='L261'></a><a href='#L261'>261</a>
-<a name='L262'></a><a href='#L262'>262</a>
-<a name='L263'></a><a href='#L263'>263</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L262'></a><a href='#L262'>262</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -590,8 +588,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// services/trajet.service.ts
 import axios from 'axios';
 &nbsp;
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 &nbsp;
 export interface SimpleSearchParams {
   ville_depart: string;
@@ -646,7 +643,7 @@ class TrajetService {
     try {
       console.log('🔍 Recherche simple (publique):', params);
 &nbsp;
-      const response = await axios.post(`${API_URL}/trajets/search/`, params, {
+      const response = await axios.post(`${API_URL}/api/v1/trajets/search/`, params, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -678,7 +675,7 @@ class TrajetService {
       console.log('🎯 Recherche intelligente avec filtres:', params);
 &nbsp;
       const response = await axios.post(
-        `${API_URL}/trajets/intelligent_search/`,
+        `${API_URL}/api/v1/trajets/intelligent_search/`,
         params,
         {
           headers: {
@@ -707,7 +704,7 @@ class TrajetService {
    */
   async getTrajetDetails(trajetId: number): Promise&lt;any&gt; {
     try {
-      const response = await axios.get(`${API_URL}/trajets/${trajetId}/`, {
+      const response = await axios.get(`${API_URL}/api/v1/trajets/${trajetId}/`, {
         transformRequest: [
           (data, headers) =&gt; {
             delete headers.Authorization;
@@ -736,7 +733,7 @@ class TrajetService {
 &nbsp;
       // ✅ Le token sera ajouté automatiquement par l'intercepteur
       const response = await axios.post(
-        `${API_URL}/reservations/`,
+        `${API_URL}/api/v1/reservations/`,
         bookingData,
       );
 &nbsp;
@@ -761,7 +758,7 @@ class TrajetService {
    */
   async createTrajet(trajetData: any): Promise&lt;Trajet&gt; {
     try {
-      const response = await axios.post(`${API_URL}/trajets/`, trajetData);
+      const response = await axios.post(`${API_URL}/api/v1/trajets/`, trajetData);
       return response.data;
     } catch (error: any) {
       console.error('❌ Erreur création trajet:', error);
@@ -775,7 +772,7 @@ class TrajetService {
   async getMyTrajets(status?: string): Promise&lt;Trajet[]&gt; {
     try {
       const params = status ? { status } : {};
-      const response = await axios.get(`${API_URL}/trajets/my_trips/`, {
+      const response = await axios.get(`${API_URL}/api/v1/trajets/my_trips/`, {
         params,
       });
       return response.data;
@@ -790,7 +787,7 @@ class TrajetService {
    */
   async getUpcomingTrajets(): Promise&lt;Trajet[]&gt; {
     try {
-      const response = await axios.get(`${API_URL}/trajets/upcoming/`);
+      const response = await axios.get(`${API_URL}/api/v1/trajets/upcoming/`);
       return response.data;
     } catch (error: any) {
       console.error('❌ Erreur:', error);
@@ -803,7 +800,7 @@ class TrajetService {
    */
   async getPastTrajets(): Promise&lt;Trajet[]&gt; {
     try {
-      const response = await axios.get(`${API_URL}/trajets/past/`);
+      const response = await axios.get(`${API_URL}/api/v1/trajets/past/`);
       return response.data;
     } catch (error: any) {
       console.error('❌ Erreur:', error);
@@ -817,7 +814,7 @@ class TrajetService {
   async cancelTrajet(trajetId: number): Promise&lt;any&gt; {
     try {
       const response = await axios.post(
-        `${API_URL}/trajets/${trajetId}/cancel/`,
+        `${API_URL}/api/v1/trajets/${trajetId}/cancel/`,
       );
       return response.data;
     } catch (error: any) {
@@ -831,7 +828,7 @@ class TrajetService {
    */
   async getFuelPrices(): Promise&lt;any&gt; {
     try {
-      const response = await axios.get(`${API_URL}/trajets/fuel_prices/`, {
+      const response = await axios.get(`${API_URL}/api/v1/trajets/fuel_prices/`, {
         transformRequest: [
           (data, headers) =&gt; {
             delete headers.Authorization;
@@ -856,7 +853,7 @@ export default trajetService;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-02T14:07:16.517Z
+                at 2026-01-25T20:58:49.602Z
             </div>
         <script src="../prettify.js"></script>
         <script>

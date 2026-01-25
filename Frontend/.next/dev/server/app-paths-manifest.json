@@ -1,13 +1,5 @@
 {
-  "/admin/page": "app/admin/page.js",
-  "/documents/page": "app/documents/page.js",
   "/login/page": "app/login/page.js",
-  "/messages/page": "app/messages/page.js",
   "/offer-ride/page": "app/offer-ride/page.js",
-  "/page": "app/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/search-results/page": "app/search-results/page.js",
-  "/trip/[id]/page": "app/trip/[id]/page.js",
-  "/trips/page": "app/trips/page.js",
-  "/verify/page": "app/verify/page.js"
+  "/page": "app/page.js"
 }

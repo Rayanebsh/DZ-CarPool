@@ -21,7 +21,7 @@ export const testUsers = {
   // ✅ AJOUT : Compte vérifié pour les tests de création de trajet
   verifiedUser: {
     email: 'r_bessah@estin.dz',
-    password: 'Besray@1953/*',
+    password: 'Besray@1986/*',
   },
   
   verifiedUserAlt: {

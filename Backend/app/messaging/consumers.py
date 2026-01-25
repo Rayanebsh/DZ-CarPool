@@ -21,37 +21,54 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         """Connexion WebSocket"""
+        print("=" * 80)
+        print("🔌 ChatConsumer.connect() appelé")
+        
         url_route = self.scope.get("url_route", {})
         kwargs = url_route.get("kwargs", {})
+        print(f"   URL kwargs: {kwargs}")
 
         if "trajet_id" in kwargs:
             self.conversation_type = "group"
             self.conversation_id = kwargs["trajet_id"]
+            print(f"   Type: GROUP - Trajet ID: {self.conversation_id}")
         elif "conversation_id" in kwargs:
             self.conversation_type = "private"
             self.conversation_id = kwargs["conversation_id"]
+            print(f"   Type: PRIVATE - Conversation ID: {self.conversation_id}")
         else:
-            logger.error(f"Route WebSocket invalide: {kwargs}")
+            logger.error(f"❌ Route WebSocket invalide: {kwargs}")
+            print(f"❌ Route invalide - Fermeture 4000")
             await self.close(code=4000)
             return
 
         self.room_group_name = f"chat_{self.conversation_type}_{self.conversation_id}"
         self.user = self.scope.get("user")
+        
+        print(f"   User from scope: {self.user}")
+        print(f"   Is authenticated: {self.user.is_authenticated if self.user else False}")
 
         if not self.user or not self.user.is_authenticated:
-            logger.warning("Utilisateur non authentifié")
+            logger.warning("❌ Utilisateur non authentifié")
+            print("❌ User non authentifié - Fermeture 4001")
             await self.close(code=4001)
             return
 
+        print("🔍 Vérification des permissions...")
         has_permission = await self.check_permission()
+        print(f"   Permission accordée: {has_permission}")
+        
         if not has_permission:
-            logger.warning(f"Permission refusée pour {self.user.email}")
+            logger.warning(f"❌ Permission refusée pour {self.user.email}")
+            print(f"❌ Permission refusée - Fermeture 4003")
             await self.close(code=4003)
             return
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
-        logger.info(f"Utilisateur {self.user.email} connecté à {self.room_group_name}")
+        logger.info(f"✅ {self.user.email} connecté à {self.room_group_name}")
+        print(f"✅ CONNEXION ACCEPTÉE !")
+        print("=" * 80)
 
         await self.send_message_history()
 

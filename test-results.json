@@ -98,7 +98,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 21042,
+                      "duration": 22238,
                       "errors": [],
                       "stdout": [
                         {
@@ -114,7 +114,7 @@
                           "text": "✅ Utilisateur authentifié et vérifié\n"
                         },
                         {
-                          "text": "📝 Création d'un trajet: {\n  departure: \u001b[32m'Alger'\u001b[39m,\n  arrival: \u001b[32m'Oran'\u001b[39m,\n  date: \u001b[32m'2026-01-24'\u001b[39m,\n  dateInTwoDays: \u001b[36m[Function: dateInTwoDays]\u001b[39m,\n  time: \u001b[32m'14:00'\u001b[39m,\n  seats: \u001b[33m3\u001b[39m,\n  price: \u001b[33m1500\u001b[39m,\n  fuelType: \u001b[32m'gasoil'\u001b[39m,\n  fuelConsumption: \u001b[33m7.5\u001b[39m\n}\n"
+                          "text": "📝 Création d'un trajet: {\n  departure: \u001b[32m'Alger'\u001b[39m,\n  arrival: \u001b[32m'Oran'\u001b[39m,\n  date: \u001b[32m'2026-01-26'\u001b[39m,\n  dateInTwoDays: \u001b[36m[Function: dateInTwoDays]\u001b[39m,\n  time: \u001b[32m'14:00'\u001b[39m,\n  seats: \u001b[33m3\u001b[39m,\n  price: \u001b[33m1500\u001b[39m,\n  fuelType: \u001b[32m'gasoil'\u001b[39m,\n  fuelConsumption: \u001b[33m7.5\u001b[39m\n}\n"
                         },
                         {
                           "text": "\n📍 Remplissage du champ DÉPART avec \"Alger\"\n"
@@ -135,25 +135,13 @@
                           "text": "   → Saisie de \"Alger\"\n"
                         },
                         {
-                          "text": "   → 2 suggestion(s) trouvée(s)\n"
-                        },
-                        {
-                          "text": "   → Clic sur suggestion: \"AlgerAlger\"\n"
-                        },
-                        {
-                          "text": "   → Attente fermeture automatique de la liste...\n"
-                        },
-                        {
                           "text": "   → Vérification que la liste reste fermée...\n"
                         },
                         {
-                          "text": "   ✅ Liste correctement fermée\n"
+                          "text": "   → Valeur finale: \"Alger\"\n"
                         },
                         {
-                          "text": "   → Valeur finale: \"Alger, Alger\"\n"
-                        },
-                        {
-                          "text": "✅ DÉPART rempli avec succès: \"Alger, Alger\"\n\n"
+                          "text": "✅ DÉPART rempli avec succès: \"Alger\"\n\n"
                         },
                         {
                           "text": "\n📍 Remplissage du champ ARRIVÉE avec \"Oran\"\n"
@@ -195,7 +183,7 @@
                           "text": "✅ ARRIVÉE rempli avec succès: \"Oran, Oran\"\n\n"
                         },
                         {
-                          "text": "✅ Départ: \"Alger, Alger\", Arrivée: \"Oran, Oran\"\n"
+                          "text": "✅ Départ: \"Alger\", Arrivée: \"Oran, Oran\"\n"
                         },
                         {
                           "text": "⏳ Attente calcul distance...\n"
@@ -207,9 +195,16 @@
                           "text": "✅ Trajet créé avec succès, redirection effectuée\n"
                         }
                       ],
-                      "stderr": [],
+                      "stderr": [
+                        {
+                          "text": "   ⚠️ Pas de suggestion trouvée\n"
+                        },
+                        {
+                          "text": "   ⚠️ BUG : La liste s'est réouverte ! Fermeture forcée...\n"
+                        }
+                      ],
                       "retry": 0,
-                      "startTime": "2026-01-23T14:13:43.650Z",
+                      "startTime": "2026-01-25T19:32:34.666Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -238,7 +233,7 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 8354,
+                      "duration": 9954,
                       "errors": [],
                       "stdout": [
                         {
@@ -298,7 +293,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-23T14:14:04.937Z",
+                      "startTime": "2026-01-25T19:32:57.039Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -313,7 +308,7 @@
             },
             {
               "title": "03 - Calcul automatique de la distance",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -326,28 +321,9 @@
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 20271,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m300\u001b[39m\nReceived:   \u001b[31m0\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m300\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts:105:22",
-                        "location": {
-                          "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts",
-                          "column": 22,
-                          "line": 105
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 103 |\u001b[39m     \n \u001b[90m 104 |\u001b[39m     \u001b[90m// Alger-Oran fait environ 400-450 km\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 105 |\u001b[39m     expect(distance)\u001b[33m.\u001b[39mtoBeGreaterThan(\u001b[35m300\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 106 |\u001b[39m     expect(distance)\u001b[33m.\u001b[39mtoBeLessThan(\u001b[35m500\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 107 |\u001b[39m\n \u001b[90m 108 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m`✅ Distance calculée: ${distance} km`\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts",
-                            "column": 22,
-                            "line": 105
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m300\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\n\u001b[0m \u001b[90m 103 |\u001b[39m     \n \u001b[90m 104 |\u001b[39m     \u001b[90m// Alger-Oran fait environ 400-450 km\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 105 |\u001b[39m     expect(distance)\u001b[33m.\u001b[39mtoBeGreaterThan(\u001b[35m300\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 106 |\u001b[39m     expect(distance)\u001b[33m.\u001b[39mtoBeLessThan(\u001b[35m500\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 107 |\u001b[39m\n \u001b[90m 108 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m`✅ Distance calculée: ${distance} km`\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts:105:22\u001b[22m"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 15582,
+                      "errors": [],
                       "stdout": [
                         {
                           "text": "🔐 Connexion avec compte vérifié: r_bessah@estin.dz\n"
@@ -444,37 +420,19 @@
                         },
                         {
                           "text": "✅ Distance calculée\n\n"
+                        },
+                        {
+                          "text": "✅ Distance calculée: 419 km\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-23T14:14:13.323Z",
+                      "startTime": "2026-01-25T19:33:07.028Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-bb3b0--automatique-de-la-distance-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-bb3b0--automatique-de-la-distance-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-bb3b0--automatique-de-la-distance-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts",
-                        "column": 22,
-                        "line": 105
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "b516c5a2f5e7d7fc3ad2-10b4ad815756f3c70d4d",
@@ -484,7 +442,7 @@
             },
             {
               "title": "04 - Prix suggéré basé sur le carburant",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -495,30 +453,11 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
+                      "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 37608,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('span.font-semibold:has-text(\"km\")').first()\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('span.font-semibold:has-text(\"km\")').first()\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('span.font-semibold:has-text(\"km\")').first()\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('span.font-semibold:has-text(\"km\")').first()\u001b[22m\n\n    at TripHelper.waitForDistanceCalculation (C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\trip-helper.ts:157:32)\n    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts:118:5",
-                        "location": {
-                          "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\trip-helper.ts",
-                          "column": 32,
-                          "line": 157
-                        },
-                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\trip-helper.ts:157\n\n\u001b[0m \u001b[90m 155 |\u001b[39m     \u001b[90m// Cible uniquement la distance dans la section itinéraire (pas dans \"300 km\" des pauses ni \"L/100km\")\u001b[39m\n \u001b[90m 156 |\u001b[39m     \u001b[36mconst\u001b[39m distanceText \u001b[33m=\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mlocator(\u001b[32m'span.font-semibold:has-text(\"km\")'\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 157 |\u001b[39m     \u001b[36mawait\u001b[39m expect(distanceText)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 158 |\u001b[39m     \n \u001b[90m 159 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'✅ Distance calculée\\n'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 160 |\u001b[39m   }\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\trip-helper.ts",
-                            "column": 32,
-                            "line": 157
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('span.font-semibold:has-text(\"km\")').first()\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for locator('span.font-semibold:has-text(\"km\")').first()\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\trip-helper.ts:157\n\n\u001b[0m \u001b[90m 155 |\u001b[39m     \u001b[90m// Cible uniquement la distance dans la section itinéraire (pas dans \"300 km\" des pauses ni \"L/100km\")\u001b[39m\n \u001b[90m 156 |\u001b[39m     \u001b[36mconst\u001b[39m distanceText \u001b[33m=\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mlocator(\u001b[32m'span.font-semibold:has-text(\"km\")'\u001b[39m)\u001b[33m.\u001b[39mfirst()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 157 |\u001b[39m     \u001b[36mawait\u001b[39m expect(distanceText)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 158 |\u001b[39m     \n \u001b[90m 159 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'✅ Distance calculée\\n'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 160 |\u001b[39m   }\u001b[0m\n\u001b[2m    at TripHelper.waitForDistanceCalculation (C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\trip-helper.ts:157:32)\u001b[22m\n\u001b[2m    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts:118:5\u001b[22m"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 14259,
+                      "errors": [],
                       "stdout": [
                         {
                           "text": "🔐 Connexion avec compte vérifié: r_bessah@estin.dz\n"
@@ -551,16 +490,25 @@
                           "text": "   → Saisie de \"Alger\"\n"
                         },
                         {
+                          "text": "   → 2 suggestion(s) trouvée(s)\n"
+                        },
+                        {
+                          "text": "   → Clic sur suggestion: \"AlgerAlger\"\n"
+                        },
+                        {
+                          "text": "   → Attente fermeture automatique de la liste...\n"
+                        },
+                        {
                           "text": "   → Vérification que la liste reste fermée...\n"
                         },
                         {
                           "text": "   ✅ Liste correctement fermée\n"
                         },
                         {
-                          "text": "   → Valeur finale: \"Alger\"\n"
+                          "text": "   → Valeur finale: \"Alger, Alger\"\n"
                         },
                         {
-                          "text": "✅ DÉPART rempli avec succès: \"Alger\"\n\n"
+                          "text": "✅ DÉPART rempli avec succès: \"Alger, Alger\"\n\n"
                         },
                         {
                           "text": "\n📍 Remplissage du champ ARRIVÉE avec \"Oran\"\n"
@@ -581,57 +529,44 @@
                           "text": "   → Saisie de \"Oran\"\n"
                         },
                         {
+                          "text": "   → 2 suggestion(s) trouvée(s)\n"
+                        },
+                        {
+                          "text": "   → Clic sur suggestion: \"OranOran\"\n"
+                        },
+                        {
+                          "text": "   → Attente fermeture automatique de la liste...\n"
+                        },
+                        {
                           "text": "   → Vérification que la liste reste fermée...\n"
                         },
                         {
-                          "text": "   → Valeur finale: \"Oran\"\n"
+                          "text": "   ✅ Liste correctement fermée\n"
                         },
                         {
-                          "text": "✅ ARRIVÉE rempli avec succès: \"Oran\"\n\n"
+                          "text": "   → Valeur finale: \"Oran, Oran\"\n"
+                        },
+                        {
+                          "text": "✅ ARRIVÉE rempli avec succès: \"Oran, Oran\"\n\n"
                         },
                         {
                           "text": "⏳ Attente calcul distance...\n"
-                        }
-                      ],
-                      "stderr": [
-                        {
-                          "text": "   ⚠️ Pas de suggestion trouvée\n"
                         },
                         {
-                          "text": "   ⚠️ Pas de suggestion trouvée\n"
+                          "text": "✅ Distance calculée\n\n"
                         },
                         {
-                          "text": "   ⚠️ BUG : La liste s'est réouverte ! Fermeture forcée...\n"
+                          "text": "💡 Prix suggéré: 610 DZD\n"
                         }
                       ],
+                      "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-23T14:14:34.968Z",
+                      "startTime": "2026-01-25T19:33:22.639Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-ae903-ggéré-basé-sur-le-carburant-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-ae903-ggéré-basé-sur-le-carburant-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-ae903-ggéré-basé-sur-le-carburant-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\trip-helper.ts",
-                        "column": 32,
-                        "line": 157
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "b516c5a2f5e7d7fc3ad2-2fe00c4aa2c8c9f18ee6",
@@ -641,7 +576,7 @@
             },
             {
               "title": "05 - Option trajet Comfort (+30%)",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -652,67 +587,114 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
+                      "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 16577,
-                      "error": {
-                        "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"], input[name=\"email\"], #email')\u001b[22m\n",
-                        "stack": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"], input[name=\"email\"], #email')\u001b[22m\n\n    at AuthHelper.login (C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts:27:21)\n    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts:25:5",
-                        "location": {
-                          "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts",
-                          "column": 21,
-                          "line": 27
-                        },
-                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\auth-helper.ts:27\n\n\u001b[0m \u001b[90m 25 |\u001b[39m     \n \u001b[90m 26 |\u001b[39m     \u001b[90m// Remplir le formulaire de connexion\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 27 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"email\"], input[name=\"email\"], #email'\u001b[39m\u001b[33m,\u001b[39m email)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 28 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"password\"], input[name=\"password\"], #password'\u001b[39m\u001b[33m,\u001b[39m password)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m     \n \u001b[90m 30 |\u001b[39m     \u001b[90m// Cliquer sur le bouton de connexion\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts",
-                            "column": 21,
-                            "line": 27
-                          },
-                          "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"], input[name=\"email\"], #email')\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\auth-helper.ts:27\n\n\u001b[0m \u001b[90m 25 |\u001b[39m     \n \u001b[90m 26 |\u001b[39m     \u001b[90m// Remplir le formulaire de connexion\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 27 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"email\"], input[name=\"email\"], #email'\u001b[39m\u001b[33m,\u001b[39m email)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 28 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"password\"], input[name=\"password\"], #password'\u001b[39m\u001b[33m,\u001b[39m password)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m     \n \u001b[90m 30 |\u001b[39m     \u001b[90m// Cliquer sur le bouton de connexion\u001b[39m\u001b[0m\n\u001b[2m    at AuthHelper.login (C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts:27:21)\u001b[22m\n\u001b[2m    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts:25:5\u001b[22m"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 14238,
+                      "errors": [],
                       "stdout": [
                         {
                           "text": "🔐 Connexion avec compte vérifié: r_bessah@estin.dz\n"
                         },
                         {
                           "text": "🔐 Connexion avec: r_bessah@estin.dz\n"
+                        },
+                        {
+                          "text": "✅ Connexion réussie\n"
+                        },
+                        {
+                          "text": "✅ Utilisateur authentifié et vérifié\n"
+                        },
+                        {
+                          "text": "\n📍 Remplissage du champ DÉPART avec \"Alger\"\n"
+                        },
+                        {
+                          "text": "   → 2 input(s) text trouvé(s) sur la page\n"
+                        },
+                        {
+                          "text": "   → Input #0 avec placeholder: \"Alger\"\n"
+                        },
+                        {
+                          "text": "   → Valeur actuelle: \"\"\n"
+                        },
+                        {
+                          "text": "   → Clic : Focus sur DÉPART\n"
+                        },
+                        {
+                          "text": "   → Saisie de \"Alger\"\n"
+                        },
+                        {
+                          "text": "   → 2 suggestion(s) trouvée(s)\n"
+                        },
+                        {
+                          "text": "   → Clic sur suggestion: \"AlgerAlger\"\n"
+                        },
+                        {
+                          "text": "   → Attente fermeture automatique de la liste...\n"
+                        },
+                        {
+                          "text": "   → Vérification que la liste reste fermée...\n"
+                        },
+                        {
+                          "text": "   ✅ Liste correctement fermée\n"
+                        },
+                        {
+                          "text": "   → Valeur finale: \"Alger, Alger\"\n"
+                        },
+                        {
+                          "text": "✅ DÉPART rempli avec succès: \"Alger, Alger\"\n\n"
+                        },
+                        {
+                          "text": "\n📍 Remplissage du champ ARRIVÉE avec \"Oran\"\n"
+                        },
+                        {
+                          "text": "   → 2 input(s) text trouvé(s) sur la page\n"
+                        },
+                        {
+                          "text": "   → Input #1 avec placeholder: \"Oran\"\n"
+                        },
+                        {
+                          "text": "   → Valeur actuelle: \"\"\n"
+                        },
+                        {
+                          "text": "   → Clic : Focus sur ARRIVÉE\n"
+                        },
+                        {
+                          "text": "   → Saisie de \"Oran\"\n"
+                        },
+                        {
+                          "text": "   → 2 suggestion(s) trouvée(s)\n"
+                        },
+                        {
+                          "text": "   → Clic sur suggestion: \"OranOran\"\n"
+                        },
+                        {
+                          "text": "   → Attente fermeture automatique de la liste...\n"
+                        },
+                        {
+                          "text": "   → Vérification que la liste reste fermée...\n"
+                        },
+                        {
+                          "text": "   ✅ Liste correctement fermée\n"
+                        },
+                        {
+                          "text": "   → Valeur finale: \"Oran, Oran\"\n"
+                        },
+                        {
+                          "text": "✅ ARRIVÉE rempli avec succès: \"Oran, Oran\"\n\n"
+                        },
+                        {
+                          "text": "💎 Prix avec Comfort: 1495 DZD (avant: 1150 DZD)\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-23T14:15:14.098Z",
+                      "startTime": "2026-01-25T19:33:36.916Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-10139---Option-trajet-Comfort-30--chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-10139---Option-trajet-Comfort-30--chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-10139---Option-trajet-Comfort-30--chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts",
-                        "column": 21,
-                        "line": 27
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "b516c5a2f5e7d7fc3ad2-f48e77e4b0a902d85277",
@@ -722,7 +704,7 @@
             },
             {
               "title": "06 - Sélection de préférences de trajet",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -733,67 +715,39 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
+                      "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 15654,
-                      "error": {
-                        "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"], input[name=\"email\"], #email')\u001b[22m\n",
-                        "stack": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"], input[name=\"email\"], #email')\u001b[22m\n\n    at AuthHelper.login (C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts:27:21)\n    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts:25:5",
-                        "location": {
-                          "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts",
-                          "column": 21,
-                          "line": 27
-                        },
-                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\auth-helper.ts:27\n\n\u001b[0m \u001b[90m 25 |\u001b[39m     \n \u001b[90m 26 |\u001b[39m     \u001b[90m// Remplir le formulaire de connexion\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 27 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"email\"], input[name=\"email\"], #email'\u001b[39m\u001b[33m,\u001b[39m email)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 28 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"password\"], input[name=\"password\"], #password'\u001b[39m\u001b[33m,\u001b[39m password)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m     \n \u001b[90m 30 |\u001b[39m     \u001b[90m// Cliquer sur le bouton de connexion\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts",
-                            "column": 21,
-                            "line": 27
-                          },
-                          "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"], input[name=\"email\"], #email')\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\auth-helper.ts:27\n\n\u001b[0m \u001b[90m 25 |\u001b[39m     \n \u001b[90m 26 |\u001b[39m     \u001b[90m// Remplir le formulaire de connexion\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 27 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"email\"], input[name=\"email\"], #email'\u001b[39m\u001b[33m,\u001b[39m email)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 28 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"password\"], input[name=\"password\"], #password'\u001b[39m\u001b[33m,\u001b[39m password)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m     \n \u001b[90m 30 |\u001b[39m     \u001b[90m// Cliquer sur le bouton de connexion\u001b[39m\u001b[0m\n\u001b[2m    at AuthHelper.login (C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts:27:21)\u001b[22m\n\u001b[2m    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts:25:5\u001b[22m"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 5439,
+                      "errors": [],
                       "stdout": [
                         {
                           "text": "🔐 Connexion avec compte vérifié: r_bessah@estin.dz\n"
                         },
                         {
                           "text": "🔐 Connexion avec: r_bessah@estin.dz\n"
+                        },
+                        {
+                          "text": "✅ Connexion réussie\n"
+                        },
+                        {
+                          "text": "✅ Utilisateur authentifié et vérifié\n"
+                        },
+                        {
+                          "text": "📝 18 préférences trouvées\n"
+                        },
+                        {
+                          "text": "✅ 3 préférences sélectionnées\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-23T14:15:31.771Z",
+                      "startTime": "2026-01-25T19:33:51.174Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-99391-on-de-préférences-de-trajet-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-99391-on-de-préférences-de-trajet-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-99391-on-de-préférences-de-trajet-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts",
-                        "column": 21,
-                        "line": 27
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "b516c5a2f5e7d7fc3ad2-7f127f16d4f197243184",
@@ -803,7 +757,7 @@
             },
             {
               "title": "07 - Aperçu carte avec itinéraire",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -814,67 +768,117 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 4,
+                      "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 16652,
-                      "error": {
-                        "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"], input[name=\"email\"], #email')\u001b[22m\n",
-                        "stack": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"], input[name=\"email\"], #email')\u001b[22m\n\n    at AuthHelper.login (C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts:27:21)\n    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts:25:5",
-                        "location": {
-                          "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts",
-                          "column": 21,
-                          "line": 27
-                        },
-                        "snippet": "\u001b[90m   at \u001b[39mhelpers\\auth-helper.ts:27\n\n\u001b[0m \u001b[90m 25 |\u001b[39m     \n \u001b[90m 26 |\u001b[39m     \u001b[90m// Remplir le formulaire de connexion\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 27 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"email\"], input[name=\"email\"], #email'\u001b[39m\u001b[33m,\u001b[39m email)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 28 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"password\"], input[name=\"password\"], #password'\u001b[39m\u001b[33m,\u001b[39m password)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m     \n \u001b[90m 30 |\u001b[39m     \u001b[90m// Cliquer sur le bouton de connexion\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts",
-                            "column": 21,
-                            "line": 27
-                          },
-                          "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"], input[name=\"email\"], #email')\u001b[22m\n\n\n\u001b[90m   at \u001b[39mhelpers\\auth-helper.ts:27\n\n\u001b[0m \u001b[90m 25 |\u001b[39m     \n \u001b[90m 26 |\u001b[39m     \u001b[90m// Remplir le formulaire de connexion\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 27 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"email\"], input[name=\"email\"], #email'\u001b[39m\u001b[33m,\u001b[39m email)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 28 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mfill(\u001b[32m'input[type=\"password\"], input[name=\"password\"], #password'\u001b[39m\u001b[33m,\u001b[39m password)\u001b[33m;\u001b[39m\n \u001b[90m 29 |\u001b[39m     \n \u001b[90m 30 |\u001b[39m     \u001b[90m// Cliquer sur le bouton de connexion\u001b[39m\u001b[0m\n\u001b[2m    at AuthHelper.login (C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts:27:21)\u001b[22m\n\u001b[2m    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts:25:5\u001b[22m"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 11883,
+                      "errors": [],
                       "stdout": [
                         {
                           "text": "🔐 Connexion avec compte vérifié: r_bessah@estin.dz\n"
                         },
                         {
                           "text": "🔐 Connexion avec: r_bessah@estin.dz\n"
+                        },
+                        {
+                          "text": "✅ Connexion réussie\n"
+                        },
+                        {
+                          "text": "✅ Utilisateur authentifié et vérifié\n"
+                        },
+                        {
+                          "text": "\n📍 Remplissage du champ DÉPART avec \"Alger\"\n"
+                        },
+                        {
+                          "text": "   → 2 input(s) text trouvé(s) sur la page\n"
+                        },
+                        {
+                          "text": "   → Input #0 avec placeholder: \"Alger\"\n"
+                        },
+                        {
+                          "text": "   → Valeur actuelle: \"\"\n"
+                        },
+                        {
+                          "text": "   → Clic : Focus sur DÉPART\n"
+                        },
+                        {
+                          "text": "   → Saisie de \"Alger\"\n"
+                        },
+                        {
+                          "text": "   → 2 suggestion(s) trouvée(s)\n"
+                        },
+                        {
+                          "text": "   → Clic sur suggestion: \"AlgerAlger\"\n"
+                        },
+                        {
+                          "text": "   → Attente fermeture automatique de la liste...\n"
+                        },
+                        {
+                          "text": "   → Vérification que la liste reste fermée...\n"
+                        },
+                        {
+                          "text": "   ✅ Liste correctement fermée\n"
+                        },
+                        {
+                          "text": "   → Valeur finale: \"Alger, Alger\"\n"
+                        },
+                        {
+                          "text": "✅ DÉPART rempli avec succès: \"Alger, Alger\"\n\n"
+                        },
+                        {
+                          "text": "\n📍 Remplissage du champ ARRIVÉE avec \"Oran\"\n"
+                        },
+                        {
+                          "text": "   → 2 input(s) text trouvé(s) sur la page\n"
+                        },
+                        {
+                          "text": "   → Input #1 avec placeholder: \"Oran\"\n"
+                        },
+                        {
+                          "text": "   → Valeur actuelle: \"\"\n"
+                        },
+                        {
+                          "text": "   → Clic : Focus sur ARRIVÉE\n"
+                        },
+                        {
+                          "text": "   → Saisie de \"Oran\"\n"
+                        },
+                        {
+                          "text": "   → 2 suggestion(s) trouvée(s)\n"
+                        },
+                        {
+                          "text": "   → Clic sur suggestion: \"OranOran\"\n"
+                        },
+                        {
+                          "text": "   → Attente fermeture automatique de la liste...\n"
+                        },
+                        {
+                          "text": "   → Vérification que la liste reste fermée...\n"
+                        },
+                        {
+                          "text": "   ✅ Liste correctement fermée\n"
+                        },
+                        {
+                          "text": "   → Valeur finale: \"Oran, Oran\"\n"
+                        },
+                        {
+                          "text": "✅ ARRIVÉE rempli avec succès: \"Oran, Oran\"\n\n"
+                        },
+                        {
+                          "text": "✅ Carte OpenStreetMap affichée dans iframe\n"
+                        },
+                        {
+                          "text": "✅ Carte interactive affichée\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-23T14:15:48.631Z",
+                      "startTime": "2026-01-25T19:33:56.638Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-90c01-perçu-carte-avec-itinéraire-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-90c01-perçu-carte-avec-itinéraire-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-90c01-perçu-carte-avec-itinéraire-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\helpers\\auth-helper.ts",
-                        "column": 21,
-                        "line": 27
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "b516c5a2f5e7d7fc3ad2-17c96b193651230eeaf3",
@@ -895,10 +899,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 5,
+                      "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 21623,
+                      "duration": 12386,
                       "errors": [],
                       "stdout": [
                         {
@@ -997,7 +1001,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-23T14:16:06.498Z",
+                      "startTime": "2026-01-25T19:34:08.543Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1012,7 +1016,7 @@
             },
             {
               "title": "09 - Dates futures uniquement",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -1023,30 +1027,11 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 5,
+                      "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 22534,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/date.*passée|past date|invalid date/i')\nExpected: visible\nTimeout: 3000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 3000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/date.*passée|past date|invalid date/i')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/date.*passée|past date|invalid date/i')\nExpected: visible\nTimeout: 3000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 3000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/date.*passée|past date|invalid date/i')\u001b[22m\n\n    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts:234:34",
-                        "location": {
-                          "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts",
-                          "column": 34,
-                          "line": 234
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 232 |\u001b[39m       \u001b[36mawait\u001b[39m publishButton\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 233 |\u001b[39m       \u001b[36mconst\u001b[39m errorMessage \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=/date.*passée|past date|invalid date/i'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 234 |\u001b[39m       \u001b[36mawait\u001b[39m expect(errorMessage)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m3000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 235 |\u001b[39m     }\n \u001b[90m 236 |\u001b[39m\n \u001b[90m 237 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'✅ Validation des dates passées OK'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts",
-                            "column": 34,
-                            "line": 234
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/date.*passée|past date|invalid date/i')\nExpected: visible\nTimeout: 3000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 3000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/date.*passée|past date|invalid date/i')\u001b[22m\n\n\n\u001b[0m \u001b[90m 232 |\u001b[39m       \u001b[36mawait\u001b[39m publishButton\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 233 |\u001b[39m       \u001b[36mconst\u001b[39m errorMessage \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=/date.*passée|past date|invalid date/i'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 234 |\u001b[39m       \u001b[36mawait\u001b[39m expect(errorMessage)\u001b[33m.\u001b[39mtoBeVisible({ timeout\u001b[33m:\u001b[39m \u001b[35m3000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 235 |\u001b[39m     }\n \u001b[90m 236 |\u001b[39m\n \u001b[90m 237 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'✅ Validation des dates passées OK'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts:234:34\u001b[22m"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 11557,
+                      "errors": [],
                       "stdout": [
                         {
                           "text": "🔐 Connexion avec compte vérifié: r_bessah@estin.dz\n"
@@ -1064,7 +1049,7 @@
                           "text": "\n📍 Remplissage du champ DÉPART avec \"Alger\"\n"
                         },
                         {
-                          "text": "   → 2 input(s) text trouvé(s) sur la page\n"
+                          "text": "   → 0 input(s) text trouvé(s) sur la page\n"
                         },
                         {
                           "text": "   → Input #0 avec placeholder: \"Alger\"\n"
@@ -1118,51 +1103,38 @@
                           "text": "   → Saisie de \"Oran\"\n"
                         },
                         {
+                          "text": "   → 2 suggestion(s) trouvée(s)\n"
+                        },
+                        {
+                          "text": "   → Clic sur suggestion: \"OranOran\"\n"
+                        },
+                        {
+                          "text": "   → Attente fermeture automatique de la liste...\n"
+                        },
+                        {
                           "text": "   → Vérification que la liste reste fermée...\n"
                         },
                         {
-                          "text": "   → Valeur finale: \"Oran\"\n"
+                          "text": "   ✅ Liste correctement fermée\n"
                         },
                         {
-                          "text": "✅ ARRIVÉE rempli avec succès: \"Oran\"\n\n"
-                        }
-                      ],
-                      "stderr": [
-                        {
-                          "text": "   ⚠️ Pas de suggestion trouvée\n"
+                          "text": "   → Valeur finale: \"Oran, Oran\"\n"
                         },
                         {
-                          "text": "   ⚠️ BUG : La liste s'est réouverte ! Fermeture forcée...\n"
+                          "text": "✅ ARRIVÉE rempli avec succès: \"Oran, Oran\"\n\n"
+                        },
+                        {
+                          "text": "✅ Validation des dates passées OK\n"
                         }
                       ],
+                      "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-23T14:16:28.245Z",
+                      "startTime": "2026-01-25T19:34:20.960Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-3608f----Dates-futures-uniquement-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-3608f----Dates-futures-uniquement-chromium\\video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\test-results\\02-create-trip-Création-de-3608f----Dates-futures-uniquement-chromium\\error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "C:\\Users\\DELL\\Desktop\\Projet_GL\\covoiturage\\e2e\\02-create-trip.spec.ts",
-                        "column": 34,
-                        "line": 234
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "b516c5a2f5e7d7fc3ad2-079b60bf1505a762e54d",
@@ -1177,11 +1149,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-01-23T14:13:40.941Z",
-    "duration": 190019.715,
-    "expected": 3,
+    "startTime": "2026-01-25T19:32:33.419Z",
+    "duration": 119444.295,
+    "expected": 9,
     "skipped": 0,
-    "unexpected": 6,
+    "unexpected": 0,
     "flaky": 0
   }
 }

@@ -24,7 +24,8 @@
     "test:e2e:trip": "playwright test 02-create-trip.spec.ts",
     "test:e2e:critical": "playwright test --grep @critical",
     "test:install": "playwright install",
-    "test:install:deps": "playwright install-deps"
+    "test:install:deps": "playwright install-deps",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

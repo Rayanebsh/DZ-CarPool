@@ -13,7 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1,dz-carpool-backend-1.onrender.com").split(",")
+ALLOWED_HOSTS = config(
+    "ALLOWED_HOSTS",
+    default="localhost,127.0.0.1,dz-carpool-backend-1.onrender.com"
+).split(",")
 
 # Application definition
 INSTALLED_APPS = [
@@ -85,22 +88,68 @@ TEMPLATES = [
 ASGI_APPLICATION = "config.asgi.application"
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Configuration Channels Layer (Redis)
-REDIS_URL = config("REDIS_URL", default="redis://localhost:6379")
+# ============================================
+# ✅ CONFIGURATION REDIS & CHANNELS LAYER
+# ============================================
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [REDIS_URL],
+# Si l'URL Redis utilise SSL (rediss://)
+if REDIS_URL.startswith("rediss://"):
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [{
+                    "address": REDIS_URL,
+                    "ssl_cert_reqs": None,  # ✅ Désactive la vérification SSL stricte
+                }],
+            },
         },
-    },
-}
+    }
+    # Cache avec SSL
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "CONNECTION_POOL_KWARGS": {
+                    "ssl_cert_reqs": None,
+                },
+            },
+            "KEY_PREFIX": "dzcarpool",
+            "TIMEOUT": 300,
+        }
+    }
+else:
+    # Redis sans SSL (développement local)
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [REDIS_URL],
+            },
+        },
+    }
+    # Cache sans SSL
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+            "KEY_PREFIX": "dzcarpool",
+            "TIMEOUT": 300,
+        }
+    }
 
 # URL WebSocket (pour le frontend)
 WEBSOCKET_URL = config("WEBSOCKET_URL", default="ws://localhost:8000")
 
-# Database - Support pour DATABASE_URL de Render
+# ============================================
+# DATABASE CONFIGURATION
+# ============================================
 import dj_database_url
 
 if 'DATABASE_URL' in os.environ:
@@ -150,8 +199,11 @@ USE_TZ = True
 # Static files
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
 # URL du backend (pour construire les URLs complètes)
-BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000/")
+BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000").rstrip("/")
+
+# Media files
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
@@ -161,7 +213,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Custom User Model
 AUTH_USER_MODEL = "users.User"
 
-# REST Framework
+# ============================================
+# REST FRAMEWORK CONFIGURATION
+# ============================================
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "app.core.authentication.CustomJWTAuthentication",
@@ -191,7 +245,9 @@ REST_FRAMEWORK = {
     "TIME_FORMAT": "%H:%M:%S",
 }
 
-# JWT Settings
+# ============================================
+# JWT SETTINGS
+# ============================================
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
         minutes=config("ACCESS_TOKEN_LIFETIME_MINUTES", default=60, cast=int)
@@ -229,7 +285,6 @@ else:
         "https://dz-car-pool-frontend.vercel.app",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://dz-car-pool-frontend-6kns3mkgm-r-bessah-estindzs-projects.vercel.app",
     ]
     CORS_ALLOW_CREDENTIALS = True
 
@@ -262,7 +317,9 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# DRF Spectacular Settings
+# ============================================
+# DRF SPECTACULAR SETTINGS
+# ============================================
 SPECTACULAR_SETTINGS = {
     "TITLE": "DZ-CarPool API",
     "DESCRIPTION": "API pour la plateforme de covoiturage DZ-CarPool",
@@ -270,7 +327,9 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
-# Business Logic Configuration
+# ============================================
+# BUSINESS LOGIC CONFIGURATION
+# ============================================
 PLATFORM_COMMISSION_RATE = config("PLATFORM_COMMISSION_RATE", default=0.15, cast=float)
 CONFORT_SUPPLEMENT_RATE = config("CONFORT_SUPPLEMENT_RATE", default=0.30, cast=float)
 LONG_DISTANCE_THRESHOLD_KM = 300
@@ -279,9 +338,11 @@ FUEL_CONSUMPTION_L_PER_100KM = config(
     "FUEL_CONSUMPTION_L_PER_100KM", default=8.0, cast=float
 )
 
-# Logging - Adapté pour Render
+# ============================================
+# ✅ LOGGING CONFIGURATION
+# ============================================
 if os.environ.get('RENDER'):
-    # Sur Render : logs console uniquement
+    # Sur Render : logs console avec détails WebSocket
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
@@ -307,11 +368,27 @@ if os.environ.get('RENDER'):
                 "level": "INFO",
                 "propagate": False,
             },
+            # ✅ Logs détaillés pour WebSocket
+            "daphne": {
+                "handlers": ["console"],
+                "level": "DEBUG",
+            },
+            "channels": {
+                "handlers": ["console"],
+                "level": "DEBUG",
+            },
+            "app.messaging": {
+                "handlers": ["console"],
+                "level": "DEBUG",
+            },
+            "app.notifications": {
+                "handlers": ["console"],
+                "level": "DEBUG",
+            },
         },
     }
 else:
     # En développement local : console + fichier
-    # Créer le dossier logs s'il n'existe pas
     logs_dir = BASE_DIR / "logs"
     logs_dir.mkdir(exist_ok=True)
     
@@ -345,21 +422,16 @@ else:
                 "level": "INFO",
                 "propagate": False,
             },
+            "daphne": {
+                "handlers": ["console", "file"],
+                "level": "DEBUG",
+            },
+            "channels": {
+                "handlers": ["console", "file"],
+                "level": "DEBUG",
+            },
         },
     }
-
-# Cache Configuration
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": config("REDIS_URL", default="redis://localhost:6379/1"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
-        "KEY_PREFIX": "dzcarpool",
-        "TIMEOUT": 300,
-    }
-}
 
 # Cache pour les sessions
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
