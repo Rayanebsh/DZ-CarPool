@@ -150,9 +150,9 @@ describe('MessagingService', () => {
 
       mockedApi.get.mockRejectedValueOnce(error);
 
-      await expect(
-        messagingService.getTripGroupMessages(42),
-      ).rejects.toThrow('Network error');
+      await expect(messagingService.getTripGroupMessages(42)).rejects.toThrow(
+        'Network error',
+      );
       expect(consoleErrorSpy).toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();
@@ -184,9 +184,9 @@ describe('MessagingService', () => {
 
       mockedApi.get.mockRejectedValueOnce(error);
 
-      await expect(
-        messagingService.getPrivateMessages(7),
-      ).rejects.toThrow('Unauthorized');
+      await expect(messagingService.getPrivateMessages(7)).rejects.toThrow(
+        'Unauthorized',
+      );
       expect(consoleErrorSpy).toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();

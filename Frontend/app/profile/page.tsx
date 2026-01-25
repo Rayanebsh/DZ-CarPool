@@ -59,7 +59,7 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState('');
   const [activeTab, setActiveTab] = useState('about');
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   // État pour les données utilisateur
   const [userData, setUserData] = useState<UserData | null>(null);
   const [formData, setFormData] = useState<FormData>({
@@ -86,7 +86,7 @@ export default function ProfilePage() {
         return;
       }
 
-      const response = await fetch('http://localhost:8000/api/v1/users/me/', {
+      const response = await fetch(`${API_URL}/api/v1/users/me/`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -162,17 +162,14 @@ export default function ProfilePage() {
         formDataToSend.append('profile_picture', formData.profile_picture);
       }
 
-      const response = await fetch(
-        'http://localhost:8000/api/v1/users/update_profile/',
-        {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            // Ne pas définir Content-Type, le navigateur le fera automatiquement avec boundary
-          },
-          body: formDataToSend,
+      const response = await fetch(`${API_URL}/api/v1/users/update_profile/`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Ne pas définir Content-Type, le navigateur le fera automatiquement avec boundary
         },
-      );
+        body: formDataToSend,
+      });
 
       if (!response.ok) {
         const errorData = await response.json();

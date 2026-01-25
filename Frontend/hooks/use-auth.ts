@@ -16,7 +16,7 @@ export function useAuth() {
   const determineRedirectUrl = async (): Promise<string> => {
     try {
       const status = await verificationService.getVerificationStatus();
-      
+
       console.log('📊 Détermination de la redirection:', {
         email_verified: status.email_verified,
         phone_verified: status.phone_verified,
@@ -25,7 +25,10 @@ export function useAuth() {
       });
 
       // 1️⃣ Si email OU téléphone non vérifié → /verify
-      if (!status.email_verified || (!status.phone_verified && status.has_phone_number)) {
+      if (
+        !status.email_verified ||
+        (!status.phone_verified && status.has_phone_number)
+      ) {
         console.log('🔄 Redirection: /verify (vérification nécessaire)');
         return '/verify';
       }

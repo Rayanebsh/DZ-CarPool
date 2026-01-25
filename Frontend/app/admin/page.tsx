@@ -83,11 +83,11 @@ export default function AdminDashboard() {
     totalTrips: 0,
     activeTrips: 0,
   });
-
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const api = {
     get: async (url: string) => {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://localhost:8000/api/v1${url}`, {
+      const response = await fetch(`${API_URL}/api/v1${url}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('API Error');
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
     post: async (url: string, data: any) => {
       const token = localStorage.getItem('access_token');
       console.log('POST Request:', url, data);
-      const response = await fetch(`http://localhost:8000/api/v1${url}`, {
+      const response = await fetch(`${API_URL}/api/v1${url}`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -112,7 +112,7 @@ export default function AdminDashboard() {
     },
     delete: async (url: string) => {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://localhost:8000/api/v1${url}`, {
+      const response = await fetch(`${API_URL}/api/v1${url}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -142,12 +142,12 @@ export default function AdminDashboard() {
 
       const docsResponse = await api.get('/users/admin/pending-documents/');
       console.log('📦 Raw API response:', docsResponse);
-      
+
       const docs = docsResponse.documents || [];
       console.log('📋 Documents array:', docs);
-      
+
       setDocuments(docs);
-      
+
       console.log('✅ Documents loaded:', docs.length);
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -159,17 +159,17 @@ export default function AdminDashboard() {
 
   const handleVerifyDocument = async (documentId: number) => {
     console.log('🔍 handleVerifyDocument called with:', { documentId });
-    
+
     if (!documentId) {
       console.error('❌ Missing document ID');
       alert('Erreur: ID du document manquant');
       return;
     }
-    
+
     try {
       const payload = { document_id: Number(documentId) };
       console.log('📤 Sending payload:', payload);
-      
+
       const result = await api.post('/users/admin/verify-document/', payload);
       console.log('✅ Success:', result);
       alert('Document approuvé avec succès');
@@ -182,20 +182,20 @@ export default function AdminDashboard() {
 
   const handleRejectDocument = async (documentId: number) => {
     console.log('🔍 handleRejectDocument called with:', { documentId });
-    
+
     if (!documentId) {
       console.error('❌ Missing document ID');
       alert('Erreur: ID du document manquant');
       return;
     }
-    
+
     const reason = prompt('Raison du rejet:');
     if (!reason) return;
-    
+
     try {
       const payload = { document_id: Number(documentId), reason };
       console.log('📤 Sending payload:', payload);
-      
+
       const result = await api.post('/users/admin/reject-document/', payload);
       console.log('✅ Success:', result);
       alert('Document rejeté');
@@ -207,7 +207,12 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteUser = async (userId: number) => {
-    if (!confirm('⚠️ Supprimer définitivement cet utilisateur ? Cette action est irréversible.')) return;
+    if (
+      !confirm(
+        '⚠️ Supprimer définitivement cet utilisateur ? Cette action est irréversible.',
+      )
+    )
+      return;
     try {
       console.log('🗑️ Deleting user:', userId);
       await api.delete(`/users/${userId}/`);
@@ -235,18 +240,24 @@ export default function AdminDashboard() {
   const handleViewDocument = (filePath: string) => {
     console.log('📄 handleViewDocument called');
     console.log('file_path:', filePath);
-    
-    if (!filePath || filePath === '' || filePath === 'null' || filePath === 'undefined') {
+
+    if (
+      !filePath ||
+      filePath === '' ||
+      filePath === 'null' ||
+      filePath === 'undefined'
+    ) {
       console.error('❌ Invalid file_path:', filePath);
       alert('Fichier du document non disponible');
       return;
     }
-    
+
     let fullUrl = filePath;
     if (!filePath.startsWith('http')) {
-      fullUrl = `http://localhost:8000${filePath}`;
+      const ApiUrl = process.env.NEXT_PUBLIC_API_URL;
+      fullUrl = `${ApiUrl}/api/v1${filePath}`;
     }
-    
+
     console.log('✅ Opening URL:', fullUrl);
     window.open(fullUrl, '_blank', 'noopener,noreferrer');
   };
@@ -256,7 +267,7 @@ export default function AdminDashboard() {
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       `${user.first_name} ${user.last_name}`
         .toLowerCase()
-        .includes(searchQuery.toLowerCase())
+        .includes(searchQuery.toLowerCase()),
   );
 
   if (loading) {
@@ -290,7 +301,9 @@ export default function AdminDashboard() {
                 </div>
                 <TrendingUp className="w-5 h-5 text-green-500" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">{stats.totalUsers}</h3>
+              <h3 className="text-2xl font-bold text-gray-900">
+                {stats.totalUsers}
+              </h3>
               <p className="text-sm text-gray-600">Utilisateurs totaux</p>
             </div>
 
@@ -301,7 +314,9 @@ export default function AdminDashboard() {
                 </div>
                 <TrendingUp className="w-5 h-5 text-green-500" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">{stats.activeTrips}</h3>
+              <h3 className="text-2xl font-bold text-gray-900">
+                {stats.activeTrips}
+              </h3>
               <p className="text-sm text-gray-600">Trajets actifs</p>
             </div>
 
@@ -311,7 +326,9 @@ export default function AdminDashboard() {
                   <Shield className="w-6 h-6 text-green-600" />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">{stats.verifiedUsers}</h3>
+              <h3 className="text-2xl font-bold text-gray-900">
+                {stats.verifiedUsers}
+              </h3>
               <p className="text-sm text-gray-600">Utilisateurs vérifiés</p>
             </div>
 
@@ -388,9 +405,9 @@ export default function AdminDashboard() {
                       <tbody className="bg-white divide-y">
                         {documents.map((doc) => {
                           console.log('🔍 Rendering document:', doc);
-                          
+
                           const userId = doc.user || null;
-                          
+
                           return (
                             <tr key={doc.id} className="hover:bg-gray-50">
                               <td className="px-6 py-4">
@@ -403,18 +420,25 @@ export default function AdminDashboard() {
                               </td>
                               <td className="px-6 py-4">
                                 <Badge variant="secondary">
-                                  {doc.document_type === 'ID_CARD' ? 'CNI' : doc.document_type}
+                                  {doc.document_type === 'ID_CARD'
+                                    ? 'CNI'
+                                    : doc.document_type}
                                 </Badge>
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-500">
-                                {new Date(doc.uploaded_at).toLocaleDateString('fr-FR')}
+                                {new Date(doc.uploaded_at).toLocaleDateString(
+                                  'fr-FR',
+                                )}
                               </td>
                               <td className="px-6 py-4">
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => {
-                                    console.log('🖱️ View button clicked for doc:', doc.id);
+                                    console.log(
+                                      '🖱️ View button clicked for doc:',
+                                      doc.id,
+                                    );
                                     console.log('File path:', doc.file_path);
                                     handleViewDocument(doc.file_path);
                                   }}
@@ -433,7 +457,10 @@ export default function AdminDashboard() {
                                     size="sm"
                                     className="bg-green-600 hover:bg-green-700 text-white"
                                     onClick={() => {
-                                      console.log('✅ Approve clicked for doc:', doc.id);
+                                      console.log(
+                                        '✅ Approve clicked for doc:',
+                                        doc.id,
+                                      );
                                       handleVerifyDocument(doc.id);
                                     }}
                                   >
@@ -445,7 +472,10 @@ export default function AdminDashboard() {
                                     variant="outline"
                                     className="border-red-600 text-red-600 hover:bg-red-50"
                                     onClick={() => {
-                                      console.log('❌ Reject clicked for doc:', doc.id);
+                                      console.log(
+                                        '❌ Reject clicked for doc:',
+                                        doc.id,
+                                      );
                                       handleRejectDocument(doc.id);
                                     }}
                                   >
@@ -507,7 +537,9 @@ export default function AdminDashboard() {
                             <div className="font-medium text-gray-900">
                               {user.first_name} {user.last_name}
                             </div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
+                            <div className="text-sm text-gray-500">
+                              {user.email}
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             <Badge variant="secondary">{user.role}</Badge>
@@ -524,7 +556,9 @@ export default function AdminDashboard() {
                             </Badge>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-500">
-                            {new Date(user.date_joined).toLocaleDateString('fr-FR')}
+                            {new Date(user.date_joined).toLocaleDateString(
+                              'fr-FR',
+                            )}
                           </td>
                           <td className="px-6 py-4">
                             <Button
@@ -581,7 +615,8 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm text-gray-900">
-                              {trajet.conducteur.first_name} {trajet.conducteur.last_name}
+                              {trajet.conducteur.first_name}{' '}
+                              {trajet.conducteur.last_name}
                             </div>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-500">
@@ -596,8 +631,8 @@ export default function AdminDashboard() {
                                 trajet.status === 'ACTIVE'
                                   ? 'bg-green-100 text-green-800'
                                   : trajet.status === 'COMPLETED'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-red-100 text-red-800'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-red-100 text-red-800'
                               }
                             >
                               {trajet.status}

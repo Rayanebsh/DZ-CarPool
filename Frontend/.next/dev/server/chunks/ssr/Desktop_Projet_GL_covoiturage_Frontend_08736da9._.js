@@ -9,11 +9,12 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Desktop/Projet_GL/covoiturage/Frontend/node_modules/axios/lib/axios.js [app-ssr] (ecmascript)");
 ;
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = ("TURBOPACK compile-time value", "http://localhost:8000");
 /**
  * Instance Axios configurée avec authentification automatique
- */ const apiClient = __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].create({
-    baseURL: API_URL,
+ */ console.log('API_URL:', API_URL);
+const apiClient = __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].create({
+    baseURL: `${API_URL}/api/v1`,
     headers: {
         'Content-Type': 'application/json'
     },
@@ -53,7 +54,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1
                 return Promise.reject(error);
             }
             // Appeler l'endpoint de refresh
-            const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/users/token/refresh/`, {
+            const response = await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].post(`${API_URL}/api/v1/users/token/refresh/`, {
                 refresh: refreshToken
             });
             const { access, refresh } = response.data;
@@ -141,27 +142,11 @@ class VerificationService {
     /**
    * ✅ Vérifie l'email avec le code reçu
    * @param code - Code de vérification à 6 chiffres
-   */ async verifyEmail(code) {
-        try {
-            await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$services$2f$api$2e$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].post('/users/verify-email/', {
-                code
-            });
-        } catch (error) {
-            throw error;
-        }
-    }
+   */ async verifyEmail(_code) {}
     /**
    * ✅ Vérifie le téléphone avec le code reçu par SMS
    * @param code - Code de vérification à 6 chiffres
-   */ async verifyPhone(code) {
-        try {
-            await __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$services$2f$api$2e$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].post('/users/verify-phone/', {
-                code
-            });
-        } catch (error) {
-            throw error;
-        }
-    }
+   */ async verifyPhone(_code) {}
 }
 const __TURBOPACK__default__export__ = new VerificationService();
 }),
@@ -356,7 +341,7 @@ function VerifyPage() {
                         className: "animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF5722] mx-auto"
                     }, void 0, false, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                        lineNumber: 190,
+                        lineNumber: 203,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -364,18 +349,18 @@ function VerifyPage() {
                         children: "Vérification en cours..."
                     }, void 0, false, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                        lineNumber: 191,
+                        lineNumber: 204,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                lineNumber: 189,
+                lineNumber: 202,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-            lineNumber: 188,
+            lineNumber: 201,
             columnNumber: 7
         }, this);
     }
@@ -398,17 +383,17 @@ function VerifyPage() {
                                 clipRule: "evenodd"
                             }, void 0, false, {
                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                lineNumber: 208,
+                                lineNumber: 221,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                            lineNumber: 203,
+                            lineNumber: 216,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                        lineNumber: 202,
+                        lineNumber: 215,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -416,7 +401,7 @@ function VerifyPage() {
                         children: "Compte vérifié !"
                     }, void 0, false, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                        lineNumber: 215,
+                        lineNumber: 228,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -424,18 +409,18 @@ function VerifyPage() {
                         children: isFirstLogin ? 'Configuration de vos préférences...' : 'Redirection en cours...'
                     }, void 0, false, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                        lineNumber: 218,
+                        lineNumber: 231,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                lineNumber: 201,
+                lineNumber: 214,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-            lineNumber: 200,
+            lineNumber: 213,
             columnNumber: 7
         }, this);
     }
@@ -450,7 +435,7 @@ function VerifyPage() {
                         children: "Vérification de compte"
                     }, void 0, false, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                        lineNumber: 231,
+                        lineNumber: 244,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -458,13 +443,13 @@ function VerifyPage() {
                         children: isFirstLogin ? 'Bienvenue ! Vérifiez votre email et téléphone pour commencer' : 'Vérifiez votre email et téléphone pour continuer'
                     }, void 0, false, {
                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                        lineNumber: 234,
+                        lineNumber: 247,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                lineNumber: 230,
+                lineNumber: 243,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -477,7 +462,7 @@ function VerifyPage() {
                             children: error
                         }, void 0, false, {
                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                            lineNumber: 244,
+                            lineNumber: 257,
                             columnNumber: 13
                         }, this),
                         success && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -485,7 +470,7 @@ function VerifyPage() {
                             children: success
                         }, void 0, false, {
                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                            lineNumber: 250,
+                            lineNumber: 263,
                             columnNumber: 13
                         }, this),
                         !emailVerified && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -496,7 +481,7 @@ function VerifyPage() {
                                     children: "📧 Vérification Email"
                                 }, void 0, false, {
                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                    lineNumber: 257,
+                                    lineNumber: 270,
                                     columnNumber: 15
                                 }, this),
                                 emailSent && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -504,7 +489,7 @@ function VerifyPage() {
                                     children: "Un code a été envoyé à votre adresse email"
                                 }, void 0, false, {
                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                    lineNumber: 261,
+                                    lineNumber: 274,
                                     columnNumber: 17
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -517,7 +502,7 @@ function VerifyPage() {
                                                     children: "Code de vérification"
                                                 }, void 0, false, {
                                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                                    lineNumber: 267,
+                                                    lineNumber: 280,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -529,13 +514,13 @@ function VerifyPage() {
                                                     maxLength: 6
                                                 }, void 0, false, {
                                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                                    lineNumber: 270,
+                                                    lineNumber: 283,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                            lineNumber: 266,
+                                            lineNumber: 279,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -544,7 +529,7 @@ function VerifyPage() {
                                             children: "Vérifier Email"
                                         }, void 0, false, {
                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                            lineNumber: 279,
+                                            lineNumber: 292,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -553,19 +538,19 @@ function VerifyPage() {
                                             children: "Renvoyer le code"
                                         }, void 0, false, {
                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                            lineNumber: 285,
+                                            lineNumber: 298,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                    lineNumber: 265,
+                                    lineNumber: 278,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                            lineNumber: 256,
+                            lineNumber: 269,
                             columnNumber: 13
                         }, this),
                         emailVerified && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -581,12 +566,12 @@ function VerifyPage() {
                                         clipRule: "evenodd"
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                        lineNumber: 302,
+                                        lineNumber: 315,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                    lineNumber: 297,
+                                    lineNumber: 310,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -594,13 +579,13 @@ function VerifyPage() {
                                     children: "Email vérifié ✓"
                                 }, void 0, false, {
                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                    lineNumber: 308,
+                                    lineNumber: 321,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                            lineNumber: 296,
+                            lineNumber: 309,
                             columnNumber: 13
                         }, this),
                         !phoneVerified && hasPhoneNumber && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -610,7 +595,7 @@ function VerifyPage() {
                                     children: "📱 Vérification Téléphone"
                                 }, void 0, false, {
                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                    lineNumber: 314,
+                                    lineNumber: 327,
                                     columnNumber: 15
                                 }, this),
                                 phoneSent && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -618,7 +603,7 @@ function VerifyPage() {
                                     children: "Un code SMS a été envoyé à votre téléphone"
                                 }, void 0, false, {
                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                    lineNumber: 318,
+                                    lineNumber: 331,
                                     columnNumber: 17
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -631,7 +616,7 @@ function VerifyPage() {
                                                     children: "Code de vérification"
                                                 }, void 0, false, {
                                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                                    lineNumber: 324,
+                                                    lineNumber: 337,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -643,13 +628,13 @@ function VerifyPage() {
                                                     maxLength: 6
                                                 }, void 0, false, {
                                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                                    lineNumber: 327,
+                                                    lineNumber: 340,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                            lineNumber: 323,
+                                            lineNumber: 336,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -658,7 +643,7 @@ function VerifyPage() {
                                             children: "Vérifier Téléphone"
                                         }, void 0, false, {
                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                            lineNumber: 336,
+                                            lineNumber: 349,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -667,19 +652,19 @@ function VerifyPage() {
                                             children: "Renvoyer le code"
                                         }, void 0, false, {
                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                            lineNumber: 342,
+                                            lineNumber: 355,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                    lineNumber: 322,
+                                    lineNumber: 335,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                            lineNumber: 313,
+                            lineNumber: 326,
                             columnNumber: 13
                         }, this),
                         emailVerified && !phoneVerified && !hasPhoneNumber && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -697,12 +682,12 @@ function VerifyPage() {
                                             clipRule: "evenodd"
                                         }, void 0, false, {
                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                            lineNumber: 361,
+                                            lineNumber: 374,
                                             columnNumber: 19
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                        lineNumber: 356,
+                                        lineNumber: 369,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -713,7 +698,7 @@ function VerifyPage() {
                                                 children: "Téléphone requis pour continuer"
                                             }, void 0, false, {
                                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                                lineNumber: 368,
+                                                lineNumber: 381,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -721,7 +706,7 @@ function VerifyPage() {
                                                 children: "Ajoutez un numéro de téléphone pour finaliser votre inscription"
                                             }, void 0, false, {
                                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                                lineNumber: 371,
+                                                lineNumber: 384,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -730,24 +715,24 @@ function VerifyPage() {
                                                 children: "Ajouter mon numéro"
                                             }, void 0, false, {
                                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                                lineNumber: 374,
+                                                lineNumber: 388,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                        lineNumber: 367,
+                                        lineNumber: 380,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                lineNumber: 355,
+                                lineNumber: 368,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                            lineNumber: 354,
+                            lineNumber: 367,
                             columnNumber: 13
                         }, this),
                         !emailVerified && !phoneVerified && !hasPhoneNumber && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -765,12 +750,12 @@ function VerifyPage() {
                                             clipRule: "evenodd"
                                         }, void 0, false, {
                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                            lineNumber: 394,
+                                            lineNumber: 408,
                                             columnNumber: 19
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                        lineNumber: 389,
+                                        lineNumber: 403,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -780,23 +765,23 @@ function VerifyPage() {
                                             children: "Vous pourrez ajouter votre numéro de téléphone après la vérification de votre email"
                                         }, void 0, false, {
                                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                            lineNumber: 401,
+                                            lineNumber: 415,
                                             columnNumber: 19
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                        lineNumber: 400,
+                                        lineNumber: 414,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                lineNumber: 388,
+                                lineNumber: 402,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                            lineNumber: 387,
+                            lineNumber: 401,
                             columnNumber: 13
                         }, this),
                         phoneVerified && !emailVerified && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -812,12 +797,12 @@ function VerifyPage() {
                                         clipRule: "evenodd"
                                     }, void 0, false, {
                                         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                        lineNumber: 416,
+                                        lineNumber: 431,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                    lineNumber: 411,
+                                    lineNumber: 426,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$Projet_GL$2f$covoiturage$2f$Frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -825,30 +810,30 @@ function VerifyPage() {
                                     children: "Téléphone vérifié ✓"
                                 }, void 0, false, {
                                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                                    lineNumber: 422,
+                                    lineNumber: 437,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                            lineNumber: 410,
+                            lineNumber: 425,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                    lineNumber: 242,
+                    lineNumber: 255,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-                lineNumber: 241,
+                lineNumber: 254,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/Desktop/Projet_GL/covoiturage/Frontend/app/verify/page.tsx",
-        lineNumber: 229,
+        lineNumber: 242,
         columnNumber: 5
     }, this);
 }

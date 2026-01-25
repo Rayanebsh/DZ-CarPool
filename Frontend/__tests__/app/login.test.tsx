@@ -15,7 +15,7 @@ jest.mock('@/hooks/use-auth');
 jest.mock('@/components/google-login-button', () => {
   return function MockGoogleLoginButton({ text, onError }: any) {
     return (
-      <button 
+      <button
         data-testid="google-login-button"
         onClick={() => onError && onError('Test error')}
       >
@@ -63,7 +63,8 @@ describe('LoginPage', () => {
     });
 
     (useLanguage as jest.Mock).mockReturnValue({
-      t: (key: string) => defaultTranslations[key as keyof typeof defaultTranslations] || key,
+      t: (key: string) =>
+        defaultTranslations[key as keyof typeof defaultTranslations] || key,
       language: 'en',
       setLanguage: mockSetLanguage,
     });
@@ -123,7 +124,9 @@ describe('LoginPage', () => {
 
     it('should render login button', () => {
       render(<LoginPage />);
-      expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /login/i }),
+      ).toBeInTheDocument();
     });
 
     it('should render Google login button', () => {
@@ -133,8 +136,14 @@ describe('LoginPage', () => {
 
     it('should render terms and privacy links', () => {
       render(<LoginPage />);
-      expect(screen.getByText('Terms of Service')).toHaveAttribute('href', '/terms');
-      expect(screen.getByText('Privacy Policy')).toHaveAttribute('href', '/privacy');
+      expect(screen.getByText('Terms of Service')).toHaveAttribute(
+        'href',
+        '/terms',
+      );
+      expect(screen.getByText('Privacy Policy')).toHaveAttribute(
+        'href',
+        '/privacy',
+      );
     });
 
     it('should render language selector', () => {
@@ -152,7 +161,7 @@ describe('LoginPage', () => {
     it('should toggle language to French', () => {
       render(<LoginPage />);
       const languageButton = screen.getByText('EN').closest('button');
-      
+
       fireEvent.click(languageButton!);
 
       expect(mockSetLanguage).toHaveBeenCalledWith('fr');
@@ -160,14 +169,15 @@ describe('LoginPage', () => {
 
     it('should toggle language to English when French is active', () => {
       (useLanguage as jest.Mock).mockReturnValue({
-        t: (key: string) => defaultTranslations[key as keyof typeof defaultTranslations] || key,
+        t: (key: string) =>
+          defaultTranslations[key as keyof typeof defaultTranslations] || key,
         language: 'fr',
         setLanguage: mockSetLanguage,
       });
 
       render(<LoginPage />);
       const languageButton = screen.getByText('FR').closest('button');
-      
+
       fireEvent.click(languageButton!);
 
       expect(mockSetLanguage).toHaveBeenCalledWith('en');
@@ -183,7 +193,9 @@ describe('LoginPage', () => {
   describe('Form Input', () => {
     it('should update email field on change', () => {
       render(<LoginPage />);
-      const emailInput = screen.getByPlaceholderText('Enter your email') as HTMLInputElement;
+      const emailInput = screen.getByPlaceholderText(
+        'Enter your email',
+      ) as HTMLInputElement;
 
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
 
@@ -192,7 +204,9 @@ describe('LoginPage', () => {
 
     it('should update password field on change', () => {
       render(<LoginPage />);
-      const passwordInput = screen.getByPlaceholderText('Enter your password') as HTMLInputElement;
+      const passwordInput = screen.getByPlaceholderText(
+        'Enter your password',
+      ) as HTMLInputElement;
 
       fireEvent.change(passwordInput, { target: { value: 'password123' } });
 
@@ -212,7 +226,9 @@ describe('LoginPage', () => {
       fireEvent.change(emailInput, { target: { value: 'new@example.com' } });
 
       // Error should be cleared
-      expect(screen.queryByText(/Invalid credentials/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Invalid credentials/i),
+      ).not.toBeInTheDocument();
     });
 
     it('should clear error when password input changes', () => {
@@ -296,7 +312,9 @@ describe('LoginPage', () => {
       mockLogin.mockResolvedValue({});
 
       render(<LoginPage />);
-      const form = screen.getByRole('button', { name: /login/i }).closest('form');
+      const form = screen
+        .getByRole('button', { name: /login/i })
+        .closest('form');
       const preventDefault = jest.fn();
 
       fireEvent.submit(form!, { preventDefault });
@@ -305,7 +323,9 @@ describe('LoginPage', () => {
     });
 
     it('should handle successful login', async () => {
-      mockLogin.mockResolvedValue({ user: { id: '1', email: 'test@example.com' } });
+      mockLogin.mockResolvedValue({
+        user: { id: '1', email: 'test@example.com' },
+      });
 
       render(<LoginPage />);
       const emailInput = screen.getByPlaceholderText('Enter your email');
@@ -496,7 +516,9 @@ describe('LoginPage', () => {
 
     it('should hide branding on small screens', () => {
       render(<LoginPage />);
-      const brandingSection = screen.getByText('Trusted Ride Sharing').closest('div');
+      const brandingSection = screen
+        .getByText('Trusted Ride Sharing')
+        .closest('div');
       expect(brandingSection?.parentElement).toHaveClass('hidden', 'lg:flex');
     });
   });
@@ -520,7 +542,9 @@ describe('LoginPage', () => {
       const passwordInput = screen.getByPlaceholderText('Enter your password');
       const loginButton = screen.getByRole('button', { name: /login/i });
 
-      fireEvent.change(emailInput, { target: { value: '  test@example.com  ' } });
+      fireEvent.change(emailInput, {
+        target: { value: '  test@example.com  ' },
+      });
       fireEvent.change(passwordInput, { target: { value: '  password123  ' } });
       fireEvent.click(loginButton);
 
@@ -533,7 +557,9 @@ describe('LoginPage', () => {
     });
 
     it('should handle rapid form submissions', async () => {
-      mockLogin.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
+      mockLogin.mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 100)),
+      );
 
       render(<LoginPage />);
       const emailInput = screen.getByPlaceholderText('Enter your email');
@@ -542,7 +568,7 @@ describe('LoginPage', () => {
 
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
       fireEvent.change(passwordInput, { target: { value: 'password123' } });
-      
+
       fireEvent.click(loginButton);
       fireEvent.click(loginButton);
       fireEvent.click(loginButton);

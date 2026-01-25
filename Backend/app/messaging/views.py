@@ -9,11 +9,14 @@ import uuid
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db.models import Q
+
 from channels.layers import get_channel_layer
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
+
 from app.notifications.models import Conversation, Message
+
 from .serializers import ConversationSerializer, MessageSerializer
 
 logger = logging.getLogger(__name__)

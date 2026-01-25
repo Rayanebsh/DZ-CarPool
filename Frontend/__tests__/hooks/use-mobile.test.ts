@@ -44,9 +44,9 @@ describe('useIsMobile', () => {
     });
     // @ts-ignore
     window.matchMedia = mockMatchMedia(true);
-    
+
     const { result } = renderHook(() => useIsMobile());
-    
+
     await waitFor(() => {
       expect(result.current).toBe(true);
     });
@@ -60,9 +60,9 @@ describe('useIsMobile', () => {
     });
     // @ts-ignore
     window.matchMedia = mockMatchMedia(false);
-    
+
     const { result } = renderHook(() => useIsMobile());
-    
+
     await waitFor(() => {
       expect(result.current).toBe(false);
     });
@@ -91,14 +91,14 @@ describe('useIsMobile', () => {
 
     // @ts-ignore
     window.matchMedia = jest.fn(() => mockMql);
-    
+
     const { result, rerender } = renderHook(() => useIsMobile());
-    
+
     // Attendre la première mise à jour
     await waitFor(() => {
       expect(result.current).toBe(false);
     });
-    
+
     // Changer innerWidth et déclencher l'événement dans act
     await act(async () => {
       Object.defineProperty(window, 'innerWidth', {
@@ -106,12 +106,12 @@ describe('useIsMobile', () => {
         configurable: true,
         value: 500,
       });
-      
-      listeners.forEach(listener => listener());
+
+      listeners.forEach((listener) => listener());
     });
-    
+
     rerender();
-    
+
     await waitFor(() => {
       expect(result.current).toBe(true);
     });
@@ -132,10 +132,10 @@ describe('useIsMobile', () => {
 
     // @ts-ignore
     window.matchMedia = jest.fn(() => mockMql);
-    
+
     const { unmount } = renderHook(() => useIsMobile());
     unmount();
-    
+
     expect(removeEventListener).toHaveBeenCalled();
   });
 });

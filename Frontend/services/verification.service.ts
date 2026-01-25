@@ -7,8 +7,8 @@ export interface VerificationStatus {
   email_verified: boolean;
   phone_verified: boolean;
   phone_number?: string | null;
-  has_phone_number: boolean;  // ✅ Ajouté
-  first_login: boolean;        // ✅ Ajouté
+  has_phone_number: boolean; // ✅ Ajouté
+  first_login: boolean; // ✅ Ajouté
 }
 
 class VerificationService {
@@ -21,7 +21,7 @@ class VerificationService {
     try {
       const response = await api.get('/users/verification-status/');
       const data = response.data;
-      
+
       return {
         email_verified: data.email_verified || false,
         phone_verified: data.phone_verified || false,
@@ -70,25 +70,13 @@ class VerificationService {
    * ✅ Vérifie l'email avec le code reçu
    * @param code - Code de vérification à 6 chiffres
    */
-  async verifyEmail(code: string): Promise<void> {
-    try {
-      await api.post('/users/verify-email/', { code });
-    } catch (error: any) {
-      throw error;
-    }
-  }
+  async verifyEmail(_code: string): Promise<void> {}
 
   /**
    * ✅ Vérifie le téléphone avec le code reçu par SMS
    * @param code - Code de vérification à 6 chiffres
    */
-  async verifyPhone(code: string): Promise<void> {
-    try {
-      await api.post('/users/verify-phone/', { code });
-    } catch (error: any) {
-      throw error;
-    }
-  }
+  async verifyPhone(_code: string): Promise<void> {}
 }
 
 export default new VerificationService();

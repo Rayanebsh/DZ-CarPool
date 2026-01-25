@@ -33,13 +33,6 @@ class WebSocketMock {
   close = jest.fn();
   addEventListener = jest.fn();
   removeEventListener = jest.fn();
-  
-  constructor(url) {
-    // Simulate connection
-    setTimeout(() => {
-      if (this.onopen) this.onopen();
-    }, 0);
-  }
 }
 
 global.WebSocket = WebSocketMock;
@@ -83,7 +76,7 @@ global.fetch = jest.fn(() =>
   Promise.resolve({
     ok: true,
     json: () => Promise.resolve({}),
-  })
+  }),
 );
 
 // Console warnings/errors in tests

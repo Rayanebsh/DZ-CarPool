@@ -52,7 +52,7 @@ const renderHome = () => {
   return render(
     <LanguageProvider>
       <Home />
-    </LanguageProvider>
+    </LanguageProvider>,
   );
 };
 
@@ -101,11 +101,17 @@ describe('Home Page', () => {
 
     // Ouvrir
     fireEvent.click(screen.getByTestId('notifications-btn'));
-    expect(screen.getByTestId('notifications-sidebar')).toHaveAttribute('data-open', 'true');
+    expect(screen.getByTestId('notifications-sidebar')).toHaveAttribute(
+      'data-open',
+      'true',
+    );
 
     // Fermer
     fireEvent.click(screen.getByTestId('close-notifications'));
-    expect(screen.getByTestId('notifications-sidebar')).toHaveAttribute('data-open', 'false');
+    expect(screen.getByTestId('notifications-sidebar')).toHaveAttribute(
+      'data-open',
+      'false',
+    );
   });
 
   it('has correct layout structure', () => {

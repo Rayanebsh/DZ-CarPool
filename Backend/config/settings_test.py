@@ -4,26 +4,27 @@ Configuration Django spécifique pour les tests
 
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Charger le fichier .env
-env_path = Path(__file__).resolve().parent.parent / '.env'
+env_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(env_path)
 
 # Importer les settings de base
-from .settings import *
+from .settings import *  # noqa: F403, F401, E402
 
 # ==================== CONFIGURATION BASE DE DONNÉES ====================
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'test_dzcarpool',
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-        'TEST': {
-            'NAME': 'test_dzcarpool',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "test_dzcarpool",
+        "USER": os.getenv("DB_USER", "postgres"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "postgres"),
+        "HOST": os.getenv("DB_HOST", "localhost"),
+        "PORT": os.getenv("DB_PORT", "5432"),
+        "TEST": {
+            "NAME": "test_dzcarpool",
         },
     }
 }
@@ -36,7 +37,7 @@ DATABASES = {
 # Les MIDDLEWARE sont déjà définis dans settings.py
 
 # ==================== DÉSACTIVER LA VÉRIFICATION EMAIL ====================
-ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_EMAIL_REQUIRED = False
 
 # ==================== DÉSACTIVER LES SIGNAUX POUR LES TESTS ====================
@@ -85,9 +86,11 @@ print("=" * 80)
 print("✅ TEST SETTINGS LOADED")
 print(f"📊 Database: {DATABASES['default']['NAME']}")
 print(f"👤 DB User: {DATABASES['default']['USER']}")
-print(f"🔐 DB Password: {'*' * len(DATABASES['default']['PASSWORD']) if DATABASES['default']['PASSWORD'] else 'NONE'}")
+db_password = DATABASES['default']['PASSWORD']
+password_display = '*' * len(db_password) if db_password else 'NONE'
+print(f"🔐 DB Password: {password_display}")
 print(f"🗄️  Cache: {CACHES['default']['BACKEND']}")
 print(f"📧 Email: {EMAIL_BACKEND}")
-print(f"🔐 Allauth: ENABLED (simplified)")
-print(f"🔕 Signals: DISABLED for testing")  # ← Ajoutez cette ligne
+print("🔐 Allauth: ENABLED (simplified)")
+print("🔕 Signals: DISABLED for testing")
 print("=" * 80)

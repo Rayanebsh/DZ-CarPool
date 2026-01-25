@@ -159,9 +159,9 @@ class TrajetViewSet(viewsets.ModelViewSet):
 
             # 4️⃣ Note moyenne (avis reçus)
             average_rating = (
-                Avis.objects.filter(rated=conducteur).aggregate(
-                    Avg("note")
-                )["note__avg"]
+                Avis.objects.filter(rated=conducteur).aggregate(Avg("note"))[
+                    "note__avg"
+                ]
                 or 5.0
             )
 
@@ -559,10 +559,9 @@ class TrajetViewSet(viewsets.ModelViewSet):
         """Liste les trajets de l'utilisateur connecté"""
         queryset = self.queryset.filter(conducteur=request.user)
         status_filter = request.query_params.get("status")
-        
+
         # ✅ CORRECTION: Filtrer par status EXACT, pas par choix
         if status_filter:
-            status_upper = status_filter.upper()
             queryset = queryset.filter(status=status_filter.upper())
 
         page = self.paginate_queryset(queryset)
@@ -689,6 +688,7 @@ class TrajetViewSet(viewsets.ModelViewSet):
         }
 
         return Response(stats)
+
     @action(
         detail=False,
         methods=["get"],
@@ -736,7 +736,7 @@ class FuelPriceViewSet(viewsets.ModelViewSet):
         try:
             # Récupérer depuis utils.pricing
             data = get_fuel_prices_summary()
-            
+
             if data:
                 return Response(data, status=status.HTTP_200_OK)
             else:

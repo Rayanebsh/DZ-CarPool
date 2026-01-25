@@ -35,7 +35,7 @@ describe('RootLayout', () => {
     (useAuthStore as unknown as jest.Mock).mockReturnValue({
       checkAuth: mockCheckAuth,
     });
-    
+
     // Mock env variable
     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID = 'test-google-client-id';
   });
@@ -44,7 +44,7 @@ describe('RootLayout', () => {
     render(
       <RootLayout>
         <div data-testid="test-child">Test Child</div>
-      </RootLayout>
+      </RootLayout>,
     );
 
     expect(screen.getByTestId('test-child')).toBeInTheDocument();
@@ -54,7 +54,7 @@ describe('RootLayout', () => {
     render(
       <RootLayout>
         <div>Child</div>
-      </RootLayout>
+      </RootLayout>,
     );
 
     expect(screen.getByTestId('google-oauth-provider')).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('RootLayout', () => {
     render(
       <RootLayout>
         <div>Child</div>
-      </RootLayout>
+      </RootLayout>,
     );
 
     expect(screen.getByTestId('language-provider')).toBeInTheDocument();
@@ -74,7 +74,7 @@ describe('RootLayout', () => {
     render(
       <RootLayout>
         <div>Child</div>
-      </RootLayout>
+      </RootLayout>,
     );
 
     expect(screen.getByTestId('analytics')).toBeInTheDocument();
@@ -84,7 +84,7 @@ describe('RootLayout', () => {
     render(
       <RootLayout>
         <div>Child</div>
-      </RootLayout>
+      </RootLayout>,
     );
 
     await waitFor(() => {
@@ -96,7 +96,7 @@ describe('RootLayout', () => {
     const { container } = render(
       <RootLayout>
         <div>Child</div>
-      </RootLayout>
+      </RootLayout>,
     );
 
     const html = container.querySelector('html');
@@ -113,7 +113,7 @@ describe('RootLayout', () => {
     render(
       <RootLayout>
         <div>Child</div>
-      </RootLayout>
+      </RootLayout>,
     );
 
     // Should still render without errors
@@ -121,17 +121,13 @@ describe('RootLayout', () => {
   });
 
   it('maintains provider hierarchy', () => {
-    const { container } = render(
-      <RootLayout>
-        <div data-testid="nested-child">Nested</div>
-      </RootLayout>
-    );
-
     // GoogleOAuthProvider wraps LanguageProvider
     const googleProvider = screen.getByTestId('google-oauth-provider');
     const languageProvider = screen.getByTestId('language-provider');
-    
+
     expect(googleProvider).toContainElement(languageProvider);
-    expect(languageProvider).toContainElement(screen.getByTestId('nested-child'));
+    expect(languageProvider).toContainElement(
+      screen.getByTestId('nested-child'),
+    );
   });
 });

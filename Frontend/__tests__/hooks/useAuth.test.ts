@@ -1,6 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useAuth } from '@/hooks/use-auth';
-import authService from '@/services/auth.service';
 import verificationService from '@/services/verification.service';
 import { useAuthStore } from '@/stores/auth-store';
 
@@ -19,8 +18,9 @@ jest.mock('@/services/auth.service');
 jest.mock('@/services/verification.service');
 jest.mock('@/stores/auth-store');
 
-const mockedAuthService = authService as jest.Mocked<typeof authService>;
-const mockedVerificationService = verificationService as jest.Mocked<typeof verificationService>;
+const mockedVerificationService = verificationService as jest.Mocked<
+  typeof verificationService
+>;
 
 describe('useAuth', () => {
   const mockPush = jest.fn();
@@ -34,7 +34,7 @@ describe('useAuth', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock du router
     require('next/navigation').useRouter = jest.fn(() => ({
       push: mockPush,
@@ -65,7 +65,10 @@ describe('useAuth', () => {
       const { result } = renderHook(() => useAuth());
 
       await act(async () => {
-        await result.current.login({ email: 'test@test.com', password: '123456' });
+        await result.current.login({
+          email: 'test@test.com',
+          password: '123456',
+        });
       });
 
       await waitFor(() => {
@@ -85,7 +88,10 @@ describe('useAuth', () => {
       const { result } = renderHook(() => useAuth());
 
       await act(async () => {
-        await result.current.login({ email: 'test@test.com', password: '123456' });
+        await result.current.login({
+          email: 'test@test.com',
+          password: '123456',
+        });
       });
 
       await waitFor(() => {
@@ -105,7 +111,10 @@ describe('useAuth', () => {
       const { result } = renderHook(() => useAuth());
 
       await act(async () => {
-        await result.current.login({ email: 'test@test.com', password: '123456' });
+        await result.current.login({
+          email: 'test@test.com',
+          password: '123456',
+        });
       });
 
       await waitFor(() => {
@@ -121,8 +130,11 @@ describe('useAuth', () => {
 
       await expect(
         act(async () => {
-          await result.current.login({ email: 'wrong@test.com', password: 'wrong' });
-        })
+          await result.current.login({
+            email: 'wrong@test.com',
+            password: 'wrong',
+          });
+        }),
       ).rejects.toThrow('Invalid credentials');
 
       expect(mockPush).not.toHaveBeenCalled();
@@ -148,7 +160,7 @@ describe('useAuth', () => {
       expect(mockPush).toHaveBeenCalledWith('/verify');
     });
 
-    it('gère les erreurs d\'inscription', async () => {
+    it("gère les erreurs d'inscription", async () => {
       const error = new Error('Email already exists');
       mockStoreActions.register.mockRejectedValue(error);
 
@@ -163,7 +175,7 @@ describe('useAuth', () => {
             first_name: 'John',
             last_name: 'Doe',
           });
-        })
+        }),
       ).rejects.toThrow('Email already exists');
     });
   });
@@ -182,9 +194,9 @@ describe('useAuth', () => {
   });
 
   describe('determineRedirectUrl', () => {
-    it('retourne /verify en cas d\'erreur', async () => {
+    it("retourne /verify en cas d'erreur", async () => {
       mockedVerificationService.getVerificationStatus.mockRejectedValue(
-        new Error('Network error')
+        new Error('Network error'),
       );
 
       const { result } = renderHook(() => useAuth());

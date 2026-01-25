@@ -1,22 +1,12 @@
-"""
-Tests finaux pour 100% de couverture - SANS ERREURS
-Fichiers: consumers.py, routing.py, views.py
-"""
-
-import json
 import asyncio
-from unittest.mock import patch, MagicMock
-from datetime import timedelta
-from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, TransactionTestCase, override_settings
-from django.utils import timezone
 
 from channels.db import database_sync_to_async
 from channels.testing import WebsocketCommunicator
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APIClient, APITestCase
 
 from app.notifications.consumers import NotificationConsumer
 from app.notifications.models import Notification
@@ -27,6 +17,7 @@ User = get_user_model()
 # ============================================================================
 # TESTS CONSUMERS.PY
 # ============================================================================
+
 
 @override_settings(TESTING=True)
 class NotificationConsumerTests(TransactionTestCase):
@@ -41,7 +32,7 @@ class NotificationConsumerTests(TransactionTestCase):
             last_name="Test",
             phone_number="+213555000001",
         )
-        
+
         self.user2 = User.objects.create_user(
             email="ws_test2@example.com",
             password="Test1234!",
@@ -49,36 +40,34 @@ class NotificationConsumerTests(TransactionTestCase):
             last_name="Test2",
             phone_number="+213555000002",
         )
-        
+
         # Nettoyer les notifications
         Notification.objects.filter(recipient__in=[self.user, self.user2]).delete()
 
     async def test_connect_authenticated(self):
         """Test: connexion réussie"""
         communicator = WebsocketCommunicator(
-            NotificationConsumer.as_asgi(),
-            "/ws/notifications/"
+            NotificationConsumer.as_asgi(), "/ws/notifications/"
         )
         communicator.scope["user"] = self.user
 
         connected, _ = await communicator.connect()
         self.assertTrue(connected)
-        
+
         try:
             response = await communicator.receive_json_from(timeout=1)
             self.assertEqual(response["type"], "unread_notifications")
-        except:
+        except Exception:
             pass
-        
+
         await communicator.disconnect()
 
     async def test_connect_unauthenticated(self):
         """Test: connexion rejetée"""
         from django.contrib.auth.models import AnonymousUser
-        
+
         communicator = WebsocketCommunicator(
-            NotificationConsumer.as_asgi(),
-            "/ws/notifications/"
+            NotificationConsumer.as_asgi(), "/ws/notifications/"
         )
         communicator.scope["user"] = AnonymousUser()
 
@@ -88,76 +77,66 @@ class NotificationConsumerTests(TransactionTestCase):
     async def test_mark_as_read_success(self):
         """Test: marquer comme lu"""
         notif = await database_sync_to_async(Notification.objects.create)(
-            recipient=self.user,
-            type="WELCOME",
-            content="Test",
-            is_read=False
+            recipient=self.user, type="WELCOME", content="Test", is_read=False
         )
 
         communicator = WebsocketCommunicator(
-            NotificationConsumer.as_asgi(),
-            "/ws/notifications/"
+            NotificationConsumer.as_asgi(), "/ws/notifications/"
         )
         communicator.scope["user"] = self.user
         await communicator.connect()
-        
+
         try:
             await communicator.receive_json_from(timeout=1)
-        except:
+        except Exception:
             pass
 
-        await communicator.send_json_to({
-            "action": "mark_as_read",
-            "notification_id": notif.id
-        })
-        
+        await communicator.send_json_to(
+            {"action": "mark_as_read", "notification_id": notif.id}
+        )
+
         await asyncio.sleep(0.3)
-        
+
         notif = await database_sync_to_async(Notification.objects.get)(id=notif.id)
         self.assertTrue(notif.is_read)
-        
+
         await communicator.disconnect()
 
     async def test_mark_as_read_invalid_id(self):
         """Test: ID invalide ne crash pas"""
         communicator = WebsocketCommunicator(
-            NotificationConsumer.as_asgi(),
-            "/ws/notifications/"
+            NotificationConsumer.as_asgi(), "/ws/notifications/"
         )
         communicator.scope["user"] = self.user
         await communicator.connect()
-        
+
         try:
             await communicator.receive_json_from(timeout=1)
-        except:
+        except Exception:
             pass
 
-        await communicator.send_json_to({
-            "action": "mark_as_read",
-            "notification_id": 99999
-        })
-        
+        await communicator.send_json_to(
+            {"action": "mark_as_read", "notification_id": 99999}
+        )
+
         await asyncio.sleep(0.3)
         await communicator.disconnect()
 
     async def test_mark_as_read_missing_id(self):
         """Test: ID manquant ne crash pas"""
         communicator = WebsocketCommunicator(
-            NotificationConsumer.as_asgi(),
-            "/ws/notifications/"
+            NotificationConsumer.as_asgi(), "/ws/notifications/"
         )
         communicator.scope["user"] = self.user
         await communicator.connect()
-        
+
         try:
             await communicator.receive_json_from(timeout=1)
-        except:
+        except Exception:
             pass
 
-        await communicator.send_json_to({
-            "action": "mark_as_read"
-        })
-        
+        await communicator.send_json_to({"action": "mark_as_read"})
+
         await asyncio.sleep(0.3)
         await communicator.disconnect()
 
@@ -165,95 +144,82 @@ class NotificationConsumerTests(TransactionTestCase):
         """Test: tout marquer comme lu"""
         for i in range(3):
             await database_sync_to_async(Notification.objects.create)(
-                recipient=self.user,
-                type="WELCOME",
-                content=f"Test {i}",
-                is_read=False
+                recipient=self.user, type="WELCOME", content=f"Test {i}", is_read=False
             )
 
         communicator = WebsocketCommunicator(
-            NotificationConsumer.as_asgi(),
-            "/ws/notifications/"
+            NotificationConsumer.as_asgi(), "/ws/notifications/"
         )
         communicator.scope["user"] = self.user
         await communicator.connect()
-        
+
         try:
             await communicator.receive_json_from(timeout=1)
-        except:
+        except Exception:
             pass
 
-        await communicator.send_json_to({
-            "action": "mark_all_read"
-        })
-        
+        await communicator.send_json_to({"action": "mark_all_read"})
+
         await asyncio.sleep(0.3)
-        
+
         count = await database_sync_to_async(
             Notification.objects.filter(recipient=self.user, is_read=False).count
         )()
         self.assertEqual(count, 0)
-        
+
         await communicator.disconnect()
 
     async def test_unknown_action(self):
         """Test: action inconnue"""
         communicator = WebsocketCommunicator(
-            NotificationConsumer.as_asgi(),
-            "/ws/notifications/"
+            NotificationConsumer.as_asgi(), "/ws/notifications/"
         )
         communicator.scope["user"] = self.user
         await communicator.connect()
-        
+
         try:
             await communicator.receive_json_from(timeout=1)
-        except:
+        except Exception:
             pass
 
-        await communicator.send_json_to({
-            "action": "invalid_action"
-        })
-        
+        await communicator.send_json_to({"action": "invalid_action"})
+
         await asyncio.sleep(0.3)
         await communicator.disconnect()
 
     async def test_empty_action(self):
         """Test: pas d'action"""
         communicator = WebsocketCommunicator(
-            NotificationConsumer.as_asgi(),
-            "/ws/notifications/"
+            NotificationConsumer.as_asgi(), "/ws/notifications/"
         )
         communicator.scope["user"] = self.user
         await communicator.connect()
-        
+
         try:
             await communicator.receive_json_from(timeout=1)
-        except:
+        except Exception:
             pass
 
-        await communicator.send_json_to({
-            "data": "test"
-        })
-        
+        await communicator.send_json_to({"data": "test"})
+
         await asyncio.sleep(0.3)
         await communicator.disconnect()
 
     async def test_invalid_json(self):
         """Test: JSON invalide"""
         communicator = WebsocketCommunicator(
-            NotificationConsumer.as_asgi(),
-            "/ws/notifications/"
+            NotificationConsumer.as_asgi(), "/ws/notifications/"
         )
         communicator.scope["user"] = self.user
         await communicator.connect()
-        
+
         try:
             await communicator.receive_json_from(timeout=1)
-        except:
+        except Exception:
             pass
 
         await communicator.send_to(text_data="not json")
-        
+
         await asyncio.sleep(0.3)
         await communicator.disconnect()
 
@@ -262,27 +228,23 @@ class NotificationConsumerTests(TransactionTestCase):
         await database_sync_to_async(
             Notification.objects.filter(recipient=self.user).delete
         )()
-        
+
         for i in range(3):
             await database_sync_to_async(Notification.objects.create)(
-                recipient=self.user,
-                type="WELCOME",
-                content=f"Test {i}",
-                is_read=False
+                recipient=self.user, type="WELCOME", content=f"Test {i}", is_read=False
             )
 
         communicator = WebsocketCommunicator(
-            NotificationConsumer.as_asgi(),
-            "/ws/notifications/"
+            NotificationConsumer.as_asgi(), "/ws/notifications/"
         )
         communicator.scope["user"] = self.user
         await communicator.connect()
 
         response = await communicator.receive_json_from(timeout=2)
-        
+
         self.assertEqual(response["type"], "unread_notifications")
         self.assertEqual(len(response["notifications"]), 3)
-        
+
         await communicator.disconnect()
 
 
@@ -290,13 +252,14 @@ class NotificationConsumerTests(TransactionTestCase):
 # TESTS ROUTING.PY
 # ============================================================================
 
+
 class RoutingTests(TestCase):
     """Tests routing WebSocket"""
 
     def test_websocket_urlpatterns_exists(self):
         """Test: patterns existent"""
         from app.notifications.routing import websocket_urlpatterns
-        
+
         self.assertIsNotNone(websocket_urlpatterns)
         self.assertIsInstance(websocket_urlpatterns, list)
         self.assertGreater(len(websocket_urlpatterns), 0)
@@ -304,47 +267,42 @@ class RoutingTests(TestCase):
     def test_patterns_structure(self):
         """Test: structure des patterns"""
         from app.notifications.routing import websocket_urlpatterns
-        
+
         for pattern in websocket_urlpatterns:
             self.assertIsNotNone(pattern.callback)
 
     def test_application_exists(self):
         """Test: application ASGI existe"""
-        from app.notifications.routing import application
-        
-        self.assertIsNotNone(application)
-        self.assertTrue(hasattr(application, 'application_mapping'))
+        from app.notifications import routing
+
+        self.assertIsNotNone(routing.application)
+        self.assertTrue(hasattr(routing.application, "application_mapping"))
 
     def test_notification_route_exists(self):
         """Test: route notifications existe"""
         from app.notifications.routing import websocket_urlpatterns
-        
+
         notification_routes = [
-            p for p in websocket_urlpatterns 
-            if 'notifications' in str(p.pattern)
+            p for p in websocket_urlpatterns if "notifications" in str(p.pattern)
         ]
-        
+
         self.assertGreater(len(notification_routes), 0)
 
     def test_chat_routes_exist(self):
         """Test: routes chat existent"""
         from app.notifications.routing import websocket_urlpatterns
-        
-        chat_routes = [
-            p for p in websocket_urlpatterns
-            if 'chat' in str(p.pattern)
-        ]
-        
+
+        chat_routes = [p for p in websocket_urlpatterns if "chat" in str(p.pattern)]
+
         self.assertGreater(len(chat_routes), 0)
 
     def test_imports_work(self):
         """Test: imports fonctionnent"""
         try:
-            from app.notifications.routing import (
-                websocket_urlpatterns,
-                application
-            )
-            self.assertTrue(True)
+            from app.notifications import routing
+
+            self.assertIsNotNone(routing.application)
+            self.assertIsNotNone(routing.websocket_urlpatterns)
         except ImportError as e:
             self.fail(f"Import failed: {e}")
 
@@ -353,6 +311,7 @@ class RoutingTests(TestCase):
 # TESTS VIEWS.PY
 # ============================================================================
 
+
 @override_settings(TESTING=True)
 class NotificationViewSetTests(APITestCase):
     """Tests ViewSet Notifications"""
@@ -360,7 +319,7 @@ class NotificationViewSetTests(APITestCase):
     def setUp(self):
         """Setup avec nettoyage"""
         self.client = APIClient()
-        
+
         self.user1 = User.objects.create_user(
             email="view_test1@example.com",
             password="Test1234!",
@@ -368,7 +327,7 @@ class NotificationViewSetTests(APITestCase):
             last_name="Test1",
             phone_number="+213555100001",
         )
-        
+
         self.user2 = User.objects.create_user(
             email="view_test2@example.com",
             password="Test1234!",
@@ -376,7 +335,7 @@ class NotificationViewSetTests(APITestCase):
             last_name="Test2",
             phone_number="+213555100002",
         )
-        
+
         Notification.objects.filter(recipient__in=[self.user1, self.user2]).delete()
 
     def test_list_unauthenticated(self):
@@ -387,62 +346,50 @@ class NotificationViewSetTests(APITestCase):
     def test_retrieve_own_notification(self):
         """Test: récupérer sa notification"""
         notif = Notification.objects.create(
-            recipient=self.user1,
-            type="WELCOME",
-            content="Test"
+            recipient=self.user1, type="WELCOME", content="Test"
         )
-        
+
         self.client.force_authenticate(user=self.user1)
         response = self.client.get(f"/api/v1/notifications/{notif.id}/")
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["content"], "Test")
 
     def test_retrieve_other_user_notification(self):
         """Test: récupérer notification d'un autre"""
         notif = Notification.objects.create(
-            recipient=self.user2,
-            type="WELCOME",
-            content="Test"
+            recipient=self.user2, type="WELCOME", content="Test"
         )
-        
+
         self.client.force_authenticate(user=self.user1)
         response = self.client.get(f"/api/v1/notifications/{notif.id}/")
-        
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_unread_list(self):
         """Test: liste non lues"""
         Notification.objects.create(
-            recipient=self.user1,
-            type="WELCOME",
-            content="Unread",
-            is_read=False
+            recipient=self.user1, type="WELCOME", content="Unread", is_read=False
         )
         Notification.objects.create(
-            recipient=self.user1,
-            type="WELCOME",
-            content="Read",
-            is_read=True
+            recipient=self.user1, type="WELCOME", content="Read", is_read=True
         )
-        
+
         self.client.force_authenticate(user=self.user1)
         response = self.client.get("/api/v1/notifications/unread/")
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
 
     def test_mark_as_read_other_user(self):
         """Test: marquer notification autre user"""
         notif = Notification.objects.create(
-            recipient=self.user2,
-            type="WELCOME",
-            content="Test"
+            recipient=self.user2, type="WELCOME", content="Test"
         )
-        
+
         self.client.force_authenticate(user=self.user1)
         response = self.client.post(f"/api/v1/notifications/{notif.id}/mark-as-read/")
-        
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_notification_with_sender(self):
@@ -451,12 +398,12 @@ class NotificationViewSetTests(APITestCase):
             recipient=self.user1,
             sender=self.user2,
             type="MESSAGE_RECEIVED",
-            content="Test"
+            content="Test",
         )
-        
+
         self.client.force_authenticate(user=self.user1)
         response = self.client.get(f"/api/v1/notifications/{notif.id}/")
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsNotNone(response.data.get("sender"))
 
@@ -464,14 +411,12 @@ class NotificationViewSetTests(APITestCase):
         """Test: pagination"""
         for i in range(25):
             Notification.objects.create(
-                recipient=self.user1,
-                type="WELCOME",
-                content=f"Test {i}"
+                recipient=self.user1, type="WELCOME", content=f"Test {i}"
             )
-        
+
         self.client.force_authenticate(user=self.user1)
         response = self.client.get("/api/v1/notifications/")
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreater(len(response.data), 0)
 
@@ -479,6 +424,7 @@ class NotificationViewSetTests(APITestCase):
 # ============================================================================
 # TESTS D'INTÉGRATION
 # ============================================================================
+
 
 @override_settings(TESTING=True)
 class IntegrationTests(TransactionTestCase):
@@ -496,36 +442,32 @@ class IntegrationTests(TransactionTestCase):
         """Test: cycle complet"""
         for i in range(3):
             await database_sync_to_async(Notification.objects.create)(
-                recipient=self.user,
-                type="WELCOME",
-                content=f"Test {i}",
-                is_read=False
+                recipient=self.user, type="WELCOME", content=f"Test {i}", is_read=False
             )
-        
+
         communicator = WebsocketCommunicator(
-            NotificationConsumer.as_asgi(),
-            "/ws/notifications/"
+            NotificationConsumer.as_asgi(), "/ws/notifications/"
         )
         communicator.scope["user"] = self.user
 
         await communicator.connect()
-        
+
         response = await communicator.receive_json_from(timeout=2)
         self.assertEqual(len(response["notifications"]), 3)
-        
-        await communicator.send_json_to({
-            "action": "mark_as_read",
-            "notification_id": response["notifications"][0]["id"]
-        })
+
+        await communicator.send_json_to(
+            {
+                "action": "mark_as_read",
+                "notification_id": response["notifications"][0]["id"],
+            }
+        )
         await asyncio.sleep(0.3)
-        
-        await communicator.send_json_to({
-            "action": "mark_all_read"
-        })
+
+        await communicator.send_json_to({"action": "mark_all_read"})
         await asyncio.sleep(0.3)
-        
+
         await communicator.disconnect()
-        
+
         count = await database_sync_to_async(
             Notification.objects.filter(recipient=self.user, is_read=False).count
         )()

@@ -5,11 +5,12 @@ import axios, { AxiosInstance } from 'axios';
 /**
  * Helper pour interagir avec la base de données et nettoyer après les tests
  */
+const API_URL = process.env.TEST_API_URL;
 export class DatabaseHelper {
   private apiUrl: string;
   private apiClient: AxiosInstance;
 
-  constructor(baseUrl: string = 'http://localhost:8000/api/v1') {
+  constructor(baseUrl: string = `${API_URL}`) {
     this.apiUrl = baseUrl;
     this.apiClient = axios.create({
       baseURL: this.apiUrl,

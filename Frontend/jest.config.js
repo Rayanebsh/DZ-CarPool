@@ -21,10 +21,7 @@ const customJestConfig = {
     '^@/components/(.*)$': '<rootDir>/components/$1',
   },
 
-  testMatch: [
-    '**/__tests__/**/*.[jt]s?(x)',
-    '**/?(*.)+(spec|test).[jt]s?(x)',
-  ],
+  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
 
   collectCoverageFrom: [
     'services/**/*.{ts,tsx}',
@@ -46,7 +43,6 @@ const customJestConfig = {
     '!app/about/page.tsx',
     '!app/careers/page.tsx',
     '!app/admin/page.tsx',
-
   ],
 
   coverageThreshold: {

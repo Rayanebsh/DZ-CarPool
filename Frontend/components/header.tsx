@@ -71,7 +71,8 @@ function Header({ onNotificationsClick }: HeaderProps) {
     }
 
     // Si l'URL est relative
-    const fullUrl = `http://localhost:8000${profilePic.startsWith('/') ? '' : '/'}${profilePic}`;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    const fullUrl = `${API_URL}${profilePic.startsWith('/') ? '' : '/'}${profilePic}`;
     console.log('✅ Constructed URL:', fullUrl);
     return fullUrl;
   };
@@ -98,7 +99,6 @@ function Header({ onNotificationsClick }: HeaderProps) {
         </div>
       );
     }
-
     return (
       <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
         <img
@@ -116,7 +116,7 @@ function Header({ onNotificationsClick }: HeaderProps) {
       </div>
     );
   };
-
+  console.log('Is staff:', user?.is_staff);
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b border-border">
       <div className="container mx-auto px-4 lg:px-8">
@@ -255,20 +255,25 @@ function Header({ onNotificationsClick }: HeaderProps) {
                         {language === 'en' ? 'Messages' : 'Messages'}
                       </Link>
                     </DropdownMenuItem>
-                    
+
                     {/* Admin Dashboard - Only for staff/admin users */}
                     {user.is_staff && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href="/admin" className="cursor-pointer text-orange-600 font-semibold">
+                          <Link
+                            href="/admin"
+                            className="cursor-pointer text-orange-600 font-semibold"
+                          >
                             <Shield className="w-4 h-4 mr-2" />
-                            {language === 'en' ? 'Admin Dashboard' : 'Tableau de bord Admin'}
+                            {language === 'en'
+                              ? 'Admin Dashboard'
+                              : 'Tableau de bord Admin'}
                           </Link>
                         </DropdownMenuItem>
                       </>
                     )}
-                    
+
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={logout}
@@ -359,7 +364,7 @@ function Header({ onNotificationsClick }: HeaderProps) {
                   >
                     {language === 'en' ? 'Messages' : 'Messages'}
                   </Link>
-                  
+
                   {/* Admin Dashboard - Mobile */}
                   {user.is_staff && (
                     <Link
@@ -368,10 +373,12 @@ function Header({ onNotificationsClick }: HeaderProps) {
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <Shield className="w-4 h-4" />
-                      {language === 'en' ? 'Admin Dashboard' : 'Tableau de bord Admin'}
+                      {language === 'en'
+                        ? 'Admin Dashboard'
+                        : 'Tableau de bord Admin'}
                     </Link>
                   )}
-                  
+
                   <button
                     onClick={() => {
                       logout();
@@ -393,10 +400,7 @@ function Header({ onNotificationsClick }: HeaderProps) {
                       {language === 'en' ? 'Log in' : 'Se connecter'}
                     </Button>
                   </Link>
-                  <Link
-                    href="/signup"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
+                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
                     <Button
                       size="sm"
                       className="bg-[#FF5722] hover:bg-[#FF5722]/90 text-white w-full"

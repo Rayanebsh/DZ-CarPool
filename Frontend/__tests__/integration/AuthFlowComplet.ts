@@ -30,7 +30,9 @@ describe('Authentication Flow Integration', () => {
       },
     };
 
-    mock.onPost('http://localhost:8000/api/v1/users/login/').reply(200, loginResponse);
+    mock
+      .onPost('http://localhost:8000/api/v1/users/login/')
+      .reply(200, loginResponse);
 
     const authResult = await authService.login({
       email: 'test@example.com',

@@ -21,7 +21,6 @@ from app.users.models import (
     EmailVerification,
     PhoneVerification,
     Preference,
-    Role,
     UserDocument,
 )
 
@@ -427,7 +426,8 @@ class PreferencesTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 1)
         self.assertTrue(response.data["has_preferences"])
-    
+
+
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class EmailVerificationTests(APITestCase):
     """Tests vérification email"""
@@ -592,9 +592,7 @@ class DocumentTests(APITestCase):
 
     def test_list_documents(self):
         """Test liste documents"""
-        UserDocument.objects.create(
-            user=self.user, document_type="CNI", verified=True
-        )
+        UserDocument.objects.create(user=self.user, document_type="CNI", verified=True)
 
         response = self.client.get("/api/v1/users/documents/")
 
@@ -603,9 +601,7 @@ class DocumentTests(APITestCase):
 
     def test_check_document_status_verified(self):
         """Test statut avec document vérifié"""
-        UserDocument.objects.create(
-            user=self.user, document_type="CNI", verified=True
-        )
+        UserDocument.objects.create(user=self.user, document_type="CNI", verified=True)
 
         response = self.client.get("/api/v1/users/check-document-status/")
 
@@ -615,15 +611,15 @@ class DocumentTests(APITestCase):
 
     def test_check_document_status_pending(self):
         """Test statut avec document en attente"""
-        UserDocument.objects.create(
-            user=self.user, document_type="CNI", verified=False
-        )
+        UserDocument.objects.create(user=self.user, document_type="CNI", verified=False)
 
         response = self.client.get("/api/v1/users/check-document-status/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data["can_publish_trip"])
         self.assertEqual(response.data["pending_documents_count"], 1)
+
+
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class VerificationStatusTests(APITestCase):
     """Tests statut vérification"""

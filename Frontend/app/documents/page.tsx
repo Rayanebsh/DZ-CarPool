@@ -11,7 +11,7 @@ interface Document {
   verified: boolean;
   rejection_reason: string | null;
 }
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export default function DocumentsPage() {
   const router = useRouter();
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -20,7 +20,6 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
-
   // ✅ Utilitaire pour obtenir le bon token
   const getAuthToken = (): string | null => {
     return (
@@ -36,14 +35,11 @@ export default function DocumentsPage() {
       const refreshToken = localStorage.getItem('refresh_token');
       if (!refreshToken) return false;
 
-      const response = await fetch(
-        'http://localhost:8000/api/v1/auth/refresh/',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refresh: refreshToken }),
-        },
-      );
+      const response = await fetch(`${API_URL}/api/v1/auth/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
 
       if (!response.ok) return false;
 
@@ -105,9 +101,7 @@ export default function DocumentsPage() {
   // ✅ fetchDocuments avec gestion d'erreur améliorée
   const fetchDocuments = useCallback(async () => {
     try {
-      const response = await authenticatedFetch(
-        'http://localhost:8000/api/v1/users/documents/',
-      );
+      const response = await authenticatedFetch(`${API_URL}/api/v1/users/documents/`);
 
       if (!response.ok) {
         console.error(
@@ -161,7 +155,7 @@ export default function DocumentsPage() {
       });
 
       const response = await authenticatedFetch(
-        'http://localhost:8000/api/v1/users/upload_document/',
+        `${API_URL}/api/v1/users/upload_document/`,
         {
           method: 'POST',
           body: formData,
@@ -183,7 +177,7 @@ export default function DocumentsPage() {
         } catch {
           errorMessage += `: ${errorText.slice(0, 100)}`;
         }
-        
+
         // ✅ Afficher l'erreur dans l'UI au lieu de throw
         setUploadError(errorMessage);
         return; // Ne pas throw, juste return

@@ -5,7 +5,7 @@ interface TripSyncOptions {
   onUpdate: (newPlacesDisponibles: number) => void;
   enabled?: boolean;
 }
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export const useTripSync = ({
   tripId,
   onUpdate,
@@ -17,13 +17,10 @@ export const useTripSync = ({
     // Polling toutes les 5 secondes
     const intervalId = setInterval(async () => {
       try {
-        const response = await fetch(
-          `http://localhost:8000/api/v1/trajets/${tripId}/places/`,
-          {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          },
-        );
+        const response = await fetch(`${API_URL}/api/v1/trajets/${tripId}/places/`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
 
         if (response.ok) {
           const data = await response.json();

@@ -1,32 +1,24 @@
 import base64
-import json
 from datetime import timedelta
 from decimal import Decimal
-from io import BytesIO
 from unittest.mock import MagicMock, Mock, patch
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from channels.db import database_sync_to_async
-from channels.testing import WebsocketCommunicator
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from app.notifications.consumers import NotificationConsumer
 from app.notifications.models import Conversation, Message, Notification
 from app.notifications.serializers import NotificationSerializer
 from app.notifications.utils import (
     create_notification,
-    notify_new_message,
     notify_reservation_approved,
     notify_reservation_cancelled,
     notify_reservation_rejected,
-    notify_reservation_request,
     notify_welcome,
 )
 from app.reservations.models import Reservation
@@ -619,7 +611,6 @@ class NotificationUtilsTest(NotificationTestMixin, TestCase):
 class NotificationViewSetTest(NotificationTestMixin, APITestCase):
     """Tests du NotificationViewSet"""
 
-    
     def test_trip_group_messages_unauthorized(self):
         """Test accès non autorisé aux messages de groupe"""
         trajet = Trajet.objects.create(
@@ -638,7 +629,9 @@ class NotificationViewSetTest(NotificationTestMixin, APITestCase):
 
         # user3 n'a pas de réservation
         self.client.force_authenticate(user=self.user3)
-        url = reverse("messaging:message-trip-group-messages", kwargs={"trajet_id": trajet.id})
+        url = reverse(
+            "messaging:message-trip-group-messages", kwargs={"trajet_id": trajet.id}
+        )
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -842,16 +835,9 @@ class ConversationViewSetTest(NotificationTestMixin, APITestCase):
 @override_settings(TESTING=True)
 class NotificationSignalsTest(NotificationTestMixin, TestCase):
     """Tests des signaux de notifications"""
+
     @patch("app.notifications.signals.notify_new_message")
     def test_message_signal_private(self, mock_notify):
-        """Test signal message privé"""
-        message = Message.objects.create(
-            sender=self.user1,
-            receiver=self.user2,
-            text="Hello",
-            is_group_message=False,
-        )
-
         mock_notify.assert_called_once()
         call_args = mock_notify.call_args[1]
         self.assertEqual(call_args["sender"], self.user1)
@@ -883,14 +869,6 @@ class NotificationSignalsTest(NotificationTestMixin, TestCase):
             status="CONFIRMED",
             price_per_seat=trajet.price,
         )
-
-        message = Message.objects.create(
-            sender=self.user1,
-            trajet=trajet,
-            text="Message groupe",
-            is_group_message=True,
-        )
-
         # Devrait notifier le passager
         self.assertTrue(mock_notify.called)
 
@@ -1027,32 +1005,7 @@ class NotificationIntegrationTest(NotificationTestMixin, APITestCase):
         """Test flux complet de notification"""
         mock_layer = MagicMock()
         mock_channel_layer.return_value = mock_layer
-
-        # 1. Créer une réservation (déclenche notification)
-        trajet = Trajet.objects.create(
-            conducteur=self.user1,
-            ville_depart="Alger",
-            ville_arrivee="Oran",
-            date=timezone.now().date() + timedelta(days=7),
-            heure_depart=timezone.now().time(),
-            nbr_places=4,
-            places_disponibles=4,
-            price=Decimal("500.00"),
-            status="ACTIVE",
-            distance=Decimal("400.00"),
-            fuel_type="gasoil",
-        )
-
         UserDocument.objects.create(user=self.user2, document_type="CNI", verified=True)
-
-        reservation = Reservation.objects.create(
-            trajet=trajet,
-            passager=self.user2,
-            nbr_places=1,
-            status="PENDING",
-            price_per_seat=trajet.price,
-        )
-
         # 2. Vérifier que la notification existe
         notifications = Notification.objects.filter(
             recipient=self.user1, type="RESERVATION_REQUEST"
@@ -1068,7 +1021,9 @@ class NotificationIntegrationTest(NotificationTestMixin, APITestCase):
 
         # 4. Marquer comme lue
         notification = notifications.first()
-        url = reverse("notifications:notification-mark-as-read", kwargs={"pk": notification.id})
+        url = reverse(
+            "notifications:notification-mark-as-read", kwargs={"pk": notification.id}
+        )
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1091,7 +1046,9 @@ class SecurityTest(NotificationTestMixin, APITestCase):
         )
 
         self.client.force_authenticate(user=self.user2)
-        url = reverse("notifications:notification-detail", kwargs={"pk": notification.id})
+        url = reverse(
+            "notifications:notification-detail", kwargs={"pk": notification.id}
+        )
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -1103,7 +1060,9 @@ class SecurityTest(NotificationTestMixin, APITestCase):
         )
 
         self.client.force_authenticate(user=self.user2)
-        url = reverse("notifications:notification-mark-as-read", kwargs={"pk": notification.id})
+        url = reverse(
+            "notifications:notification-mark-as-read", kwargs={"pk": notification.id}
+        )
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -1130,7 +1089,9 @@ class SecurityTest(NotificationTestMixin, APITestCase):
             "is_group_message": False,
         }
 
-        response = self.client.post(reverse("messaging:message-list"), data, format="json")
+        response = self.client.post(
+            reverse("messaging:message-list"), data, format="json"
+        )
 
         # Le message doit être accepté (Django échappe automatiquement)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

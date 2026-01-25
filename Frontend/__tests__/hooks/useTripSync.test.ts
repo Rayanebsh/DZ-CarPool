@@ -24,7 +24,7 @@ describe('useTripSync', () => {
         tripId: 123,
         onUpdate,
         enabled: true,
-      })
+      }),
     );
 
     // Avancer de 5 secondes
@@ -55,7 +55,7 @@ describe('useTripSync', () => {
         tripId: 123,
         onUpdate,
         enabled: false,
-      })
+      }),
     );
 
     await act(async () => {
@@ -73,7 +73,7 @@ describe('useTripSync', () => {
         tripId: '',
         onUpdate,
         enabled: true,
-      })
+      }),
     );
 
     await act(async () => {
@@ -83,10 +83,10 @@ describe('useTripSync', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('gère les erreurs d\'API sans crasher', async () => {
+  it("gère les erreurs d'API sans crasher", async () => {
     const onUpdate = jest.fn();
     const consoleError = jest.spyOn(console, 'error').mockImplementation();
-    
+
     (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
     renderHook(() =>
@@ -94,7 +94,7 @@ describe('useTripSync', () => {
         tripId: 123,
         onUpdate,
         enabled: true,
-      })
+      }),
     );
 
     await act(async () => {
@@ -120,7 +120,7 @@ describe('useTripSync', () => {
         tripId: 123,
         onUpdate,
         enabled: true,
-      })
+      }),
     );
 
     await act(async () => {
@@ -139,7 +139,7 @@ describe('useTripSync', () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
-  it('utilise la bonne URL pour l\'API', async () => {
+  it("utilise la bonne URL pour l'API", async () => {
     const onUpdate = jest.fn();
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
@@ -151,7 +151,7 @@ describe('useTripSync', () => {
         tripId: 456,
         onUpdate,
         enabled: true,
-      })
+      }),
     );
 
     await act(async () => {
@@ -163,7 +163,7 @@ describe('useTripSync', () => {
       expect.objectContaining({
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-      })
+      }),
     );
   });
 });

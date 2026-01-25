@@ -105,7 +105,7 @@ describe('GoogleLoginButton', () => {
     });
 
     expect(mockOnError).toHaveBeenCalledWith(
-      'Impossible de se connecter avec Google'
+      'Impossible de se connecter avec Google',
     );
   });
 
@@ -121,9 +121,7 @@ describe('GoogleLoginButton', () => {
       successCallback?.({ access_token: 'token' });
     });
 
-    expect(mockOnError).toHaveBeenCalledWith(
-      'Authentification Google refusée'
-    );
+    expect(mockOnError).toHaveBeenCalledWith('Authentification Google refusée');
   });
 
   it('button type is button', () => {

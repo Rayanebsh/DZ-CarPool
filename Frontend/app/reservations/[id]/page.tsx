@@ -70,7 +70,7 @@ export default function ReservationDetailPage() {
   const fetchReservationDetails = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
       const response = await fetch(
         `${apiUrl}/api/v1/reservations/${reservationId}/`,
@@ -93,7 +93,7 @@ export default function ReservationDetailPage() {
     try {
       setActionLoading(true);
       const token = localStorage.getItem('access_token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
       const response = await fetch(
         `${apiUrl}/api/v1/reservations/${reservationId}/confirm/`,
@@ -136,7 +136,7 @@ export default function ReservationDetailPage() {
     try {
       setActionLoading(true);
       const token = localStorage.getItem('access_token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
       const response = await fetch(
         `${apiUrl}/api/v1/reservations/${reservationId}/reject/`,

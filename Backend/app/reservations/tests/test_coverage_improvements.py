@@ -1,32 +1,22 @@
-"""
-Tests complémentaires pour améliorer la couverture à 80%+
-app/reservations/tests/test_coverage_improvements.py
-"""
-
 from datetime import timedelta
 from decimal import Decimal
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
-from rest_framework.test import APIRequestFactory, APITestCase
-from rest_framework import status
+from rest_framework.test import APIRequestFactory
 
-from app.reservations.models import Reservation, Rating
+from app.reservations.models import Reservation
 from app.reservations.permissions import (
-    IsReservationOwnerOrDriver,
     CanRateReservation,
+    IsReservationOwnerOrDriver,
 )
 from app.reservations.serializers import (
-    ReservationSerializer,
-    ReservationCreateSerializer,
     RatingCreateSerializer,
 )
 from app.trajets.models import Trajet
-from app.users.models import UserDocument
 
 User = get_user_model()
 
@@ -169,7 +159,6 @@ class IsReservationOwnerOrDriverTest(TestCase):
         )
         self.assertTrue(has_permission)
 
-    
     def test_driver_can_reject(self):
         """Test: le conducteur peut rejeter"""
         request = self.factory.post("/")
@@ -332,7 +321,6 @@ class ReservationModelMethodsTest(TestCase):
             fuel_type="gasoil",
         )
 
-    
     def test_approve_method_wrong_status(self):
         """Test: approve() échoue si status != PENDING"""
         reservation = Reservation.objects.create(
@@ -380,7 +368,6 @@ class ReservationModelMethodsTest(TestCase):
         with self.assertRaises(ValueError):
             reservation.reject()
 
-    
     @patch("app.notifications.models.Notification.objects.create")
     def test_cancel_method_from_confirmed(self, mock_notification):
         """Test: cancel() depuis CONFIRMED libère les places"""
@@ -391,8 +378,6 @@ class ReservationModelMethodsTest(TestCase):
             status="CONFIRMED",
             price_per_seat=self.trajet.price,
         )
-
-        initial_places = self.trajet.places_disponibles
 
         reservation.cancel()
 
@@ -453,14 +438,6 @@ class RatingModelMethodsTest(TestCase):
 
     @patch.object(User, "update_statistics")
     def test_rating_save_updates_statistics(self, mock_update_stats):
-        """Test: save() du Rating met à jour les statistiques"""
-        rating = Rating.objects.create(
-            reservation=self.reservation,
-            rater=self.passager,
-            rated=self.conducteur,
-            note=5,
-        )
-
         mock_update_stats.assert_called_once()
 
 
@@ -499,6 +476,8 @@ class ReservationCreateSerializerTest(TestCase):
         )
 
         self.factory = APIRequestFactory()
+
+
 class RatingCreateSerializerTest(TestCase):
     """Tests du RatingCreateSerializer"""
 

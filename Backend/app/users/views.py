@@ -20,10 +20,19 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from app.users.models import UserDocument
 
-from .models import EmailVerification, PhoneVerification, Preference, Role, User
+from .models import (
+    EmailVerification,
+    PasswordResetToken,
+    PhoneVerification,
+    Preference,
+    Role,
+    User,
+)
 from .serializers import (
     ChangePasswordSerializer,
+    ForgotPasswordSerializer,
     PreferenceSerializer,
+    ResetPasswordSerializer,
     RoleSerializer,
     UserDocumentSerializer,
     UserProfileSerializer,
@@ -32,12 +41,8 @@ from .serializers import (
     UserUpdateSerializer,
     VerifyEmailSerializer,
     VerifyPhoneSerializer,
-    ForgotPasswordSerializer,
-    ResetPasswordSerializer,
 )
 from .services import EmailService, SMSService
-from .models import PasswordResetToken
-from .serializers import ResetPasswordSerializer, ForgotPasswordSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +83,14 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         Permissions selon l'action
         """
-        if self.action in ["register", "login", "create", "google_auth","forgot_password","reset_password"]:
+        if self.action in [
+            "register",
+            "login",
+            "create",
+            "google_auth",
+            "forgot_password",
+            "reset_password",
+        ]:
             return [AllowAny()]
         return [IsAuthenticated()]
 
@@ -413,7 +425,12 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     # ---------- VERIFICATION EMAIL ----------
-    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated],url_path="send-email-verification")
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[IsAuthenticated],
+        url_path="send-email-verification",
+    )
     def send_email_verification(self, request):
         user = request.user
 
@@ -442,7 +459,12 @@ class UserViewSet(viewsets.ModelViewSet):
             }
         )
 
-    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated],url_path="verify-email")
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[IsAuthenticated],
+        url_path="verify-email",
+    )
     def verify_email(self, request):
         serializer = VerifyEmailSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -489,7 +511,12 @@ class UserViewSet(viewsets.ModelViewSet):
         )
 
     # ---------- VERIFICATION TELEPHONE ----------
-    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated],url_path="send-phone-verification")
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[IsAuthenticated],
+        url_path="send-phone-verification",
+    )
     def send_phone_verification(self, request):
         user = request.user
 
@@ -525,7 +552,12 @@ class UserViewSet(viewsets.ModelViewSet):
             }
         )
 
-    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated],url_path="verify-phone")
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[IsAuthenticated],
+        url_path="verify-phone",
+    )
     def verify_phone(self, request):
         serializer = VerifyPhoneSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -571,7 +603,12 @@ class UserViewSet(viewsets.ModelViewSet):
             {"message": "Téléphone vérifié avec succès", "phone_verified": True}
         )
 
-    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated],url_path="verification-status")
+    @action(
+        detail=False,
+        methods=["get"],
+        permission_classes=[IsAuthenticated],
+        url_path="verification-status",
+    )
     def verification_status(self, request):
         user = request.user
         return Response(
@@ -692,6 +729,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
     # ========== ADMIN - GESTION DES DOCUMENTS ==========
     @action(
         detail=False,
@@ -740,7 +778,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-
     @action(
         detail=False,
         methods=["get"],
@@ -778,15 +815,14 @@ class UserViewSet(viewsets.ModelViewSet):
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-
         # Dans users/views.py - MODIFIER les endpoints admin
 
     @action(
-    detail=False,
-    methods=["post"],
-    url_path="admin/verify-document",
-    permission_classes=[IsAuthenticated],
-)
+        detail=False,
+        methods=["post"],
+        url_path="admin/verify-document",
+        permission_classes=[IsAuthenticated],
+    )
     def admin_verify_document(self, request):
         """
         Approuve un document (ADMIN ONLY)
@@ -846,7 +882,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-
     @action(
         detail=False,
         methods=["post"],
@@ -899,7 +934,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-
     @action(
         detail=False,
         methods=["get"],
@@ -942,112 +976,136 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-    
 
-    @action(detail=False, methods=["post"], permission_classes=[AllowAny], url_path="forgot-password")
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[AllowAny],
+        url_path="forgot-password",
+    )
     def forgot_password(self, request):
         serializer = ForgotPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
-        email = serializer.validated_data['email']
-        
+
+        email = serializer.validated_data["email"]
+
         try:
             user = User.objects.get(email=email)
-            
+
             # Invalider les anciens tokens
             PasswordResetToken.objects.filter(user=user, used=False).update(used=True)
-            
+
             # Créer un nouveau token
             reset_token = PasswordResetToken.objects.create(user=user)
-            
+
             # Créer le lien de réinitialisation
-            reset_url = f"http://localhost:3000/reset-password?token={reset_token.token}"
-            
+            reset_url = (
+                f"http://localhost:3000/reset-password?token={reset_token.token}"
+            )
+
             # Envoyer l'email
             email_sent = EmailService.send_password_reset_email(user, reset_url)
-            
+
             # ✅ CORRECTION: En dev, on peut montrer si l'email a vraiment échoué
             if not email_sent and settings.DEBUG:
                 logger.error(f"❌ Échec de l'envoi de l'email à {user.email}")
                 # En dev, on peut retourner l'erreur pour déboguer
-                return Response({
-                    "error": "Erreur lors de l'envoi de l'email. Vérifiez la configuration EMAIL.",
-                    "debug_info": "Vérifiez les logs Django pour plus de détails."
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
+                return Response(
+                    {
+                        "error": "Erreur lors de l'envoi de l'email.",
+                        "debug_info": "Vérifiez les logs Django pour plus de détails.",
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+
             # ✅ Toujours retourner un succès pour la sécurité
             logger.info(f"✅ Demande de réinitialisation pour {email}")
-            return Response({
-                "message": "Si cet email existe, un lien de réinitialisation a été envoyé.",
-                "success": True
-            }, status=status.HTTP_200_OK)
-            
+            return Response(
+                {
+                    "message": "Si cet email existe, un lien de réinitialisation a été envoyé.",
+                    "success": True,
+                },
+                status=status.HTTP_200_OK,
+            )
+
         except User.DoesNotExist:
             # Pour la sécurité, on retourne la même réponse
-            logger.info(f"⚠️ Tentative de réinitialisation pour email inexistant: {email}")
-            return Response({
-                "message": "Si cet email existe, un lien de réinitialisation a été envoyé.",
-                "success": True
-            }, status=status.HTTP_200_OK)
-        
+            logger.info(
+                f"⚠️ Tentative de réinitialisation pour email inexistant: {email}"
+            )
+            return Response(
+                {
+                    "message": "Si cet email existe, un lien de réinitialisation a été envoyé.",
+                    "success": True,
+                },
+                status=status.HTTP_200_OK,
+            )
+
         except Exception as e:
             logger.error(f"❌ Erreur forgot_password: {str(e)}")
             logger.error(traceback.format_exc())
-            return Response({
-                "error": "Erreur lors du traitement de la demande",
-                "message": str(e) if settings.DEBUG else "Erreur serveur"
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {
+                    "error": "Erreur lors du traitement de la demande",
+                    "message": str(e) if settings.DEBUG else "Erreur serveur",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
-
-    @action(detail=False, methods=["post"], permission_classes=[AllowAny], url_path="reset-password")
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[AllowAny],
+        url_path="reset-password",
+    )
     def reset_password(self, request):
         serializer = ResetPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
-        token = serializer.validated_data['token']
-        new_password = serializer.validated_data['new_password']
-        
+
+        token = serializer.validated_data["token"]
+        new_password = serializer.validated_data["new_password"]
+
         try:
             reset_token = PasswordResetToken.objects.get(token=token)
-            
+
             if not reset_token.is_valid():
                 return Response(
                     {"error": "Token invalide ou expiré"},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
-            
+
             # Réinitialiser le mot de passe
             user = reset_token.user
             user.set_password(new_password)
             user.save()
-            
+
             # Marquer le token comme utilisé
             reset_token.used = True
             reset_token.save()
-            
+
             # Envoyer un email de confirmation
             EmailService.send_password_changed_confirmation(user)
-            
+
             logger.info(f"Mot de passe réinitialisé pour {user.email}")
-            
-            return Response({
-                "message": "Mot de passe réinitialisé avec succès",
-                "success": True
-            }, status=status.HTTP_200_OK)
-            
+
+            return Response(
+                {"message": "Mot de passe réinitialisé avec succès", "success": True},
+                status=status.HTTP_200_OK,
+            )
+
         except PasswordResetToken.DoesNotExist:
             return Response(
-                {"error": "Token invalide"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Token invalide"}, status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         except Exception as e:
             logger.error(f"Erreur reset_password: {str(e)}")
             logger.error(traceback.format_exc())
             return Response(
                 {"error": "Erreur lors de la réinitialisation"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
 
 # ---------- AUTRES VIEWSETS ----------
 class RoleViewSet(viewsets.ReadOnlyModelViewSet):

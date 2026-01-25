@@ -26,8 +26,14 @@ describe('AuthService', () => {
     test('setTokens() stores tokens in localStorage', () => {
       authService.setTokens('access123', 'refresh456');
 
-      expect(localStorage.setItem).toHaveBeenCalledWith('access_token', 'access123');
-      expect(localStorage.setItem).toHaveBeenCalledWith('refresh_token', 'refresh456');
+      expect(localStorage.setItem).toHaveBeenCalledWith(
+        'access_token',
+        'access123',
+      );
+      expect(localStorage.setItem).toHaveBeenCalledWith(
+        'refresh_token',
+        'refresh456',
+      );
     });
 
     test('getAccessToken() retrieves token from localStorage', () => {
@@ -131,9 +137,7 @@ describe('AuthService', () => {
     });
 
     test('login() handles network error', async () => {
-      mock
-        .onPost('http://localhost:8000/api/v1/users/login/')
-        .networkError();
+      mock.onPost('http://localhost:8000/api/v1/users/login/').networkError();
 
       await expect(
         authService.login({
@@ -246,9 +250,7 @@ describe('AuthService', () => {
       };
 
       (localStorage.getItem as jest.Mock).mockReturnValue('token123');
-      mock
-        .onGet('http://localhost:8000/api/v1/users/me/')
-        .reply(200, mockUser);
+      mock.onGet('http://localhost:8000/api/v1/users/me/').reply(200, mockUser);
 
       const user = await authService.getCurrentUser();
 
@@ -298,9 +300,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
       };
 
-      (localStorage.getItem as jest.Mock).mockReturnValue(
-        JSON.stringify(user),
-      );
+      (localStorage.getItem as jest.Mock).mockReturnValue(JSON.stringify(user));
 
       const result = authService.getStoredUser();
 
@@ -398,17 +398,15 @@ describe('AuthService', () => {
 
     test('getPreferences() handles error 500', async () => {
       (localStorage.getItem as jest.Mock).mockReturnValue('token123');
-      mock
-        .onGet('http://localhost:8000/api/v1/users/preferences/')
-        .reply(500);
+      mock.onGet('http://localhost:8000/api/v1/users/preferences/').reply(500);
 
       await expect(authService.getPreferences()).rejects.toThrow();
     });
 
     test('getAllPreferences() delegates to getPreferences', async () => {
-      const spy = jest.spyOn(authService, 'getPreferences').mockResolvedValue(
-        [] as Preference[],
-      );
+      const spy = jest
+        .spyOn(authService, 'getPreferences')
+        .mockResolvedValue([] as Preference[]);
 
       const result = await authService.getAllPreferences();
 

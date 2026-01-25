@@ -2,8 +2,7 @@
 import axios from 'axios';
 
 // URL du backend
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Instance Axios avec configuration
 const apiClient = axios.create({
@@ -47,7 +46,7 @@ apiClient.interceptors.response.use(
 
         // Appeler l'endpoint de refresh
         const response = await axios.post(
-          `${API_BASE_URL}/users/token/refresh/`,
+          `${API_BASE_URL}/api/v1/users/token/refresh/`,
           {
             refresh: refreshToken,
           },

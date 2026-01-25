@@ -23,9 +23,12 @@ describe('VerifyPage', () => {
       push: mockPush,
     });
 
-    (verificationService.getVerificationStatus as jest.Mock) = mockGetVerificationStatus;
-    (verificationService.sendEmailVerification as jest.Mock) = mockSendEmailVerification;
-    (verificationService.sendPhoneVerification as jest.Mock) = mockSendPhoneVerification;
+    (verificationService.getVerificationStatus as jest.Mock) =
+      mockGetVerificationStatus;
+    (verificationService.sendEmailVerification as jest.Mock) =
+      mockSendEmailVerification;
+    (verificationService.sendPhoneVerification as jest.Mock) =
+      mockSendPhoneVerification;
     (verificationService.verifyEmail as jest.Mock) = mockVerifyEmail;
     (verificationService.verifyPhone as jest.Mock) = mockVerifyPhone;
   });
@@ -157,7 +160,9 @@ describe('VerifyPage', () => {
       render(<VerifyPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Un code a été envoyé à votre adresse email')).toBeInTheDocument();
+        expect(
+          screen.getByText('Un code a été envoyé à votre adresse email'),
+        ).toBeInTheDocument();
       });
     });
 
@@ -165,10 +170,14 @@ describe('VerifyPage', () => {
       render(<VerifyPage />);
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('Entrez le code à 6 chiffres')).toBeInTheDocument();
+        expect(
+          screen.getByPlaceholderText('Entrez le code à 6 chiffres'),
+        ).toBeInTheDocument();
       });
 
-      const emailInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[0] as HTMLInputElement;
+      const emailInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[0] as HTMLInputElement;
       fireEvent.change(emailInput, { target: { value: '123456' } });
 
       expect(emailInput.value).toBe('123456');
@@ -183,7 +192,9 @@ describe('VerifyPage', () => {
         expect(screen.getByText('Vérifier Email')).toBeInTheDocument();
       });
 
-      const emailInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[0];
+      const emailInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[0];
       fireEvent.change(emailInput, { target: { value: '123456' } });
 
       const verifyButton = screen.getByText('Vérifier Email');
@@ -203,20 +214,24 @@ describe('VerifyPage', () => {
         expect(screen.getByText('Vérifier Email')).toBeInTheDocument();
       });
 
-      const emailInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[0];
+      const emailInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[0];
       fireEvent.change(emailInput, { target: { value: '123456' } });
 
       const verifyButton = screen.getByText('Vérifier Email');
       fireEvent.click(verifyButton);
 
       await waitFor(() => {
-        expect(screen.getByText('✅ Email vérifié avec succès !')).toBeInTheDocument();
+        expect(
+          screen.getByText('✅ Email vérifié avec succès !'),
+        ).toBeInTheDocument();
       });
     });
 
     it('should show error for invalid email code', async () => {
       mockVerifyEmail.mockRejectedValue({
-        response: { data: { error: 'Code invalide' } }
+        response: { data: { error: 'Code invalide' } },
       });
 
       render(<VerifyPage />);
@@ -225,7 +240,9 @@ describe('VerifyPage', () => {
         expect(screen.getByText('Vérifier Email')).toBeInTheDocument();
       });
 
-      const emailInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[0];
+      const emailInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[0];
       fireEvent.change(emailInput, { target: { value: '999999' } });
 
       const verifyButton = screen.getByText('Vérifier Email');
@@ -250,13 +267,15 @@ describe('VerifyPage', () => {
 
       await waitFor(() => {
         expect(mockSendEmailVerification).toHaveBeenCalledTimes(2); // Once on mount, once on click
-        expect(screen.getByText('📧 Nouveau code email envoyé !')).toBeInTheDocument();
+        expect(
+          screen.getByText('📧 Nouveau code email envoyé !'),
+        ).toBeInTheDocument();
       });
     });
 
     it('should handle already verified email when resending', async () => {
       mockSendEmailVerification.mockRejectedValueOnce({}).mockRejectedValue({
-        message: 'EMAIL_ALREADY_VERIFIED'
+        message: 'EMAIL_ALREADY_VERIFIED',
       });
 
       render(<VerifyPage />);
@@ -277,7 +296,9 @@ describe('VerifyPage', () => {
       render(<VerifyPage />);
 
       await waitFor(() => {
-        const emailInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[0];
+        const emailInput = screen.getAllByPlaceholderText(
+          'Entrez le code à 6 chiffres',
+        )[0];
         expect(emailInput).toHaveAttribute('maxLength', '6');
       });
     });
@@ -315,7 +336,9 @@ describe('VerifyPage', () => {
       render(<VerifyPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('📱 Vérification Téléphone')).toBeInTheDocument();
+        expect(
+          screen.getByText('📱 Vérification Téléphone'),
+        ).toBeInTheDocument();
       });
     });
 
@@ -331,7 +354,9 @@ describe('VerifyPage', () => {
       render(<VerifyPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Un code SMS a été envoyé à votre téléphone')).toBeInTheDocument();
+        expect(
+          screen.getByText('Un code SMS a été envoyé à votre téléphone'),
+        ).toBeInTheDocument();
       });
     });
 
@@ -344,7 +369,9 @@ describe('VerifyPage', () => {
         expect(screen.getByText('Vérifier Téléphone')).toBeInTheDocument();
       });
 
-      const phoneInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[1];
+      const phoneInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[1];
       fireEvent.change(phoneInput, { target: { value: '654321' } });
 
       const verifyButton = screen.getByText('Vérifier Téléphone');
@@ -364,14 +391,18 @@ describe('VerifyPage', () => {
         expect(screen.getByText('Vérifier Téléphone')).toBeInTheDocument();
       });
 
-      const phoneInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[1];
+      const phoneInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[1];
       fireEvent.change(phoneInput, { target: { value: '654321' } });
 
       const verifyButton = screen.getByText('Vérifier Téléphone');
       fireEvent.click(verifyButton);
 
       await waitFor(() => {
-        expect(screen.getByText('✅ Téléphone vérifié avec succès !')).toBeInTheDocument();
+        expect(
+          screen.getByText('✅ Téléphone vérifié avec succès !'),
+        ).toBeInTheDocument();
       });
     });
 
@@ -388,7 +419,9 @@ describe('VerifyPage', () => {
 
       await waitFor(() => {
         expect(mockSendPhoneVerification).toHaveBeenCalledTimes(2);
-        expect(screen.getByText('📱 Nouveau code SMS envoyé !')).toBeInTheDocument();
+        expect(
+          screen.getByText('📱 Nouveau code SMS envoyé !'),
+        ).toBeInTheDocument();
       });
     });
 
@@ -404,7 +437,9 @@ describe('VerifyPage', () => {
       render(<VerifyPage />);
 
       await waitFor(() => {
-        expect(screen.queryByText('📱 Vérification Téléphone')).not.toBeInTheDocument();
+        expect(
+          screen.queryByText('📱 Vérification Téléphone'),
+        ).not.toBeInTheDocument();
       });
     });
 
@@ -436,8 +471,14 @@ describe('VerifyPage', () => {
       render(<VerifyPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Téléphone requis pour continuer')).toBeInTheDocument();
-        expect(screen.getByText('Ajoutez un numéro de téléphone pour finaliser votre inscription')).toBeInTheDocument();
+        expect(
+          screen.getByText('Téléphone requis pour continuer'),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'Ajoutez un numéro de téléphone pour finaliser votre inscription',
+          ),
+        ).toBeInTheDocument();
       });
     });
 
@@ -454,7 +495,7 @@ describe('VerifyPage', () => {
       await waitFor(() => {
         const addPhoneButton = screen.getByText('Ajouter mon numéro');
         expect(addPhoneButton).toBeInTheDocument();
-        
+
         fireEvent.click(addPhoneButton);
         expect(mockPush).toHaveBeenCalledWith('/profile');
       });
@@ -472,7 +513,11 @@ describe('VerifyPage', () => {
       render(<VerifyPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Vous pourrez ajouter votre numéro de téléphone après la vérification de votre email')).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'Vous pourrez ajouter votre numéro de téléphone après la vérification de votre email',
+          ),
+        ).toBeInTheDocument();
       });
     });
 
@@ -485,7 +530,7 @@ describe('VerifyPage', () => {
       });
       mockSendEmailVerification.mockResolvedValue({});
       mockSendPhoneVerification.mockRejectedValue({
-        message: 'NO_PHONE_NUMBER'
+        message: 'NO_PHONE_NUMBER',
       });
 
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
@@ -493,7 +538,9 @@ describe('VerifyPage', () => {
       render(<VerifyPage />);
 
       await waitFor(() => {
-        expect(consoleLogSpy).toHaveBeenCalledWith('ℹ️ Pas de téléphone enregistré');
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+          'ℹ️ Pas de téléphone enregistré',
+        );
       });
 
       consoleLogSpy.mockRestore();
@@ -508,7 +555,9 @@ describe('VerifyPage', () => {
       render(<VerifyPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Erreur lors de la vérification du statut')).toBeInTheDocument();
+        expect(
+          screen.getByText('Erreur lors de la vérification du statut'),
+        ).toBeInTheDocument();
         expect(consoleErrorSpy).toHaveBeenCalled();
       });
 
@@ -532,7 +581,9 @@ describe('VerifyPage', () => {
         expect(screen.getByText('Vérifier Email')).toBeInTheDocument();
       });
 
-      const emailInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[0];
+      const emailInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[0];
       fireEvent.change(emailInput, { target: { value: '123456' } });
 
       const verifyButton = screen.getByText('Vérifier Email');
@@ -560,7 +611,9 @@ describe('VerifyPage', () => {
         expect(screen.getByText('Vérifier Téléphone')).toBeInTheDocument();
       });
 
-      const phoneInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[1];
+      const phoneInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[1];
       fireEvent.change(phoneInput, { target: { value: '654321' } });
 
       const verifyButton = screen.getByText('Vérifier Téléphone');
@@ -578,7 +631,9 @@ describe('VerifyPage', () => {
         has_phone_number: true,
         first_login: true,
       });
-      mockSendEmailVerification.mockResolvedValueOnce({}).mockRejectedValue(new Error('Failed'));
+      mockSendEmailVerification
+        .mockResolvedValueOnce({})
+        .mockRejectedValue(new Error('Failed'));
 
       render(<VerifyPage />);
 
@@ -590,7 +645,9 @@ describe('VerifyPage', () => {
       fireEvent.click(resendButtons[0]);
 
       await waitFor(() => {
-        expect(screen.getByText("Erreur lors de l'envoi du code")).toBeInTheDocument();
+        expect(
+          screen.getByText("Erreur lors de l'envoi du code"),
+        ).toBeInTheDocument();
       });
     });
   });
@@ -615,21 +672,29 @@ describe('VerifyPage', () => {
       });
 
       // Verify email
-      const emailInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[0];
+      const emailInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[0];
       fireEvent.change(emailInput, { target: { value: '123456' } });
       fireEvent.click(screen.getByText('Vérifier Email'));
 
       await waitFor(() => {
-        expect(screen.getByText('✅ Email vérifié avec succès !')).toBeInTheDocument();
+        expect(
+          screen.getByText('✅ Email vérifié avec succès !'),
+        ).toBeInTheDocument();
       });
 
       // Verify phone
-      const phoneInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[1];
+      const phoneInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[1];
       fireEvent.change(phoneInput, { target: { value: '654321' } });
       fireEvent.click(screen.getByText('Vérifier Téléphone'));
 
       await waitFor(() => {
-        expect(screen.getByText('✅ Téléphone vérifié avec succès !')).toBeInTheDocument();
+        expect(
+          screen.getByText('✅ Téléphone vérifié avec succès !'),
+        ).toBeInTheDocument();
       });
 
       // Wait for redirect
@@ -651,7 +716,9 @@ describe('VerifyPage', () => {
       render(<VerifyPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Configuration de vos préférences...')).toBeInTheDocument();
+        expect(
+          screen.getByText('Configuration de vos préférences...'),
+        ).toBeInTheDocument();
       });
     });
 
@@ -674,7 +741,7 @@ describe('VerifyPage', () => {
   describe('Console Logging', () => {
     it('should log verification status', async () => {
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
-      
+
       mockGetVerificationStatus.mockResolvedValue({
         email_verified: false,
         phone_verified: false,
@@ -687,10 +754,19 @@ describe('VerifyPage', () => {
       render(<VerifyPage />);
 
       await waitFor(() => {
-        expect(consoleLogSpy).toHaveBeenCalledWith('📊 Statut de vérification:', expect.any(Object));
-        expect(consoleLogSpy).toHaveBeenCalledWith('🔑 Première connexion ?', true);
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+          '📊 Statut de vérification:',
+          expect.any(Object),
+        );
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+          '🔑 Première connexion ?',
+          true,
+        );
         expect(consoleLogSpy).toHaveBeenCalledWith('📧 Email vérifié ?', false);
-        expect(consoleLogSpy).toHaveBeenCalledWith('📱 Téléphone vérifié ?', false);
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+          '📱 Téléphone vérifié ?',
+          false,
+        );
       });
 
       consoleLogSpy.mockRestore();
@@ -698,7 +774,7 @@ describe('VerifyPage', () => {
 
     it('should log when codes are sent', async () => {
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
-      
+
       mockGetVerificationStatus.mockResolvedValue({
         email_verified: false,
         phone_verified: false,
@@ -720,7 +796,7 @@ describe('VerifyPage', () => {
 
     it('should log verification success', async () => {
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
-      
+
       mockGetVerificationStatus.mockResolvedValue({
         email_verified: false,
         phone_verified: false,
@@ -737,7 +813,9 @@ describe('VerifyPage', () => {
         expect(screen.getByText('Vérifier Email')).toBeInTheDocument();
       });
 
-      const emailInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[0];
+      const emailInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[0];
       fireEvent.change(emailInput, { target: { value: '123456' } });
       fireEvent.click(screen.getByText('Vérifier Email'));
 
@@ -759,7 +837,9 @@ describe('VerifyPage', () => {
       });
       mockSendEmailVerification.mockResolvedValue({});
       mockSendPhoneVerification.mockResolvedValue({});
-      mockVerifyEmail.mockRejectedValue({ response: { data: { error: 'Invalid' } } });
+      mockVerifyEmail.mockRejectedValue({
+        response: { data: { error: 'Invalid' } },
+      });
 
       render(<VerifyPage />);
 
@@ -767,7 +847,9 @@ describe('VerifyPage', () => {
         expect(screen.getByText('Vérifier Email')).toBeInTheDocument();
       });
 
-      const emailInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[0];
+      const emailInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[0];
       fireEvent.change(emailInput, { target: { value: '123456' } });
       fireEvent.click(screen.getByText('Vérifier Email'));
 
@@ -794,12 +876,16 @@ describe('VerifyPage', () => {
         expect(screen.getByText('Vérifier Email')).toBeInTheDocument();
       });
 
-      const emailInput = screen.getAllByPlaceholderText('Entrez le code à 6 chiffres')[0];
+      const emailInput = screen.getAllByPlaceholderText(
+        'Entrez le code à 6 chiffres',
+      )[0];
       fireEvent.change(emailInput, { target: { value: '123456' } });
       fireEvent.click(screen.getByText('Vérifier Email'));
 
       await waitFor(() => {
-        const successElement = screen.getByText('✅ Email vérifié avec succès !');
+        const successElement = screen.getByText(
+          '✅ Email vérifié avec succès !',
+        );
         expect(successElement).toHaveClass('text-green-700');
       });
     });

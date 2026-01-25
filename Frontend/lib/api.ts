@@ -2,11 +2,11 @@
 import axios from 'axios';
 
 // Configuration de base
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Instance axios configurée
 export const api = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`,
+  baseURL: `${API_BASE_URL}`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -21,7 +21,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Intercepteur pour gérer le refresh token
@@ -40,7 +40,7 @@ api.interceptors.response.use(
 
         const response = await axios.post(
           `${API_BASE_URL}/api/v1/users/token/refresh/`,
-          { refresh: refreshToken }
+          { refresh: refreshToken },
         );
 
         const { access } = response.data;
@@ -58,7 +58,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 // ============ SERVICES API ============
@@ -70,28 +70,28 @@ export const usersService = {
   googleAuth: (token: string) => api.post('/users/google_auth/', { token }),
   getProfile: () => api.get('/users/me/'),
   updateProfile: (data: any) => api.patch('/users/me/', data),
-  
+
   // Vérifications
   sendEmailVerification: () => api.post('/users/send_email_verification/'),
   verifyEmail: (code: string) => api.post('/users/verify_email/', { code }),
   sendPhoneVerification: () => api.post('/users/send_phone_verification/'),
   verifyPhone: (code: string) => api.post('/users/verify_phone/', { code }),
   getVerificationStatus: () => api.get('/users/verification_status/'),
-  
+
   // Documents
-  uploadDocument: (formData: FormData) => 
+  uploadDocument: (formData: FormData) =>
     api.post('/users/upload_document/', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
     }),
   getDocuments: () => api.get('/users/documents/'),
   checkDocumentStatus: () => api.get('/users/check-document-status/'),
-  
+
   // Préférences
   getPreferences: () => api.get('/users/preferences/'),
   getMyPreferences: () => api.get('/users/my_preferences/'),
-  updatePreferences: (preferences: number[]) => 
+  updatePreferences: (preferences: number[]) =>
     api.post('/users/preferences/', { preferences }),
-  
+
   // Rôles
   getRoles: () => api.get('/users/roles/'),
 };
@@ -103,22 +103,23 @@ export const trajetsService = {
   get: (id: number) => api.get(`/trajets/${id}/`),
   update: (id: number, data: any) => api.put(`/trajets/${id}/`, data),
   delete: (id: number) => api.delete(`/trajets/${id}/`),
-  
+
   // Recherche
   search: (data: any) => api.post('/trajets/search/', data),
-  intelligentSearch: (data: any) => api.post('/trajets/intelligent_search/', data),
-  
+  intelligentSearch: (data: any) =>
+    api.post('/trajets/intelligent_search/', data),
+
   // Mes trajets
   myTrips: () => api.get('/trajets/my_trips/'),
   upcoming: () => api.get('/trajets/upcoming/'),
   past: () => api.get('/trajets/past/'),
-  
+
   // Actions
-  cancel: (id: number, reason: string) => 
+  cancel: (id: number, reason: string) =>
     api.post(`/trajets/${id}/cancel/`, { reason }),
   getReservations: (id: number) => api.get(`/trajets/${id}/reservations/`),
   getStatistics: (id: number) => api.get(`/trajets/${id}/statistics/`),
-  
+
   // Prix carburant
   getFuelPrices: () => api.get('/trajets/fuel-prices/'),
 };
@@ -130,22 +131,22 @@ export const reservationsService = {
   get: (id: number) => api.get(`/reservations/${id}/`),
   update: (id: number, data: any) => api.put(`/reservations/${id}/`, data),
   delete: (id: number) => api.delete(`/reservations/${id}/`),
-  
+
   // Mes réservations
   myBookings: () => api.get('/reservations/my-bookings/'),
   myTripsBookings: () => api.get('/reservations/my-trips-bookings/'),
-  
+
   // Actions
   confirm: (id: number) => api.post(`/reservations/${id}/confirm/`),
-  reject: (id: number, reason: string) => 
+  reject: (id: number, reason: string) =>
     api.post(`/reservations/${id}/reject/`, { reason }),
-  cancel: (id: number, reason: string) => 
+  cancel: (id: number, reason: string) =>
     api.post(`/reservations/${id}/cancel/`, { reason }),
-  
+
   // Permissions
-  checkBookingPermission: (trajetId: number) => 
-    api.get('/reservations/check-booking-permission/', { 
-      params: { trajet_id: trajetId } 
+  checkBookingPermission: (trajetId: number) =>
+    api.get('/reservations/check-booking-permission/', {
+      params: { trajet_id: trajetId },
     }),
 };
 
@@ -154,11 +155,11 @@ export const messagesService = {
   list: (params?: any) => api.get('/messaging/messages/', { params }),
   send: (data: any) => api.post('/messaging/messages/', data),
   get: (id: number) => api.get(`/messaging/messages/${id}/`),
-  
+
   // Média
-  uploadMedia: (formData: FormData) => 
+  uploadMedia: (formData: FormData) =>
     api.post('/messaging/messages/upload-media/', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
     }),
 };
 
@@ -167,7 +168,7 @@ export const conversationsService = {
   list: () => api.get('/messaging/conversations/'),
   create: (data: any) => api.post('/messaging/conversations/', data),
   get: (id: number) => api.get(`/messaging/conversations/${id}/`),
-  getMessages: (id: number, params?: any) => 
+  getMessages: (id: number, params?: any) =>
     api.get(`/messaging/conversations/${id}/messages/`, { params }),
 };
 

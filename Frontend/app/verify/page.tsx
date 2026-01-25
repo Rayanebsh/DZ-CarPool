@@ -24,8 +24,8 @@ export default function VerifyPage() {
 
   // ✅ Redirection UNIQUEMENT quand EMAIL vérifié ET (téléphone vérifié OU pas de téléphone)
   useEffect(() => {
-    const canRedirect = emailVerified && phoneVerified ;
-    
+    const canRedirect = emailVerified && phoneVerified;
+
     if (canRedirect && !loading) {
       console.log('✅ Tout est vérifié, redirection...');
       setTimeout(() => {
@@ -38,7 +38,14 @@ export default function VerifyPage() {
         }
       }, 1500);
     }
-  }, [emailVerified, phoneVerified, hasPhoneNumber, loading, isFirstLogin, router]);
+  }, [
+    emailVerified,
+    phoneVerified,
+    hasPhoneNumber,
+    loading,
+    isFirstLogin,
+    router,
+  ]);
 
   const checkVerificationStatus = async () => {
     try {
@@ -55,8 +62,10 @@ export default function VerifyPage() {
       console.log('📱 A un téléphone ?', status.has_phone_number);
 
       // ✅ Vérifier si tout est OK pour rediriger
-      const isFullyVerified = status.email_verified && (status.phone_verified || !status.has_phone_number);
-      
+      const isFullyVerified =
+        status.email_verified &&
+        (status.phone_verified || !status.has_phone_number);
+
       if (isFullyVerified) {
         console.log('✅ Déjà vérifié, redirection immédiate');
         if (status.first_login) {
@@ -68,7 +77,11 @@ export default function VerifyPage() {
       }
 
       // Envoyer les codes automatiquement si nécessaire
-      await sendInitialCodes(status.email_verified, status.phone_verified, status.has_phone_number);
+      await sendInitialCodes(
+        status.email_verified,
+        status.phone_verified,
+        status.has_phone_number,
+      );
     } catch (err) {
       console.error('❌ Erreur vérification statut:', err);
       setError('Erreur lors de la vérification du statut');
@@ -216,8 +229,8 @@ export default function VerifyPage() {
             Compte vérifié !
           </h2>
           <p className="text-gray-600">
-            {isFirstLogin 
-              ? 'Configuration de vos préférences...' 
+            {isFirstLogin
+              ? 'Configuration de vos préférences...'
               : 'Redirection en cours...'}
           </p>
         </div>
@@ -232,7 +245,7 @@ export default function VerifyPage() {
           Vérification de compte
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          {isFirstLogin 
+          {isFirstLogin
             ? 'Bienvenue ! Vérifiez votre email et téléphone pour commencer'
             : 'Vérifiez votre email et téléphone pour continuer'}
         </p>
@@ -369,7 +382,8 @@ export default function VerifyPage() {
                     Téléphone requis pour continuer
                   </h4>
                   <p className="text-sm text-amber-700 mb-3">
-                    Ajoutez un numéro de téléphone pour finaliser votre inscription
+                    Ajoutez un numéro de téléphone pour finaliser votre
+                    inscription
                   </p>
                   <button
                     onClick={() => router.push('/profile')}
@@ -399,7 +413,8 @@ export default function VerifyPage() {
                 </svg>
                 <div className="flex-1">
                   <p className="text-sm text-blue-700">
-                    Vous pourrez ajouter votre numéro de téléphone après la vérification de votre email
+                    Vous pourrez ajouter votre numéro de téléphone après la
+                    vérification de votre email
                   </p>
                 </div>
               </div>

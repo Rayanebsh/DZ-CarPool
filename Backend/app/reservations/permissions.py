@@ -1,5 +1,7 @@
 from rest_framework import permissions
+
 from .models import Reservation
+
 
 class IsReservationOwnerOrDriver(permissions.BasePermission):
     """
@@ -32,6 +34,7 @@ class CanRateReservation(permissions.BasePermission):
         # L'utilisateur doit être soit le passager soit le conducteur
         return obj.passager == request.user or obj.trajet.conducteur == request.user
 
+
 class IsDriverOfReservationTrip(permissions.BasePermission):
     """
     Vérifie que l'utilisateur est le conducteur du trajet associé à la réservation.
@@ -40,6 +43,7 @@ class IsDriverOfReservationTrip(permissions.BasePermission):
     def has_object_permission(self, request, view, obj: Reservation):
         # obj ici est une instance de Reservation
         return obj.trajet.conducteur == request.user
+
 
 class IsPassengerOfReservation(permissions.BasePermission):
     """

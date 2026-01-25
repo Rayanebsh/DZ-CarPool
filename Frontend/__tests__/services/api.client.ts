@@ -76,12 +76,10 @@ describe('API Client', () => {
       mockApiClient.onGet('/protected').replyOnce(401);
 
       // Appel de refresh via axios (pas apiClient) -> succès
-      mockAxios
-        .onPost(`${API_URL}/users/token/refresh/`)
-        .replyOnce(200, {
-          access: 'new_access_token',
-          refresh: 'new_refresh_token',
-        });
+      mockAxios.onPost(`${API_URL}/users/token/refresh/`).replyOnce(200, {
+        access: 'new_access_token',
+        refresh: 'new_refresh_token',
+      });
 
       // Retry via apiClient -> succès
       mockApiClient.onGet('/protected').replyOnce(200, { data: 'success' });
@@ -106,12 +104,10 @@ describe('API Client', () => {
 
       mockApiClient.onGet('/protected').replyOnce(401);
 
-      mockAxios
-        .onPost(`${API_URL}/users/token/refresh/`)
-        .replyOnce(200, {
-          access: 'new_access_token_only',
-          // pas de refresh dans data
-        });
+      mockAxios.onPost(`${API_URL}/users/token/refresh/`).replyOnce(200, {
+        access: 'new_access_token_only',
+        // pas de refresh dans data
+      });
 
       mockApiClient
         .onGet('/protected')
@@ -155,9 +151,7 @@ describe('API Client', () => {
       mockApiClient.onGet('/protected').replyOnce(401);
 
       // Refresh échoue (erreur 500, par ex.)
-      mockAxios
-        .onPost(`${API_URL}/users/token/refresh/`)
-        .replyOnce(500, {});
+      mockAxios.onPost(`${API_URL}/users/token/refresh/`).replyOnce(500, {});
 
       await expect(apiClient.get('/protected')).rejects.toThrow();
 

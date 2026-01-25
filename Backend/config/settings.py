@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)
-ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1,dz-carpool-backend-1.onrender.com").split(",")
 
 # Application definition
 INSTALLED_APPS = [
@@ -31,7 +31,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "django_filters",
     "drf_spectacular",
-    "corsheaders",
+    "corsheaders",  # ✅ CORS
     "channels",
     # Allauth pour social authentication
     "allauth",
@@ -45,26 +45,24 @@ INSTALLED_APPS = [
     "app.messaging",
     "django_extensions",
     "app",
-    "app.reservations.apps.ReservationsConfig",  # ✅ Bon format
+    "app.reservations.apps.ReservationsConfig",
     "app.notifications.apps.NotificationsConfig",
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # ✅ DOIT ÊTRE EN PREMIER
     "django.middleware.security.SecurityMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "allauth.account.middleware.AccountMiddleware",  # ✅ ICI ET PAS AILLEURS
+    "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "app.core.middleware.RequestLoggingMiddleware",
     "app.core.middleware.UserActivityMiddleware",
     "app.core.middleware.RateLimitMiddleware",
 ]
-
 
 ROOT_URLCONF = "config.urls"
 
@@ -86,28 +84,46 @@ TEMPLATES = [
 
 ASGI_APPLICATION = "config.asgi.application"
 WSGI_APPLICATION = "config.wsgi.application"
+
 # Configuration Channels Layer (Redis)
+REDIS_URL = config("REDIS_URL", default="redis://localhost:6379")
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [REDIS_URL],
         },
     },
 }
+
 # URL WebSocket (pour le frontend)
 WEBSOCKET_URL = config("WEBSOCKET_URL", default="ws://localhost:8000")
-# Database
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config("DB_NAME"),
-        "USER": config("DB_USER"),
-        "PASSWORD": config("DB_PASSWORD"),
-        "HOST": config("DB_HOST", default="localhost"),
-        "PORT": config("DB_PORT", default="5432"),
+
+# Database - Support pour DATABASE_URL de Render
+import dj_database_url
+
+if 'DATABASE_URL' in os.environ:
+    # En production sur Render
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # En développement local
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": config("DB_NAME"),
+            "USER": config("DB_USER"),
+            "PASSWORD": config("DB_PASSWORD"),
+            "HOST": config("DB_HOST", default="localhost"),
+            "PORT": config("DB_PORT", default="5432"),
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -200,7 +216,9 @@ SIMPLE_JWT = {
     "JTI_CLAIM": "jti",
 }
 
-# CORS Settings
+# ============================================
+# ✅ CORS SETTINGS - CONFIGURATION CORRIGÉE
+# ============================================
 if DEBUG:
     # Mode développement - Permissif
     CORS_ALLOW_ALL_ORIGINS = True
@@ -208,11 +226,20 @@ if DEBUG:
 else:
     # Mode production - Stricte
     CORS_ALLOWED_ORIGINS = [
+        "https://dz-car-pool-frontend.vercel.app",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://dz-car-pool-frontend-6kns3mkgm-r-bessah-estindzs-projects.vercel.app",
     ]
     CORS_ALLOW_CREDENTIALS = True
 
+# ✅ CSRF - URLs de confiance
+CSRF_TRUSTED_ORIGINS = [
+    "https://dz-car-pool-frontend.vercel.app",
+    "https://dz-carpool-backend-1.onrender.com",
+]
+
+# ✅ Méthodes HTTP autorisées
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
@@ -222,18 +249,18 @@ CORS_ALLOW_METHODS = [
     "PUT",
 ]
 
+# ✅ Headers autorisés
 CORS_ALLOW_HEADERS = [
-    "accept",
-    "accept-encoding",
-    "authorization",
-    "content-type",
-    "dnt",
-    "origin",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
-
 
 # DRF Spectacular Settings
 SPECTACULAR_SETTINGS = {
@@ -252,39 +279,74 @@ FUEL_CONSUMPTION_L_PER_100KM = config(
     "FUEL_CONSUMPTION_L_PER_100KM", default=8.0, cast=float
 )
 
-# Logging
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "{levelname} {asctime} {module} {message}",
-            "style": "{",
+# Logging - Adapté pour Render
+if os.environ.get('RENDER'):
+    # Sur Render : logs console uniquement
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "verbose": {
+                "format": "{levelname} {asctime} {module} {message}",
+                "style": "{",
+            },
         },
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "verbose",
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "verbose",
+            },
         },
-        "file": {
-            "class": "logging.FileHandler",
-            "filename": BASE_DIR / "logs" / "django.log",
-            "formatter": "verbose",
+        "root": {
+            "handlers": ["console"],
+            "level": "INFO",
         },
-    },
-    "root": {
-        "handlers": ["console", "file"],
-        "level": "INFO",
-    },
-    "loggers": {
-        "django": {
+        "loggers": {
+            "django": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False,
+            },
+        },
+    }
+else:
+    # En développement local : console + fichier
+    # Créer le dossier logs s'il n'existe pas
+    logs_dir = BASE_DIR / "logs"
+    logs_dir.mkdir(exist_ok=True)
+    
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "verbose": {
+                "format": "{levelname} {asctime} {module} {message}",
+                "style": "{",
+            },
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "verbose",
+            },
+            "file": {
+                "class": "logging.FileHandler",
+                "filename": logs_dir / "django.log",
+                "formatter": "verbose",
+            },
+        },
+        "root": {
             "handlers": ["console", "file"],
             "level": "INFO",
-            "propagate": False,
         },
-    },
-}
+        "loggers": {
+            "django": {
+                "handlers": ["console", "file"],
+                "level": "INFO",
+                "propagate": False,
+            },
+        },
+    }
 
 # Cache Configuration
 CACHES = {
@@ -357,7 +419,6 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Configuration allauth
-# APRÈS (garder seulement)
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 SOCIALACCOUNT_AUTO_SIGNUP = True
@@ -366,13 +427,8 @@ ACCOUNT_SIGNUP_FIELDS = [
     "email*",
     "password1*",
     "password2*",
-]  # Remplace ACCOUNT_AUTHENTICATION_METHOD
-
-ACCOUNT_SIGNUP_FIELDS = [
-    "email*",  # * = required
-    "password1*",
-    "password2*",
 ]
+
 # Configuration Google OAuth
 SOCIALACCOUNT_PROVIDERS = {
     "google": {

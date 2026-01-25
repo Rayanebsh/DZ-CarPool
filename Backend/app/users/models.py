@@ -3,9 +3,10 @@ Modèles pour la gestion des utilisateurs du projet DZ-CarPool
 """
 
 import random
+import secrets
 import string
 from datetime import timedelta
-import secrets
+
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -288,18 +289,22 @@ class EmailVerification(models.Model):
     def __str__(self):
         return f"Email verification for {self.user.email}"
 
+
 class PasswordResetToken(models.Model):
     """Modèle pour les tokens de réinitialisation de mot de passe"""
-    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='password_reset_tokens')
+
+    user = models.ForeignKey(
+        "User", on_delete=models.CASCADE, related_name="password_reset_tokens"
+    )
     token = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
     used = models.BooleanField(default=False)
-    
+
     class Meta:
-        db_table = 'password_reset_tokens'
-        ordering = ['-created_at']
-    
+        db_table = "password_reset_tokens"
+        ordering = ["-created_at"]
+
     def save(self, *args, **kwargs):
         if not self.token:
             self.token = secrets.token_urlsafe(32)
@@ -307,13 +312,15 @@ class PasswordResetToken(models.Model):
             # Token valide pendant 1 heure
             self.expires_at = timezone.now() + timezone.timedelta(hours=1)
         super().save(*args, **kwargs)
-    
+
     def is_valid(self):
         """Vérifie si le token est valide"""
         return not self.used and self.expires_at > timezone.now()
-    
+
     def __str__(self):
         return f"Password reset token for {self.user.email}"
+
+
 class PhoneVerification(models.Model):
     """Modèle pour la vérification de téléphone"""
 

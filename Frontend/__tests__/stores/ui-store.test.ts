@@ -2,7 +2,7 @@ import { useUIStore } from '@/stores/ui-store';
 
 describe('ui-store', () => {
   it('toggleSidebar inverse la valeur', () => {
-    const { toggleSidebar, sidebarOpen } = useUIStore.getState();
+    const { sidebarOpen } = useUIStore.getState();
     const initial = sidebarOpen;
 
     useUIStore.getState().toggleSidebar();

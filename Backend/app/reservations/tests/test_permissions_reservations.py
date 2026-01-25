@@ -91,7 +91,7 @@ class IsDriverOfReservationTripTest(BasePermissionTest):
         request.user = self.conducteur
 
         # Créer une vue mockée
-        view = type('View', (), {'kwargs': {'pk': self.reservation.id}})()
+        view = type("View", (), {"kwargs": {"pk": self.reservation.id}})()
 
         has_permission = self.permission.has_permission(request, view)
         self.assertTrue(has_permission)
@@ -107,7 +107,7 @@ class IsDriverOfReservationTripTest(BasePermissionTest):
         request = self.factory.get("/")
         request.user = self.passager
 
-        view = type('View', (), {'kwargs': {'pk': self.reservation.id}})()
+        view = type("View", (), {"kwargs": {"pk": self.reservation.id}})()
 
         # Permission au niveau de la vue (True car on vérifie au niveau objet)
         has_permission = self.permission.has_permission(request, view)
@@ -124,7 +124,7 @@ class IsDriverOfReservationTripTest(BasePermissionTest):
         request = self.factory.get("/")
         request.user = self.autre_user
 
-        view = type('View', (), {'kwargs': {'pk': self.reservation.id}})()
+        view = type("View", (), {"kwargs": {"pk": self.reservation.id}})()
 
         has_object_permission = self.permission.has_object_permission(
             request, view, self.reservation
@@ -138,7 +138,7 @@ class IsDriverOfReservationTripTest(BasePermissionTest):
         request = self.factory.get("/")
         request.user = AnonymousUser()
 
-        view = type('View', (), {'kwargs': {'pk': self.reservation.id}})()
+        view = type("View", (), {"kwargs": {"pk": self.reservation.id}})()
 
         has_object_permission = self.permission.has_object_permission(
             request, view, self.reservation
@@ -178,7 +178,7 @@ class IsDriverOfReservationTripTest(BasePermissionTest):
         request = self.factory.get("/")
         request.user = self.conducteur  # Conducteur du premier trajet
 
-        view = type('View', (), {'kwargs': {'pk': autre_reservation.id}})()
+        view = type("View", (), {"kwargs": {"pk": autre_reservation.id}})()
 
         has_object_permission = self.permission.has_object_permission(
             request, view, autre_reservation
@@ -198,7 +198,7 @@ class IsPassengerOfReservationTest(BasePermissionTest):
         request = self.factory.get("/")
         request.user = self.passager
 
-        view = type('View', (), {'kwargs': {'pk': self.reservation.id}})()
+        view = type("View", (), {"kwargs": {"pk": self.reservation.id}})()
 
         has_permission = self.permission.has_permission(request, view)
         self.assertTrue(has_permission)
@@ -213,7 +213,7 @@ class IsPassengerOfReservationTest(BasePermissionTest):
         request = self.factory.get("/")
         request.user = self.conducteur
 
-        view = type('View', (), {'kwargs': {'pk': self.reservation.id}})()
+        view = type("View", (), {"kwargs": {"pk": self.reservation.id}})()
 
         has_permission = self.permission.has_permission(request, view)
         self.assertTrue(has_permission)
@@ -228,7 +228,7 @@ class IsPassengerOfReservationTest(BasePermissionTest):
         request = self.factory.get("/")
         request.user = self.autre_user
 
-        view = type('View', (), {'kwargs': {'pk': self.reservation.id}})()
+        view = type("View", (), {"kwargs": {"pk": self.reservation.id}})()
 
         has_object_permission = self.permission.has_object_permission(
             request, view, self.reservation
@@ -242,7 +242,7 @@ class IsPassengerOfReservationTest(BasePermissionTest):
         request = self.factory.get("/")
         request.user = AnonymousUser()
 
-        view = type('View', (), {'kwargs': {'pk': self.reservation.id}})()
+        view = type("View", (), {"kwargs": {"pk": self.reservation.id}})()
 
         has_object_permission = self.permission.has_object_permission(
             request, view, self.reservation
@@ -267,7 +267,7 @@ class IsPassengerOfReservationTest(BasePermissionTest):
         request = self.factory.get("/")
         request.user = self.passager  # Passager de la première réservation
 
-        view = type('View', (), {'kwargs': {'pk': autre_reservation.id}})()
+        view = type("View", (), {"kwargs": {"pk": autre_reservation.id}})()
 
         has_object_permission = self.permission.has_object_permission(
             request, view, autre_reservation
@@ -291,7 +291,7 @@ class PermissionIntegrationTest(BasePermissionTest):
         passenger_request = self.factory.get("/")
         passenger_request.user = self.passager
 
-        view = type('View', (), {'kwargs': {'pk': self.reservation.id}})()
+        view = type("View", (), {"kwargs": {"pk": self.reservation.id}})()
 
         # Conducteur a permission driver, pas passenger
         self.assertTrue(
@@ -331,7 +331,7 @@ class PermissionIntegrationTest(BasePermissionTest):
         passenger_request = self.factory.get("/")
         passenger_request.user = self.passager
 
-        view = type('View', (), {'kwargs': {'pk': self.reservation.id}})()
+        view = type("View", (), {"kwargs": {"pk": self.reservation.id}})()
 
         # Les permissions sont basées sur les relations, pas le statut
         self.assertTrue(
@@ -355,7 +355,7 @@ class PermissionIntegrationTest(BasePermissionTest):
             request = self.factory.generic(method, "/")
             request.user = self.autre_user  # Utilisateur quelconque
 
-            view = type('View', (), {'kwargs': {'pk': self.reservation.id}})()
+            view = type("View", (), {"kwargs": {"pk": self.reservation.id}})()
 
             # has_permission retourne True pour les méthodes safe
             has_permission = driver_permission.has_permission(request, view)
@@ -375,7 +375,7 @@ class PermissionIntegrationTest(BasePermissionTest):
             request = self.factory.generic(method, "/")
             request.user = self.conducteur
 
-            view = type('View', (), {'kwargs': {'pk': self.reservation.id}})()
+            view = type("View", (), {"kwargs": {"pk": self.reservation.id}})()
 
             # has_permission retourne True (vérification faite au niveau objet)
             has_permission = driver_permission.has_permission(request, view)
@@ -399,9 +399,7 @@ class PermissionEdgeCasesTest(BasePermissionTest):
         self.trajet.delete()
 
         # La réservation devrait être supprimée aussi
-        self.assertFalse(
-            Reservation.objects.filter(id=reservation_id).exists()
-        )
+        self.assertFalse(Reservation.objects.filter(id=reservation_id).exists())
 
     def test_multiple_reservations_same_trip(self):
         """Test: permissions avec plusieurs réservations sur même trajet"""
@@ -436,19 +434,15 @@ class PermissionEdgeCasesTest(BasePermissionTest):
         request2 = self.factory.get("/")
         request2.user = autre_passager
 
-        view = type('View', (), {})()
+        view = type("View", (), {})()
 
         # Chaque passager a permission seulement sur sa réservation
         self.assertTrue(
             permission.has_object_permission(request1, view, self.reservation)
         )
-        self.assertFalse(
-            permission.has_object_permission(request1, view, reservation2)
-        )
+        self.assertFalse(permission.has_object_permission(request1, view, reservation2))
 
-        self.assertTrue(
-            permission.has_object_permission(request2, view, reservation2)
-        )
+        self.assertTrue(permission.has_object_permission(request2, view, reservation2))
         self.assertFalse(
             permission.has_object_permission(request2, view, self.reservation)
         )

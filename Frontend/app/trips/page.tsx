@@ -22,8 +22,9 @@ import {
   Send,
   X,
 } from 'lucide-react';
+import { env } from 'process';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // 🌍 Traductions
 const translations = {
@@ -675,7 +676,7 @@ export default function MyBookingsPage() {
   const getProfilePictureUrl = (picture: string | undefined): string => {
     if (!picture) return '/placeholder.svg';
     if (picture.startsWith('http')) return picture;
-    return `${API_BASE_URL}${picture.startsWith('/') ? '' : '/'}${picture}`;
+    return `${API_BASE_URL}/api/v1${picture.startsWith('/') ? '' : '/'}${picture}`;
   };
 
   if (loading) {

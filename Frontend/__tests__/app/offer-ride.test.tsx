@@ -23,7 +23,7 @@ describe('OfferRidePage', () => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
     localStorage.setItem('access_token', 'test-token');
-    
+
     // Mock fuel prices (1er appel)
     (fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
@@ -50,8 +50,20 @@ describe('OfferRidePage', () => {
 
     // Mock preferences
     (authService.getPreferences as jest.Mock).mockResolvedValue([
-      { id: 1, name_en: 'Music', name_fr: 'Musique', category: 'interests', icon: '🎵' },
-      { id: 2, name_en: 'No Smoking', name_fr: 'Non-fumeur', category: 'habits', icon: '🚭' },
+      {
+        id: 1,
+        name_en: 'Music',
+        name_fr: 'Musique',
+        category: 'interests',
+        icon: '🎵',
+      },
+      {
+        id: 2,
+        name_en: 'No Smoking',
+        name_fr: 'Non-fumeur',
+        category: 'habits',
+        icon: '🚭',
+      },
     ]);
   });
 
@@ -89,12 +101,16 @@ describe('OfferRidePage', () => {
     render(<OfferRidePage />);
 
     await waitFor(() => {
-      const plusBtn = screen.getAllByRole('button').find(btn => 
-        btn.querySelector('svg')?.classList.contains('lucide-plus')
-      );
-      const minusBtn = screen.getAllByRole('button').find(btn => 
-        btn.querySelector('svg')?.classList.contains('lucide-minus')
-      );
+      const plusBtn = screen
+        .getAllByRole('button')
+        .find((btn) =>
+          btn.querySelector('svg')?.classList.contains('lucide-plus'),
+        );
+      const minusBtn = screen
+        .getAllByRole('button')
+        .find((btn) =>
+          btn.querySelector('svg')?.classList.contains('lucide-minus'),
+        );
 
       // Default is 3 seats
       expect(screen.getByText('3')).toBeInTheDocument();
@@ -114,9 +130,11 @@ describe('OfferRidePage', () => {
     render(<OfferRidePage />);
 
     await waitFor(() => {
-      const minusBtn = screen.getAllByRole('button').find(btn => 
-        btn.querySelector('svg')?.classList.contains('lucide-minus')
-      );
+      const minusBtn = screen
+        .getAllByRole('button')
+        .find((btn) =>
+          btn.querySelector('svg')?.classList.contains('lucide-minus'),
+        );
 
       // Click minus 5 times (should stop at 1)
       for (let i = 0; i < 5; i++) {
@@ -131,9 +149,11 @@ describe('OfferRidePage', () => {
     render(<OfferRidePage />);
 
     await waitFor(() => {
-      const plusBtn = screen.getAllByRole('button').find(btn => 
-        btn.querySelector('svg')?.classList.contains('lucide-plus')
-      );
+      const plusBtn = screen
+        .getAllByRole('button')
+        .find((btn) =>
+          btn.querySelector('svg')?.classList.contains('lucide-plus'),
+        );
 
       // Click plus 10 times (should stop at 8)
       for (let i = 0; i < 10; i++) {
@@ -150,10 +170,10 @@ describe('OfferRidePage', () => {
     await waitFor(() => {
       // Default price is 1200
       expect(screen.getByText('1200 DA')).toBeInTheDocument();
-      
+
       // Platform fee 15% = 180
       expect(screen.getByText('180 DA')).toBeInTheDocument();
-      
+
       // Total = 1380
       expect(screen.getByText('1380 DA')).toBeInTheDocument();
     });
@@ -239,8 +259,10 @@ describe('OfferRidePage', () => {
       fireEvent.change(screen.getByPlaceholderText('Oran'), {
         target: { value: 'Oran' },
       });
-      
-      const dateInput = screen.getByLabelText('DEPARTURE DATE').querySelector('input');
+
+      const dateInput = screen
+        .getByLabelText('DEPARTURE DATE')
+        .querySelector('input');
       fireEvent.change(dateInput!, {
         target: { value: '2025-12-25T14:00' },
       });
@@ -249,9 +271,14 @@ describe('OfferRidePage', () => {
     const submitBtn = screen.getByText('Publish Trip →');
     fireEvent.click(submitBtn);
 
-    await waitFor(() => {
-      expect(screen.getByText('Trip published successfully!')).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText('Trip published successfully!'),
+        ).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('displays error message on submission failure', async () => {
@@ -278,7 +305,9 @@ describe('OfferRidePage', () => {
         target: { value: 'Oran' },
       });
 
-      const dateInput = screen.getByLabelText('DEPARTURE DATE').querySelector('input');
+      const dateInput = screen
+        .getByLabelText('DEPARTURE DATE')
+        .querySelector('input');
       fireEvent.change(dateInput!, {
         target: { value: '2025-12-25T14:00' },
       });
@@ -299,11 +328,18 @@ describe('OfferRidePage', () => {
     });
 
     // Mock trajets POST lent
-    (fetch as jest.Mock).mockImplementation(() => 
-      new Promise(resolve => setTimeout(() => resolve({
-        ok: true,
-        json: async () => ({}),
-      }), 100))
+    (fetch as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve({
+                ok: true,
+                json: async () => ({}),
+              }),
+            100,
+          ),
+        ),
     );
 
     render(<OfferRidePage />);
@@ -316,7 +352,9 @@ describe('OfferRidePage', () => {
         target: { value: 'Oran' },
       });
 
-      const dateInput = screen.getByLabelText('DEPARTURE DATE').querySelector('input');
+      const dateInput = screen
+        .getByLabelText('DEPARTURE DATE')
+        .querySelector('input');
       fireEvent.change(dateInput!, {
         target: { value: '2025-12-25T14:00' },
       });

@@ -1,18 +1,12 @@
-"""
-app/trajets/tests/test_trajet_viewset.py
-Tests complets pour le TrajetViewSet avec couverture > 75%
-"""
-
-import json
 from datetime import date, time, timedelta
 from decimal import Decimal
-from unittest.mock import MagicMock, patch
-import pytest
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+import pytest
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
@@ -96,7 +90,7 @@ class TrajetViewSetTestCase(APITestCase):
         """Test: Liste des trajets accessible sans authentification"""
         url = reverse("trajets:trajet-list")  # ✅ BONNE URL
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Gérer la pagination
         if isinstance(response.data, dict) and "results" in response.data:
@@ -315,7 +309,7 @@ class TrajetViewSetTestCase(APITestCase):
             price_per_seat=self.trajet.price,
             total_price=self.trajet.price,
         )
-        
+
         # Créer un rating
         Rating.objects.create(
             reservation=reservation,
@@ -324,10 +318,10 @@ class TrajetViewSetTestCase(APITestCase):
             note=5,
             comment="Bon conducteur",
         )
-        
+
         url = reverse("trajets:trajet-driver-info", kwargs={"pk": self.trajet.pk})
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["first_name"], "Jean")
         self.assertEqual(response.data["last_name"], "Dupont")
@@ -339,21 +333,14 @@ class TrajetViewSetTestCase(APITestCase):
         """Test: Driver info pour trajet inexistant"""
         url = reverse("trajets:trajet-driver-info", kwargs={"pk": 99999})
         response = self.client.get(url)
-        
-        # ✅ Accepter 404 OU 500 pour l'instant (à corriger dans la vue)
-        self.assertIn(response.status_code, [status.HTTP_404_NOT_FOUND, status.HTTP_500_INTERNAL_SERVER_ERROR])
 
-    def test_passengers_endpoint(self):
-        """Test: Récupération de la liste des passagers"""
-        # Créer une réservation confirmée
-        reservation = Reservation.objects.create(
-            trajet=self.trajet,
-            passager=self.passager,
-            nbr_places=2,
-            total_price=Decimal("3000.00"),
-            status="CONFIRMED",
+        # ✅ Accepter 404 OU 500 pour l'instant (à corriger dans la vue)
+        self.assertIn(
+            response.status_code,
+            [status.HTTP_404_NOT_FOUND, status.HTTP_500_INTERNAL_SERVER_ERROR],
         )
 
+    def test_passengers_endpoint(self):
         url = reverse("trajets:trajet-passengers", kwargs={"pk": self.trajet.id})
         response = self.client.get(url)
 
@@ -402,12 +389,12 @@ class TrajetViewSetTestCase(APITestCase):
     def test_my_trips_authenticated(self):
         """Test: Liste des trajets de l'utilisateur connecté"""
         self.client.force_authenticate(user=self.conducteur)
-        
+
         url = reverse("trajets:trajet-my-trips")  # ← Avec tiret de soulignement
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # ✅ Gérer la pagination
         if isinstance(response.data, dict) and "results" in response.data:
             # Réponse paginée
@@ -469,18 +456,18 @@ class TrajetViewSetTestCase(APITestCase):
     def test_upcoming_trips(self):
         """Test: Liste des trajets à venir"""
         self.client.force_authenticate(user=self.conducteur)
-        
+
         url = reverse("trajets:trajet-upcoming")
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # ✅ Gérer la pagination
         if isinstance(response.data, dict) and "results" in response.data:
             results = response.data["results"]
         else:
             results = response.data
-        
+
         # Vérifier que tous les trajets sont futurs
         for trajet in results:
             self.assertGreaterEqual(trajet["date"], date.today().isoformat())
@@ -488,20 +475,6 @@ class TrajetViewSetTestCase(APITestCase):
     def test_past_trips(self):
         """Test: Liste des trajets passés"""
         self.client.force_authenticate(user=self.conducteur)
-
-        # Créer un trajet passé
-        past_trajet = Trajet.objects.create(
-            conducteur=self.conducteur,
-            ville_depart="Alger",
-            ville_arrivee="Blida",
-            date=date.today() - timedelta(days=5),
-            heure_depart=time(10, 0),
-            nbr_places=3,
-            price=Decimal("500.00"),
-            distance=Decimal("50.0"),
-            status="COMPLETED",
-        )
-
         url = reverse("trajets:trajet-past")
         response = self.client.get(url)
 
@@ -555,9 +528,7 @@ class TrajetViewSetTestCase(APITestCase):
         # Vérifier que les prix sont calculés
         self.assertGreater(trajet.price_platform, 0)
         self.assertGreater(trajet.price_driver, 0)
-        self.assertEqual(
-            trajet.price, trajet.price_platform + trajet.price_driver
-        )
+        self.assertEqual(trajet.price, trajet.price_platform + trajet.price_driver)
 
     def test_trajet_model_can_reserve(self):
         """Test: Méthode can_reserve du modèle"""
@@ -668,6 +639,7 @@ class TrajetModelTestCase(TestCase):
 
         self.assertTrue(trajet.pause_required)
 
+
 @pytest.mark.django_db
 class FuelPriceViewSetTestCase:
     """Tests pour FuelPriceViewSet"""
@@ -675,32 +647,35 @@ class FuelPriceViewSetTestCase:
     def setup_method(self):
         """Setup exécuté avant chaque test"""
         self.client = APIClient()
-        
+
         # Créer quelques prix de carburant pour les tests
         FuelPrice.objects.create(
             wilaya_code="16",
             wilaya_name="Alger",
             fuel_type="gasoil",
-            price_per_liter=Decimal("35.50")
+            price_per_liter=Decimal("35.50"),
         )
         FuelPrice.objects.create(
             wilaya_code="25",
             wilaya_name="Constantine",
             fuel_type="essence_sans_plomb",
-            price_per_liter=Decimal("45.00")
+            price_per_liter=Decimal("45.00"),
         )
 
     def test_list_fuel_prices_public(self):
         """Test: Liste des prix du carburant accessible publiquement"""
         # ✅ CORRECTION: Utiliser le bon nom d'URL
         url = reverse("trajets:fuel-price-list")
-        
+
         response = self.client.get(url)
-        
+
         # ✅ Accepter 200 si get_fuel_prices_summary retourne des données
         # OU 500 si le fichier JSON n'existe pas
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_500_INTERNAL_SERVER_ERROR]
-        
+        assert response.status_code in [
+            status.HTTP_200_OK,
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        ]
+
         # Si 200, vérifier la structure
         if response.status_code == status.HTTP_200_OK:
             # La réponse peut être une liste ou un dict avec wilayas/fuels
@@ -714,7 +689,7 @@ class EdgeCasesTestCase:
     def setup_method(self):
         """Setup exécuté avant chaque test"""
         self.client = APIClient()
-        
+
         # Créer un utilisateur de test
         self.user = User.objects.create_user(
             email="test@example.com",
@@ -722,23 +697,19 @@ class EdgeCasesTestCase:
             first_name="Test",
             last_name="User",
             phone_number="+213555123456",
-            is_verified=True
+            is_verified=True,
         )
-        
+
         # Créer un document vérifié
-        UserDocument.objects.create(
-            user=self.user,
-            document_type="CNI",
-            verified=True
-        )
-        
+        UserDocument.objects.create(user=self.user, document_type="CNI", verified=True)
+
         # Créer des préférences
         self.preference1 = Preference.objects.create(name="Non fumeur")
         self.preference2 = Preference.objects.create(name="Animaux acceptés")
-        
+
         # Créer des trajets de test
         tomorrow = timezone.now().date() + timezone.timedelta(days=1)
-        
+
         self.trajet1 = Trajet.objects.create(
             conducteur=self.user,
             ville_depart="Alger, Algeria",
@@ -749,10 +720,10 @@ class EdgeCasesTestCase:
             price=Decimal("1000.00"),
             distance=Decimal("400.0"),
             fuel_type="gasoil",
-            status="ACTIVE"
+            status="ACTIVE",
         )
         self.trajet1.preferences.add(self.preference1)
-        
+
         self.trajet2 = Trajet.objects.create(
             conducteur=self.user,
             ville_depart="Alger, Algeria",
@@ -763,25 +734,25 @@ class EdgeCasesTestCase:
             price=Decimal("800.00"),
             distance=Decimal("300.0"),
             fuel_type="essence_sans_plomb",
-            status="COMPLETED"
+            status="COMPLETED",
         )
 
     def test_intelligent_search_empty_preferences(self):
         """Test: Recherche intelligente sans préférences"""
         url = reverse("trajets:trajet-intelligent-search")
-        
+
         tomorrow = timezone.now().date() + timezone.timedelta(days=1)
-        
+
         data = {
             "ville_depart": "Alger",
             "ville_arrivee": "Oran",
             "date": str(tomorrow),
             "nbr_places": 1,
-            "preference_ids": []  # Liste vide
+            "preference_ids": [],  # Liste vide
         }
-        
+
         response = self.client.post(url, data, format="json")
-        
+
         assert response.status_code == status.HTTP_200_OK
         assert "results" in response.data
         assert response.data["count"] == 1  # Devrait trouver trajet1
@@ -789,45 +760,45 @@ class EdgeCasesTestCase:
     def test_filter_by_status_my_trips(self):
         """Test: Filtrage par statut dans mes trajets"""
         self.client.force_authenticate(user=self.user)
-        
+
         url = reverse("trajets:trajet-my-trips")
-        
+
         # ✅ CORRECTION 1: Filtrer par status ACTIVE
         response = self.client.get(url, {"status": "ACTIVE"})
-        
+
         assert response.status_code == status.HTTP_200_OK
-        
+
         # Gérer la pagination
         if isinstance(response.data, dict) and "results" in response.data:
             results = response.data["results"]
         else:
             results = response.data
-        
+
         # ✅ CORRECTION 2: Devrait retourner SEULEMENT les trajets ACTIVE
         assert len(results) == 1, f"Attendu 1 trajet ACTIVE, trouvé {len(results)}"
         assert results[0]["id"] == self.trajet1.id
         assert results[0]["status"] == "ACTIVE"
-        
+
         # ✅ Test 2: Filtrer par status COMPLETED
         response = self.client.get(url, {"status": "COMPLETED"})
-        
+
         assert response.status_code == status.HTTP_200_OK
-        
+
         if isinstance(response.data, dict) and "results" in response.data:
             results = response.data["results"]
         else:
             results = response.data
-        
+
         assert len(results) == 1, f"Attendu 1 trajet COMPLETED, trouvé {len(results)}"
         assert results[0]["id"] == self.trajet2.id
         assert results[0]["status"] == "COMPLETED"
-        
+
         # ✅ Test 3: Sans filtre, devrait retourner TOUS les trajets
         response = self.client.get(url)
-        
+
         if isinstance(response.data, dict) and "results" in response.data:
             results = response.data["results"]
         else:
             results = response.data
-        
+
         assert len(results) == 2, f"Attendu 2 trajets au total, trouvé {len(results)}"

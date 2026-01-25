@@ -35,7 +35,7 @@ interface DocumentsState {
   // Reset
   reset: () => void;
 }
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export const useDocumentsStore = create<DocumentsState>((set, get) => ({
   // État initial
   documents: [],
@@ -59,12 +59,9 @@ export const useDocumentsStore = create<DocumentsState>((set, get) => ({
       const token = localStorage.getItem('access_token');
       if (!token) throw new Error('Non authentifié');
 
-      const response = await fetch(
-        'http://localhost:8000/api/v1/users/documents/',
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const response = await fetch(`${API_URL}/api/v1/users/documents/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.ok) throw new Error('Erreur chargement documents');
 
@@ -94,14 +91,11 @@ export const useDocumentsStore = create<DocumentsState>((set, get) => ({
       formData.append('file_path', selectedFile);
       formData.append('document_type', documentType);
 
-      const response = await fetch(
-        'http://localhost:8000/api/v1/users/upload_document/',
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        },
-      );
+      const response = await fetch(`${API_URL}/api/v1/users/upload-document/`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
 
       if (!response.ok) {
         const errorText = await response.text();

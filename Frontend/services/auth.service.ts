@@ -1,8 +1,7 @@
 // services/auth.service.ts - VERSION COMPLÈTE
 import axios from 'axios';
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export interface User {
   id: number;
@@ -111,7 +110,7 @@ class AuthService {
 
   // ========== AUTH METHODS ==========
   async login(data: LoginData): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/users/login/`, data);
+    const response = await axios.post(`${API_URL}/api/v1/users/login/`, data);
     const authData: AuthResponse = response.data;
 
     this.setTokens(authData.tokens.access, authData.tokens.refresh);
@@ -121,7 +120,7 @@ class AuthService {
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/users/register/`, data);
+    const response = await axios.post(`${API_URL}/api/v1/users/register/`, data);
     const authData: AuthResponse = response.data;
 
     this.setTokens(authData.tokens.access, authData.tokens.refresh);
@@ -131,7 +130,7 @@ class AuthService {
   }
 
   async googleAuth(accessToken: string): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/users/google_auth/`, {
+    const response = await axios.post(`${API_URL}/api/v1/users/google_auth/`, {
       access_token: accessToken,
     });
     const authData: AuthResponse = response.data;
@@ -148,7 +147,7 @@ class AuthService {
 
   // ========== USER METHODS ==========
   async getCurrentUser(): Promise<User> {
-    const response = await axios.get(`${API_URL}/users/me/`, {
+    const response = await axios.get(`${API_URL}/api/v1/users/me/`, {
       headers: {
         Authorization: `Bearer ${this.getAccessToken()}`,
         'Content-Type': 'application/json',
@@ -165,7 +164,7 @@ class AuthService {
     preferences_count: number;
     redirect_url: string;
   }> {
-    const response = await axios.get(`${API_URL}/users/check_preferences/`, {
+    const response = await axios.get(`${API_URL}/api/v1/users/check_preferences/`, {
       headers: {
         Authorization: `Bearer ${this.getAccessToken()}`,
       },
@@ -181,7 +180,7 @@ class AuthService {
    * lors de la création d'un trajet ou la configuration du profil
    */
   async getPreferences(): Promise<Preference[]> {
-    const response = await axios.get(`${API_URL}/users/preferences/`, {
+    const response = await axios.get(`${API_URL}/api/v1/users/preferences/`, {
       headers: {
         Authorization: `Bearer ${this.getAccessToken()}`,
         'Content-Type': 'application/json',
@@ -210,7 +209,7 @@ class AuthService {
     preferences: Preference[];
     count: number;
   }> {
-    const response = await axios.get(`${API_URL}/users/my-preferences/`, {
+    const response = await axios.get(`${API_URL}/api/v1/users/my-preferences/`, {
       headers: {
         Authorization: `Bearer ${this.getAccessToken()}`,
       },
@@ -224,7 +223,7 @@ class AuthService {
    */
   async updatePreferences(preferenceIds: number[]): Promise<any> {
     const response = await axios.post(
-      `${API_URL}/users/preferences/`,
+      `${API_URL}/api/v1/users/preferences/`,
       { preference_ids: preferenceIds },
       {
         headers: {
@@ -253,7 +252,7 @@ class AuthService {
    */
   async saveRidePreferences(preferences: RidePreferences): Promise<any> {
     const response = await axios.post(
-      `${API_URL}/users/ride-preferences/`,
+      `${API_URL}/api/v1/users/ride-preferences/`,
       preferences,
       {
         headers: {
@@ -271,7 +270,7 @@ class AuthService {
    */
   async completeOnboarding(): Promise<void> {
     await axios.post(
-      `${API_URL}/users/complete-onboarding/`,
+      `${API_URL}/api/v1/users/complete-onboarding/`,
       {},
       {
         headers: {
@@ -295,7 +294,7 @@ class AuthService {
     formData.append('document_type', documentType);
 
     const response = await axios.post(
-      `${API_URL}/users/upload_document/`,
+      `${API_URL}/api/v1/users/upload_document/`,
       formData,
       {
         headers: {
@@ -315,7 +314,7 @@ class AuthService {
       throw new Error('No refresh token available');
     }
 
-    const response = await axios.post(`${API_URL}/users/token/refresh/`, {
+    const response = await axios.post(`${API_URL}/api/v1/users/token/refresh/`, {
       refresh: refreshToken,
     });
 

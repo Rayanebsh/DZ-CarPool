@@ -229,10 +229,7 @@ describe('DocumentsPage', () => {
       // uploadDocument long
       .mockResolvedValueOnce(
         new Promise((resolve) =>
-          setTimeout(
-            () => resolve({ ok: true, json: async () => ({}) }),
-            100,
-          ),
+          setTimeout(() => resolve({ ok: true, json: async () => ({}) }), 100),
         ),
       );
 
@@ -251,9 +248,7 @@ describe('DocumentsPage', () => {
     fireEvent.click(uploadBtn);
 
     expect(uploadBtn).toBeDisabled();
-    expect(
-      screen.getByText('Téléchargement en cours...'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Téléchargement en cours...')).toBeInTheDocument();
   });
 
   it('displays uploaded documents list', async () => {

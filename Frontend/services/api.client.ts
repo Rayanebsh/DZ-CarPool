@@ -5,14 +5,14 @@ import axios, {
   AxiosError,
 } from 'axios';
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Instance Axios configurée avec authentification automatique
  */
+console.log('API_URL:', API_URL);
 const apiClient: AxiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL: `${API_URL}/api/v1`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -69,7 +69,7 @@ apiClient.interceptors.response.use(
         }
 
         // Appeler l'endpoint de refresh
-        const response = await axios.post(`${API_URL}/users/token/refresh/`, {
+        const response = await axios.post(`${API_URL}/api/v1/users/token/refresh/`, {
           refresh: refreshToken,
         });
 

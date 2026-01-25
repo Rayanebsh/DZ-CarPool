@@ -24,6 +24,7 @@ from app.users.serializers import (
 
 User = get_user_model()
 
+
 class RoleSerializerTests(TestCase):
     """Tests pour RoleSerializer"""
 
@@ -57,6 +58,7 @@ class RoleSerializerTests(TestCase):
         expected_fields = {"id", "name", "description"}
         self.assertEqual(set(data.keys()), expected_fields)
 
+
 class PreferenceSerializerTests(TestCase):
     """Tests pour PreferenceSerializer"""
 
@@ -66,7 +68,7 @@ class PreferenceSerializerTests(TestCase):
             name_fr="PAS_DE_FUMEE",
             category="RULE",
             icon="🚭",
-            description="Pas de fumée dans le véhicule"
+            description="Pas de fumée dans le véhicule",
         )
 
     def test_preference_serialization(self):
@@ -86,8 +88,16 @@ class PreferenceSerializerTests(TestCase):
         serializer = PreferenceSerializer(self.preference)
         data = serializer.data
 
-        expected_fields = {"id", "name_en", "name_fr", "category", "icon", "description"}
+        expected_fields = {
+            "id",
+            "name_en",
+            "name_fr",
+            "category",
+            "icon",
+            "description",
+        }
         self.assertEqual(set(data.keys()), expected_fields)
+
 
 class UserDocumentSerializerTests(TestCase):
     """Tests pour UserDocumentSerializer"""

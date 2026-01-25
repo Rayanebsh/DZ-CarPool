@@ -60,7 +60,7 @@ describe('AuthStore', () => {
 
   test('logout() clears all auth data', () => {
     const { result } = renderHook(() => useAuthStore());
-    
+
     // Set initial state
     act(() => {
       result.current.setUser({ id: 1, email: 'test@example.com' } as any);

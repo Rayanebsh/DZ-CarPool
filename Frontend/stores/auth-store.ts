@@ -44,6 +44,7 @@ interface AuthState {
   // Reset
   reset: () => void;
 }
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const initialState = {
   user: null,
@@ -218,7 +219,7 @@ export const useAuthStore = create<AuthState>()(
           if (!token) throw new Error('Non authentifié');
 
           const response = await fetch(
-            'http://localhost:8000/api/v1/users/check-document-status/',
+            `${API_URL}/api/v1/users/check-document-status/`,
             {
               headers: { Authorization: `Bearer ${token}` },
             },

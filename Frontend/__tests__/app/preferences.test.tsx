@@ -71,7 +71,7 @@ describe('PreferencesPage', () => {
 
   it('displays loading state initially', () => {
     (authService.getAllPreferences as jest.Mock).mockImplementation(
-      () => new Promise(() => {})
+      () => new Promise(() => {}),
     );
 
     render(<PreferencesPage />);
@@ -80,7 +80,9 @@ describe('PreferencesPage', () => {
   });
 
   it('renders all preferences grouped by category', async () => {
-    (authService.getAllPreferences as jest.Mock).mockResolvedValue(mockPreferences);
+    (authService.getAllPreferences as jest.Mock).mockResolvedValue(
+      mockPreferences,
+    );
 
     render(<PreferencesPage />);
 
@@ -98,7 +100,9 @@ describe('PreferencesPage', () => {
   });
 
   it('toggles preference selection', async () => {
-    (authService.getAllPreferences as jest.Mock).mockResolvedValue(mockPreferences);
+    (authService.getAllPreferences as jest.Mock).mockResolvedValue(
+      mockPreferences,
+    );
 
     render(<PreferencesPage />);
 
@@ -107,7 +111,7 @@ describe('PreferencesPage', () => {
     });
 
     const musicBtn = screen.getByText('Music').closest('button');
-    
+
     // Initially not selected
     expect(musicBtn).not.toHaveClass('border-[#FF5722]');
 
@@ -121,7 +125,9 @@ describe('PreferencesPage', () => {
   });
 
   it('allows multiple preference selection', async () => {
-    (authService.getAllPreferences as jest.Mock).mockResolvedValue(mockPreferences);
+    (authService.getAllPreferences as jest.Mock).mockResolvedValue(
+      mockPreferences,
+    );
 
     render(<PreferencesPage />);
 
@@ -143,7 +149,9 @@ describe('PreferencesPage', () => {
   });
 
   it('displays error when no preferences are selected on submit', async () => {
-    (authService.getAllPreferences as jest.Mock).mockResolvedValue(mockPreferences);
+    (authService.getAllPreferences as jest.Mock).mockResolvedValue(
+      mockPreferences,
+    );
 
     render(<PreferencesPage />);
 
@@ -154,12 +162,16 @@ describe('PreferencesPage', () => {
     fireEvent.click(screen.getByText('Continue'));
 
     await waitFor(() => {
-      expect(screen.getByText('Please select at least one preference')).toBeInTheDocument();
+      expect(
+        screen.getByText('Please select at least one preference'),
+      ).toBeInTheDocument();
     });
   });
 
   it('submits preferences successfully', async () => {
-    (authService.getAllPreferences as jest.Mock).mockResolvedValue(mockPreferences);
+    (authService.getAllPreferences as jest.Mock).mockResolvedValue(
+      mockPreferences,
+    );
     (authService.updatePreferences as jest.Mock).mockResolvedValue({});
 
     render(<PreferencesPage />);
@@ -183,7 +195,7 @@ describe('PreferencesPage', () => {
 
   it('handles API error gracefully', async () => {
     (authService.getAllPreferences as jest.Mock).mockRejectedValue(
-      new Error('Network error')
+      new Error('Network error'),
     );
 
     render(<PreferencesPage />);
@@ -206,9 +218,11 @@ describe('PreferencesPage', () => {
   });
 
   it('displays error on save failure', async () => {
-    (authService.getAllPreferences as jest.Mock).mockResolvedValue(mockPreferences);
+    (authService.getAllPreferences as jest.Mock).mockResolvedValue(
+      mockPreferences,
+    );
     (authService.updatePreferences as jest.Mock).mockRejectedValue(
-      new Error('Save failed')
+      new Error('Save failed'),
     );
 
     render(<PreferencesPage />);
@@ -226,9 +240,11 @@ describe('PreferencesPage', () => {
   });
 
   it('disables submit button while saving', async () => {
-    (authService.getAllPreferences as jest.Mock).mockResolvedValue(mockPreferences);
+    (authService.getAllPreferences as jest.Mock).mockResolvedValue(
+      mockPreferences,
+    );
     (authService.updatePreferences as jest.Mock).mockImplementation(
-      () => new Promise(resolve => setTimeout(resolve, 100))
+      () => new Promise((resolve) => setTimeout(resolve, 100)),
     );
 
     render(<PreferencesPage />);
@@ -238,7 +254,7 @@ describe('PreferencesPage', () => {
     });
 
     fireEvent.click(screen.getByText('Music').closest('button')!);
-    
+
     const submitBtn = screen.getByText('Continue');
     fireEvent.click(submitBtn);
 
@@ -247,7 +263,9 @@ describe('PreferencesPage', () => {
   });
 
   it('displays icons for each preference', async () => {
-    (authService.getAllPreferences as jest.Mock).mockResolvedValue(mockPreferences);
+    (authService.getAllPreferences as jest.Mock).mockResolvedValue(
+      mockPreferences,
+    );
 
     render(<PreferencesPage />);
 
@@ -261,7 +279,9 @@ describe('PreferencesPage', () => {
   });
 
   it('renders language switcher', async () => {
-    (authService.getAllPreferences as jest.Mock).mockResolvedValue(mockPreferences);
+    (authService.getAllPreferences as jest.Mock).mockResolvedValue(
+      mockPreferences,
+    );
 
     render(<PreferencesPage />);
 
@@ -270,7 +290,9 @@ describe('PreferencesPage', () => {
   });
 
   it('shows correct title and description', async () => {
-    (authService.getAllPreferences as jest.Mock).mockResolvedValue(mockPreferences);
+    (authService.getAllPreferences as jest.Mock).mockResolvedValue(
+      mockPreferences,
+    );
 
     render(<PreferencesPage />);
 

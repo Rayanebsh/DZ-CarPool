@@ -190,8 +190,7 @@ export default function MessagesPage() {
         reader.onloadend = async () => {
           try {
             const base64 = reader.result as string;
-            const apiUrl =
-              process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
             const endpoint = `${apiUrl}/api/v1/messaging/messages/upload-media/`;
 
             const response = await fetch(endpoint, {

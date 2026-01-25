@@ -49,7 +49,7 @@ describe('VerificationService', () => {
       mock.onPost('/users/send-email-verification/').reply(200);
 
       await expect(
-        verificationService.sendEmailVerification()
+        verificationService.sendEmailVerification(),
       ).resolves.not.toThrow();
     });
 
@@ -58,9 +58,9 @@ describe('VerificationService', () => {
         error: 'EMAIL_ALREADY_VERIFIED',
       });
 
-      await expect(
-        verificationService.sendEmailVerification()
-      ).rejects.toThrow('EMAIL_ALREADY_VERIFIED');
+      await expect(verificationService.sendEmailVerification()).rejects.toThrow(
+        'EMAIL_ALREADY_VERIFIED',
+      );
     });
   });
 
@@ -69,7 +69,7 @@ describe('VerificationService', () => {
       mock.onPost('/users/send-phone-verification/').reply(200);
 
       await expect(
-        verificationService.sendPhoneVerification()
+        verificationService.sendPhoneVerification(),
       ).resolves.not.toThrow();
     });
 
@@ -78,9 +78,9 @@ describe('VerificationService', () => {
         error: 'PHONE_ALREADY_VERIFIED',
       });
 
-      await expect(
-        verificationService.sendPhoneVerification()
-      ).rejects.toThrow('PHONE_ALREADY_VERIFIED');
+      await expect(verificationService.sendPhoneVerification()).rejects.toThrow(
+        'PHONE_ALREADY_VERIFIED',
+      );
     });
 
     test('throws when no phone number provided', async () => {
@@ -88,9 +88,9 @@ describe('VerificationService', () => {
         error: 'NO_PHONE_NUMBER',
       });
 
-      await expect(
-        verificationService.sendPhoneVerification()
-      ).rejects.toThrow('NO_PHONE_NUMBER');
+      await expect(verificationService.sendPhoneVerification()).rejects.toThrow(
+        'NO_PHONE_NUMBER',
+      );
     });
   });
 
@@ -99,7 +99,7 @@ describe('VerificationService', () => {
       mock.onPost('/users/verify-email/').reply(200);
 
       await expect(
-        verificationService.verifyEmail('123456')
+        verificationService.verifyEmail('123456'),
       ).resolves.not.toThrow();
     });
 
@@ -108,9 +108,7 @@ describe('VerificationService', () => {
         error: 'Invalid code',
       });
 
-      await expect(
-        verificationService.verifyEmail('000000')
-      ).rejects.toThrow();
+      await expect(verificationService.verifyEmail('000000')).rejects.toThrow();
     });
   });
 
@@ -119,7 +117,7 @@ describe('VerificationService', () => {
       mock.onPost('/users/verify-phone/').reply(200);
 
       await expect(
-        verificationService.verifyPhone('123456')
+        verificationService.verifyPhone('123456'),
       ).resolves.not.toThrow();
     });
 
@@ -128,9 +126,7 @@ describe('VerificationService', () => {
         error: 'Invalid code',
       });
 
-      await expect(
-        verificationService.verifyPhone('000000')
-      ).rejects.toThrow();
+      await expect(verificationService.verifyPhone('000000')).rejects.toThrow();
     });
   });
 });

@@ -1,13 +1,8 @@
-"""
-app/trajets/tests/test_permissions.py
-Tests pour les permissions et cas limites
-"""
-
 from datetime import date, time, timedelta
 from decimal import Decimal
-from django.urls import reverse
+
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.urls import reverse
 
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -66,84 +61,84 @@ class PermissionsTestCase(APITestCase):
     def test_is_driver_or_readonly_safe_methods(self):
         """Test: IsDriverOrReadOnly permet les méthodes sûres"""
         permission = IsDriverOrReadOnly()
-        
+
         # Mock request
         class MockRequest:
             method = "GET"
             user = self.autre_user
-        
+
         request = MockRequest()
         self.assertTrue(permission.has_permission(request, None))
 
     def test_is_driver_or_readonly_post_authenticated(self):
         """Test: IsDriverOrReadOnly permet POST pour utilisateurs authentifiés"""
         permission = IsDriverOrReadOnly()
-        
+
         class MockRequest:
             method = "POST"
             user = self.conducteur
-        
+
         request = MockRequest()
         self.assertTrue(permission.has_permission(request, None))
 
     def test_is_driver_or_readonly_object_permission(self):
         """Test: IsDriverOrReadOnly vérifie le propriétaire pour les modifications"""
         permission = IsDriverOrReadOnly()
-        
+
         class MockRequest:
             method = "PUT"
             user = self.autre_user
-        
+
         request = MockRequest()
         self.assertFalse(permission.has_object_permission(request, None, self.trajet))
-        
+
         request.user = self.conducteur
         self.assertTrue(permission.has_object_permission(request, None, self.trajet))
 
     def test_can_modify_trajet_owner_only(self):
         """Test: CanModifyTrajet - seul le propriétaire peut modifier"""
         permission = CanModifyTrajet()
-        
+
         class MockRequest:
             method = "PATCH"
             user = self.autre_user
             data = {"description": "Test"}
-        
+
         class MockView:
             action = "partial_update"
-        
+
         request = MockRequest()
         view = MockView()
-        
+
         self.assertFalse(permission.has_object_permission(request, view, self.trajet))
-        
+
         request.user = self.conducteur
         self.assertTrue(permission.has_object_permission(request, view, self.trajet))
 
     def test_can_modify_trajet_completed_status(self):
         """Test: CanModifyTrajet - impossible de modifier un trajet terminé"""
         permission = CanModifyTrajet()
-        
+
         self.trajet.status = "COMPLETED"
         self.trajet.save()
-        
+
         class MockRequest:
             method = "PATCH"
             user = self.conducteur
             data = {"description": "Test"}
-        
+
         class MockView:
             action = "partial_update"
-        
+
         request = MockRequest()
         view = MockView()
-        
+
         self.assertFalse(permission.has_object_permission(request, view, self.trajet))
 
     def test_can_modify_trajet_with_confirmed_reservations(self):
         """Test: CanModifyTrajet - restrictions avec réservations confirmées"""
         permission = CanModifyTrajet()
-        
+
         # Créer une réservation confirmée
         Reservation.objects.create(
             trajet=self.trajet,
@@ -152,21 +147,21 @@ class PermissionsTestCase(APITestCase):
             total_price=Decimal("3000.00"),
             status="CONFIRMED",
         )
-        
+
         class MockRequest:
             method = "PATCH"
             user = self.conducteur
             data = {"price": "2000.00"}  # Champ non autorisé
-        
+
         class MockView:
             action = "partial_update"
-        
+
         request = MockRequest()
         view = MockView()
-        
+
         # Ne peut pas modifier le prix
         self.assertFalse(permission.has_object_permission(request, view, self.trajet))
-        
+
         # Peut modifier la description
         request.data = {"description": "Nouvelle description"}
         self.assertTrue(permission.has_object_permission(request, view, self.trajet))
@@ -174,43 +169,43 @@ class PermissionsTestCase(APITestCase):
     def test_can_cancel_trajet_owner_only(self):
         """Test: CanCancelTrajet - seul le propriétaire peut annuler"""
         permission = CanCancelTrajet()
-        
+
         class MockRequest:
             user = self.autre_user
-        
+
         request = MockRequest()
         self.assertFalse(permission.has_object_permission(request, None, self.trajet))
-        
+
         request.user = self.conducteur
         self.assertTrue(permission.has_object_permission(request, None, self.trajet))
 
     def test_can_cancel_trajet_already_cancelled(self):
         """Test: CanCancelTrajet - impossible d'annuler un trajet déjà annulé"""
         permission = CanCancelTrajet()
-        
+
         self.trajet.status = "CANCELLED"
         self.trajet.save()
-        
+
         class MockRequest:
             user = self.conducteur
-        
+
         request = MockRequest()
         self.assertFalse(permission.has_object_permission(request, None, self.trajet))
 
     def test_can_view_reservations_driver(self):
         """Test: CanViewTrajetReservations - le conducteur peut voir toutes les réservations"""
         permission = CanViewTrajetReservations()
-        
+
         class MockRequest:
             user = self.conducteur
-        
+
         request = MockRequest()
         self.assertTrue(permission.has_object_permission(request, None, self.trajet))
 
     def test_can_view_reservations_passenger(self):
         """Test: CanViewTrajetReservations - le passager peut voir ses réservations"""
         permission = CanViewTrajetReservations()
-        
+
         # Créer une réservation
         Reservation.objects.create(
             trajet=self.trajet,
@@ -219,10 +214,10 @@ class PermissionsTestCase(APITestCase):
             total_price=Decimal("3000.00"),
             status="CONFIRMED",
         )
-        
+
         class MockRequest:
             user = self.autre_user
-        
+
         request = MockRequest()
         self.assertTrue(permission.has_object_permission(request, None, self.trajet))
 
@@ -266,6 +261,7 @@ class EdgeCasesTestCase(APITestCase):
         }
 
         from django.urls import reverse
+
         url = reverse("trajets:trajet-search")
         response = self.client.post(url, data, format="json")
 
@@ -281,6 +277,7 @@ class EdgeCasesTestCase(APITestCase):
         }
 
         from django.urls import reverse
+
         url = reverse("trajets:trajet-search")
         response = self.client.post(url, data, format="json")
 
@@ -305,6 +302,7 @@ class EdgeCasesTestCase(APITestCase):
         )
 
         from django.urls import reverse
+
         url = reverse("trajets:trajet-places", kwargs={"pk": self.trajet.id})
         response = self.client.get(url)
 
@@ -338,6 +336,7 @@ class EdgeCasesTestCase(APITestCase):
         )
 
         from django.urls import reverse
+
         url = reverse("trajets:trajet-places", kwargs={"pk": self.trajet.id})
         response = self.client.get(url)
 
@@ -348,6 +347,7 @@ class EdgeCasesTestCase(APITestCase):
     def test_driver_info_without_profile_picture(self):
         """Test: Driver info sans photo de profil"""
         from django.urls import reverse
+
         url = reverse("trajets:trajet-driver-info", kwargs={"pk": self.trajet.id})
         response = self.client.get(url)
 
@@ -365,6 +365,7 @@ class EdgeCasesTestCase(APITestCase):
         }
 
         from django.urls import reverse
+
         url = reverse("trajets:trajet-intelligent-search")
         response = self.client.post(url, data, format="json")
 
@@ -386,6 +387,7 @@ class EdgeCasesTestCase(APITestCase):
         }
 
         from django.urls import reverse
+
         url = reverse("trajets:trajet-list")
         response = self.client.post(url, data, format="json")
 
@@ -411,6 +413,7 @@ class EdgeCasesTestCase(APITestCase):
             )
 
         from django.urls import reverse
+
         url = reverse("trajets:trajet-cancel", kwargs={"pk": self.trajet.id})
         response = self.client.post(url)
 
@@ -440,12 +443,14 @@ class EdgeCasesTestCase(APITestCase):
             )
 
         from django.urls import reverse
+
         url = reverse("trajets:trajet-my-trips")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Vérifier la pagination
         self.assertIn("results", response.data)
+
 
 class FuelPriceViewSetTestCase(APITestCase):
     """Tests pour le FuelPriceViewSet"""
@@ -455,10 +460,12 @@ class FuelPriceViewSetTestCase(APITestCase):
         # ✅ CORRECTION : Utiliser le namespace complet
         url = reverse("trajets:fuel-price-list")
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # La réponse est un dictionnaire avec 'wilayas', pas une liste directe
-        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_500_INTERNAL_SERVER_ERROR])
+        self.assertIn(
+            response.status_code,
+            [status.HTTP_200_OK, status.HTTP_500_INTERNAL_SERVER_ERROR],
+        )
         if response.status_code == status.HTTP_200_OK:
             self.assertIn("wilayas", response.data)
-            

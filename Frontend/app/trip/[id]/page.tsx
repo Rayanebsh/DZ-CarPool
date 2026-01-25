@@ -17,7 +17,7 @@ import {
   Shield,
 } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const translations = {
   fr: {
@@ -424,24 +424,26 @@ export default function TripDetailsPage() {
         } else {
           // ✅ CORRECTION : Utiliser les données COMPLÈTES du conducteur
           const conducteur = detailsData.conducteur;
-          
+
           if (conducteur) {
             setDriverEnriched({
               id: conducteur.id,
               full_name: `${conducteur.first_name} ${conducteur.last_name}`,
               profile_picture: conducteur.profile_picture,
               rating: parseFloat(conducteur.average_rating) || 5.0,
-              trips_count: conducteur.trips_as_driver + conducteur.trips_as_passenger,
+              trips_count:
+                conducteur.trips_as_driver + conducteur.trips_as_passenger,
               trips_as_driver: conducteur.trips_as_driver,
               trips_as_passenger: conducteur.trips_as_passenger,
-              is_verified: conducteur.documents?.some((doc: any) => doc.verified) || false,
+              is_verified:
+                conducteur.documents?.some((doc: any) => doc.verified) || false,
               member_since: conducteur.date_joined,
             });
           }
         }
       } catch (err) {
         console.error('❌ Exception driver_info:', err);
-        
+
         // ✅ FALLBACK : Utiliser conducteur complet même en cas d'erreur
         const conducteur = detailsData.conducteur;
         if (conducteur) {
@@ -450,10 +452,12 @@ export default function TripDetailsPage() {
             full_name: `${conducteur.first_name} ${conducteur.last_name}`,
             profile_picture: conducteur.profile_picture,
             rating: parseFloat(conducteur.average_rating) || 5.0,
-            trips_count: conducteur.trips_as_driver + conducteur.trips_as_passenger,
+            trips_count:
+              conducteur.trips_as_driver + conducteur.trips_as_passenger,
             trips_as_driver: conducteur.trips_as_driver,
             trips_as_passenger: conducteur.trips_as_passenger,
-            is_verified: conducteur.documents?.some((doc: any) => doc.verified) || false,
+            is_verified:
+              conducteur.documents?.some((doc: any) => doc.verified) || false,
             member_since: conducteur.date_joined,
           });
         }
@@ -617,7 +621,7 @@ export default function TripDetailsPage() {
   const getProfilePictureUrl = (picture: string | null): string => {
     if (!picture) return '/placeholder.svg';
     if (picture.startsWith('http')) return picture;
-    return `${API_BASE_URL}${picture.startsWith('/') ? '' : '/'}${picture}`;
+    return `${API_BASE_URL}/api/v1${picture.startsWith('/') ? '' : '/'}${picture}`;
   };
 
   const formatRating = (rating: number | null | undefined): string => {

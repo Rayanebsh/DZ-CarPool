@@ -1,14 +1,7 @@
-"""
-Tests complets pour l'application reservations
-DZ-CarPool Backend - Test Suite Reservations
-"""
-
-import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -17,9 +10,9 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
+from app.reservations.models import Rating, Reservation
 from app.trajets.models import Trajet
 from app.users.models import UserDocument
-from app.reservations.models import Rating, Reservation
 
 User = get_user_model()
 
@@ -38,14 +31,12 @@ class ReservationTestMixin:
 
         # Créer les rôles si nécessaire
         from app.users.models import Role
-        
+
         self.driver_role, _ = Role.objects.get_or_create(
-            name="DRIVER",
-            defaults={"description": "Conducteur"}
+            name="DRIVER", defaults={"description": "Conducteur"}
         )
         self.passenger_role, _ = Role.objects.get_or_create(
-            name="PASSENGER",
-            defaults={"description": "Passager"}
+            name="PASSENGER", defaults={"description": "Passager"}
         )
 
         # Créer les utilisateurs
@@ -134,7 +125,9 @@ class ReservationModelTest(ReservationTestMixin, TestCase):
     def test_reservation_str(self):
         """Test de la représentation string"""
         reservation = self._create_reservation()
-        expected = f"Réservation #{reservation.id} - {self.passager.email} pour {self.trajet}"
+        expected = (
+            f"Réservation #{reservation.id} - {self.passager.email} pour {self.trajet}"
+        )
         self.assertEqual(str(reservation), expected)
 
     def test_total_price_calculation(self):
@@ -155,7 +148,7 @@ class ReservationModelTest(ReservationTestMixin, TestCase):
         """Test: plusieurs réservations annulées possibles"""
         self._create_reservation(status="CANCELLED")
         self._create_reservation(status="CANCELLED")
-        
+
         count = Reservation.objects.filter(
             passager=self.passager, status="CANCELLED"
         ).count()
@@ -214,7 +207,7 @@ class RatingModelTest(ReservationTestMixin, TestCase):
     def test_rating_validators(self):
         """Test validateurs de note (1-5)"""
         from django.core.exceptions import ValidationError
-        
+
         # Note invalide (0)
         rating = Rating(
             reservation=self.reservation,
@@ -268,9 +261,7 @@ class ReservationCreateTest(ReservationTestMixin, APITestCase):
 
         data = {"trajet": self.trajet.id, "nbr_places": 2}
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(response.data["success"])
@@ -288,9 +279,7 @@ class ReservationCreateTest(ReservationTestMixin, APITestCase):
         self.client.force_authenticate(user=self.passager)
         data = {"trajet": self.trajet.id, "nbr_places": 1}
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertFalse(response.data["can_book"])
@@ -302,9 +291,7 @@ class ReservationCreateTest(ReservationTestMixin, APITestCase):
 
         data = {"trajet": self.trajet.id, "nbr_places": 10}
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Places insuffisantes", response.data["error"])
@@ -316,9 +303,7 @@ class ReservationCreateTest(ReservationTestMixin, APITestCase):
         self.client.force_authenticate(user=self.passager)
         data = {"trajet": self.trajet.id, "nbr_places": 1}
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
         self.assertIn("déjà existante", response.data["error"])
@@ -329,9 +314,7 @@ class ReservationCreateTest(ReservationTestMixin, APITestCase):
 
         data = {"trajet": 99999, "nbr_places": 1}
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         # Le système retourne 400 BAD_REQUEST au lieu de 404
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -341,9 +324,7 @@ class ReservationCreateTest(ReservationTestMixin, APITestCase):
         """Test refus si non authentifié"""
         data = {"trajet": self.trajet.id, "nbr_places": 1}
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -370,6 +351,7 @@ class ReservationListTest(ReservationTestMixin, APITestCase):
             verified=True,
         )
 
+
 # ============================================================================
 # TESTS DES ACTIONS - CONFIRM, REJECT, CANCEL
 # ============================================================================
@@ -394,7 +376,7 @@ class ReservationActionsTest(ReservationTestMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.reservation.refresh_from_db()
         self.assertEqual(self.reservation.status, "CONFIRMED")
-        # Note: approved_at n'est pas défini dans la vue confirm, 
+        # Note: approved_at n'est pas défini dans la vue confirm,
         # donc on ne teste pas ce champ
 
     def test_confirm_reservation_as_passenger_forbidden(self):
@@ -491,9 +473,7 @@ class RatingTest(ReservationTestMixin, APITestCase):
         self.assertTrue(response.data["success"])
 
         # Vérifier que le rating existe
-        self.assertTrue(
-            Rating.objects.filter(reservation=self.reservation).exists()
-        )
+        self.assertTrue(Rating.objects.filter(reservation=self.reservation).exists())
 
     def test_rate_pending_reservation_forbidden(self):
         """Test: ne peut pas noter une réservation PENDING"""
@@ -576,9 +556,7 @@ class CheckBookingPermissionTest(ReservationTestMixin, APITestCase):
         """Test vérification permission avec document vérifié"""
         self.client.force_authenticate(user=self.passager)
 
-        response = self.client.get(
-            reverse("reservation-check-booking-permission")
-        )
+        response = self.client.get(reverse("reservation-check-booking-permission"))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["can_book"])
@@ -591,9 +569,7 @@ class CheckBookingPermissionTest(ReservationTestMixin, APITestCase):
 
         self.client.force_authenticate(user=self.passager)
 
-        response = self.client.get(
-            reverse("reservation-check-booking-permission")
-        )
+        response = self.client.get(reverse("reservation-check-booking-permission"))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data["can_book"])
@@ -606,9 +582,7 @@ class CheckBookingPermissionTest(ReservationTestMixin, APITestCase):
 
         self.client.force_authenticate(user=self.passager)
 
-        response = self.client.get(
-            reverse("reservation-check-booking-permission")
-        )
+        response = self.client.get(reverse("reservation-check-booking-permission"))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data["can_book"])
@@ -627,16 +601,15 @@ class ReservationSerializerTest(ReservationTestMixin, TestCase):
         """Test can_rate=True pour réservation confirmée"""
         reservation = self._create_reservation(status="CONFIRMED")
 
-        from app.reservations.serializers import ReservationSerializer
         from rest_framework.test import APIRequestFactory
+
+        from app.reservations.serializers import ReservationSerializer
 
         factory = APIRequestFactory()
         request = factory.get("/")
         request.user = self.passager
 
-        serializer = ReservationSerializer(
-            reservation, context={"request": request}
-        )
+        serializer = ReservationSerializer(reservation, context={"request": request})
 
         self.assertTrue(serializer.data["can_rate"])
 
@@ -644,16 +617,15 @@ class ReservationSerializerTest(ReservationTestMixin, TestCase):
         """Test can_rate=False pour réservation PENDING"""
         reservation = self._create_reservation(status="PENDING")
 
-        from app.reservations.serializers import ReservationSerializer
         from rest_framework.test import APIRequestFactory
+
+        from app.reservations.serializers import ReservationSerializer
 
         factory = APIRequestFactory()
         request = factory.get("/")
         request.user = self.passager
 
-        serializer = ReservationSerializer(
-            reservation, context={"request": request}
-        )
+        serializer = ReservationSerializer(reservation, context={"request": request})
 
         self.assertFalse(serializer.data["can_rate"])
 
@@ -668,16 +640,15 @@ class ReservationSerializerTest(ReservationTestMixin, TestCase):
             note=5,
         )
 
-        from app.reservations.serializers import ReservationSerializer
         from rest_framework.test import APIRequestFactory
+
+        from app.reservations.serializers import ReservationSerializer
 
         factory = APIRequestFactory()
         request = factory.get("/")
         request.user = self.passager
 
-        serializer = ReservationSerializer(
-            reservation, context={"request": request}
-        )
+        serializer = ReservationSerializer(reservation, context={"request": request})
 
         self.assertTrue(serializer.data["has_rating"])
         self.assertIsNotNone(serializer.data["rating"])
@@ -693,18 +664,14 @@ class ReservationIntegrationTest(ReservationTestMixin, APITestCase):
 
     @patch("app.reservations.signals.notify_reservation_request")
     @patch("app.reservations.signals.notify_reservation_approved")
-    def test_complete_reservation_workflow(
-        self, mock_approved, mock_request
-    ):
+    def test_complete_reservation_workflow(self, mock_approved, mock_request):
         """Test workflow complet: création -> confirmation -> notation"""
         # 1. Création de la réservation
         self.client.force_authenticate(user=self.passager)
 
         data = {"trajet": self.trajet.id, "nbr_places": 2}
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         reservation_id = response.data["reservation"]["id"]
@@ -804,9 +771,7 @@ class ReservationSecurityTest(ReservationTestMixin, APITestCase):
             "nbr_places": "1; DROP TABLE reservations--",
         }
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         # Devrait être rejeté
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -832,7 +797,7 @@ class ReservationSecurityTest(ReservationTestMixin, APITestCase):
 # ============================================================================
 # TESTS DE PERFORMANCE
 # ============================================================================
-    
+
 
 # ============================================================================
 # TESTS DE COUVERTURE EDGE CASES
@@ -864,9 +829,7 @@ class ReservationEdgeCasesTest(ReservationTestMixin, APITestCase):
         data = {"trajet": past_trajet.id, "nbr_places": 1}
 
         # L'API devrait accepter (validation côté frontend)
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         # Le système accepte mais idéalement devrait vérifier
         self.assertIn(
@@ -880,9 +843,7 @@ class ReservationEdgeCasesTest(ReservationTestMixin, APITestCase):
 
         data = {"trajet": self.trajet.id, "nbr_places": 0}
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -892,9 +853,7 @@ class ReservationEdgeCasesTest(ReservationTestMixin, APITestCase):
 
         data = {"trajet": self.trajet.id, "nbr_places": -1}
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -908,9 +867,7 @@ class ReservationEdgeCasesTest(ReservationTestMixin, APITestCase):
 
         data = {"trajet": self.trajet.id, "nbr_places": 1}
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("insuffisantes", response.data["error"])
@@ -928,9 +885,6 @@ class ReservationSignalsTest(ReservationTestMixin, TestCase):
     @patch("app.reservations.signals.notify_reservation_request")
     def test_signal_on_new_reservation(self, mock_notify):
         """Test signal lors de création"""
-        reservation = self._create_reservation()
-
-        # Le signal devrait avoir été appelé
         mock_notify.assert_called_once()
 
     @patch("app.reservations.signals.notify_reservation_approved")
@@ -951,9 +905,7 @@ class ReservationSignalsTest(ReservationTestMixin, TestCase):
         self._create_reservation(nbr_places=2)
 
         self.trajet.refresh_from_db()
-        self.assertEqual(
-            self.trajet.places_disponibles, initial_places - 2
-        )
+        self.assertEqual(self.trajet.places_disponibles, initial_places - 2)
 
     def test_places_restored_on_deletion(self):
         """Test: places restaurées lors de suppression"""
@@ -963,9 +915,7 @@ class ReservationSignalsTest(ReservationTestMixin, TestCase):
         reservation.delete()
 
         self.trajet.refresh_from_db()
-        self.assertEqual(
-            self.trajet.places_disponibles, initial_places + 2
-        )
+        self.assertEqual(self.trajet.places_disponibles, initial_places + 2)
 
 
 # ============================================================================
@@ -982,9 +932,7 @@ class ReservationValidationTest(ReservationTestMixin, APITestCase):
 
         data = {"nbr_places": 1}
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -994,9 +942,7 @@ class ReservationValidationTest(ReservationTestMixin, APITestCase):
 
         data = {"trajet": self.trajet.id}
 
-        response = self.client.post(
-            reverse("reservation-list"), data, format="json"
-        )
+        response = self.client.post(reverse("reservation-list"), data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

@@ -80,7 +80,7 @@ describe('NotificationsStore (Zustand)', () => {
     });
 
     expect(result.current.unreadCount).toBe(0);
-    expect(result.current.notifications.every(n => n.read)).toBe(true);
+    expect(result.current.notifications.every((n) => n.read)).toBe(true);
   });
 
   test('deleteNotification() removes notification', () => {

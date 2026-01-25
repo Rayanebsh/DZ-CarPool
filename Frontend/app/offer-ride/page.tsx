@@ -137,7 +137,7 @@ export default function OfferRidePage() {
   const [selectedPreferences, setSelectedPreferences] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   // ✅ Charger les prix du carburant au montage
   useEffect(() => {
     loadFuelPrices();
@@ -146,7 +146,7 @@ export default function OfferRidePage() {
   const loadFuelPrices = async () => {
     try {
       const response = await fetch(
-        'http://localhost:8000/api/v1/trajets/fuel-prices/',
+        `${API_URL}/api/v1/trajets/fuel-prices/`,
       );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -291,41 +291,41 @@ export default function OfferRidePage() {
   };
 
   const handleDepartureChange = (value: string, location?: LocationData) => {
-  setDeparture(value);
-  if (location) {
-    setDepartureCoords({ lat: location.lat, lon: location.lon });
-    
-    // ✅ AJOUT : Forcer la fermeture en retirant le focus
-    setTimeout(() => {
-      const input = document.activeElement as HTMLElement;
-      if (input && input.tagName === 'INPUT') {
-        input.blur();
-      }
-    }, 100);
-  }
-};
+    setDeparture(value);
+    if (location) {
+      setDepartureCoords({ lat: location.lat, lon: location.lon });
 
-const handleArrivalChange = (value: string, location?: LocationData) => {
-  setArrival(value);
-  if (location) {
-    setArrivalCoords({ lat: location.lat, lon: location.lon });
-    
-    // ✅ AJOUT : Forcer la fermeture en retirant le focus
-    setTimeout(() => {
-      const input = document.activeElement as HTMLElement;
-      if (input && input.tagName === 'INPUT') {
-        input.blur();
-      }
-    }, 100);
-  }
-};
+      // ✅ AJOUT : Forcer la fermeture en retirant le focus
+      setTimeout(() => {
+        const input = document.activeElement as HTMLElement;
+        if (input && input.tagName === 'INPUT') {
+          input.blur();
+        }
+      }, 100);
+    }
+  };
+
+  const handleArrivalChange = (value: string, location?: LocationData) => {
+    setArrival(value);
+    if (location) {
+      setArrivalCoords({ lat: location.lat, lon: location.lon });
+
+      // ✅ AJOUT : Forcer la fermeture en retirant le focus
+      setTimeout(() => {
+        const input = document.activeElement as HTMLElement;
+        if (input && input.tagName === 'INPUT') {
+          input.blur();
+        }
+      }, 100);
+    }
+  };
 
   // ✅ Calcul du prix CORRIGÉ avec option Comfort
   const basePrice = price;
   const finalPrice = comfortOption ? Math.round(basePrice * 1.3) : basePrice;
   const platformFee = Math.round(finalPrice * 0.15);
   const passengerPays = finalPrice + platformFee;
-  
+
   const numberOfBreaks = distance ? calculateBreaks(distance) : 0;
 
   // ✅ Charger les préférences
@@ -357,7 +357,7 @@ const handleArrivalChange = (value: string, location?: LocationData) => {
         const token = localStorage.getItem('access_token');
         if (token) {
           const docResponse = await fetch(
-            'http://localhost:8000/api/v1/users/check-document-status/',
+            `${API_URL}/api/v1/users/check-document-status/`,
             {
               headers: { Authorization: `Bearer ${token}` },
             },
@@ -389,7 +389,9 @@ const handleArrivalChange = (value: string, location?: LocationData) => {
         if (!token) throw new Error('Token manquant');
 
         // ✅ Calcul du prix final avec Comfort
-        const finalSubmitPrice = comfortOption ? Math.round(price * 1.3) : price;
+        const finalSubmitPrice = comfortOption
+          ? Math.round(price * 1.3)
+          : price;
 
         const trajetData = {
           ville_depart: departure || 'Alger',
@@ -414,7 +416,7 @@ const handleArrivalChange = (value: string, location?: LocationData) => {
 
         console.log('📤 TRAJET DATA:', trajetData);
 
-        const response = await fetch('http://localhost:8000/api/v1/trajets/', {
+        const response = await fetch(`${API_URL}/api/v1/trajets/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -469,8 +471,18 @@ const handleArrivalChange = (value: string, location?: LocationData) => {
     ],
   );
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Chargement...
+      </div>
+    );
+  if (error)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
   return (
     <div className="min-h-screen bg-background">
       <Header />

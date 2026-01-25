@@ -1,16 +1,14 @@
-"""
-Configuration pytest pour les tests de réservations
-"""
+from datetime import timedelta
+from decimal import Decimal
+
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 import pytest
-from decimal import Decimal
-from datetime import timedelta
-from django.utils import timezone
-from django.contrib.auth import get_user_model
 
-from app.users.models import Role, UserDocument
+from app.reservations.models import Reservation
 from app.trajets.models import Trajet
-from app.reservations.models import Reservation, Rating
+from app.users.models import Role, UserDocument
 
 User = get_user_model()
 
@@ -19,8 +17,7 @@ User = get_user_model()
 def driver_role():
     """Fixture pour le rôle conducteur"""
     role, _ = Role.objects.get_or_create(
-        name="DRIVER",
-        defaults={"description": "Conducteur"}
+        name="DRIVER", defaults={"description": "Conducteur"}
     )
     return role
 
@@ -29,8 +26,7 @@ def driver_role():
 def passenger_role():
     """Fixture pour le rôle passager"""
     role, _ = Role.objects.get_or_create(
-        name="PASSENGER",
-        defaults={"description": "Passager"}
+        name="PASSENGER", defaults={"description": "Passager"}
     )
     return role
 
@@ -62,14 +58,14 @@ def passager(passenger_role):
     )
     user.role = passenger_role
     user.save()
-    
+
     # Créer un document vérifié
     UserDocument.objects.create(
         user=user,
         document_type="CNI",
         verified=True,
     )
-    
+
     return user
 
 

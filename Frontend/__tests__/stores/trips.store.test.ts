@@ -62,9 +62,7 @@ describe('TripsStore', () => {
 
   test('setSearchResults() updates searchResults', () => {
     const { result } = renderHook(() => useTripsStore());
-    const mockTrips = [
-      { id: 5, from: 'Alger', to: 'Blida' },
-    ] as any[];
+    const mockTrips = [{ id: 5, from: 'Alger', to: 'Blida' }] as any[];
 
     act(() => {
       result.current.setSearchResults(mockTrips);
@@ -152,8 +150,6 @@ describe('TripsStore', () => {
   });
 
   test('searchTrips() handles error and sets error state', async () => {
-    const { result } = renderHook(() => useTripsStore());
-
     // on mock la fonction pour forcer une erreur dans le try/catch interne
     const failingSearch = async () => {
       const state = useTripsStore.getState();

@@ -1,8 +1,9 @@
+from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from app.users.models import User
-from django.conf import settings
+
 from .models import Message
 from .utils import notify_new_message, notify_welcome
 
@@ -13,7 +14,7 @@ print("=" * 80)
 @receiver(post_save, sender=User)
 def send_welcome_notification(sender, instance, created, **kwargs):
     """Envoie une notification de bienvenue lors de la création d'un compte"""
-    if getattr(settings, 'TESTING', False):
+    if getattr(settings, "TESTING", False):
         return
     if created and instance.is_active:
         notify_welcome(instance)

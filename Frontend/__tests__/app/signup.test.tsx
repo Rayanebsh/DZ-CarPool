@@ -91,7 +91,9 @@ describe('SignupPage', () => {
     fireEvent.click(screen.getByText('createAccount'));
 
     await waitFor(() => {
-      expect(screen.getByText(/mots de passe ne correspondent pas/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/mots de passe ne correspondent pas/i),
+      ).toBeInTheDocument();
     });
   });
 
@@ -140,19 +142,34 @@ describe('SignupPage', () => {
     render(<SignupPage />);
 
     const file = new File(['id-photo'], 'id.jpg', { type: 'image/jpeg' });
-    const input = screen.getByLabelText('uploadIdPhoto').closest('div')?.querySelector('input[type="file"]');
+    const input = screen
+      .getByLabelText('uploadIdPhoto')
+      .closest('div')
+      ?.querySelector('input[type="file"]');
 
     fireEvent.change(input!, { target: { files: [file] } });
 
     expect(screen.getByText('id.jpg')).toBeInTheDocument();
 
     // Fill form and submit
-    fireEvent.change(screen.getByLabelText('firstName'), { target: { value: 'John' } });
-    fireEvent.change(screen.getByLabelText('lastName'), { target: { value: 'Doe' } });
-    fireEvent.change(screen.getByLabelText('emailAddress'), { target: { value: 'john@example.com' } });
-    fireEvent.change(screen.getByLabelText('phoneNumber'), { target: { value: '+213555000000' } });
-    fireEvent.change(screen.getByLabelText('password'), { target: { value: 'password123' } });
-    fireEvent.change(screen.getByLabelText('confirmPassword'), { target: { value: 'password123' } });
+    fireEvent.change(screen.getByLabelText('firstName'), {
+      target: { value: 'John' },
+    });
+    fireEvent.change(screen.getByLabelText('lastName'), {
+      target: { value: 'Doe' },
+    });
+    fireEvent.change(screen.getByLabelText('emailAddress'), {
+      target: { value: 'john@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('phoneNumber'), {
+      target: { value: '+213555000000' },
+    });
+    fireEvent.change(screen.getByLabelText('password'), {
+      target: { value: 'password123' },
+    });
+    fireEvent.change(screen.getByLabelText('confirmPassword'), {
+      target: { value: 'password123' },
+    });
 
     fireEvent.click(screen.getByText('createAccount'));
 
@@ -166,12 +183,24 @@ describe('SignupPage', () => {
 
     render(<SignupPage />);
 
-    fireEvent.change(screen.getByLabelText('firstName'), { target: { value: 'John' } });
-    fireEvent.change(screen.getByLabelText('lastName'), { target: { value: 'Doe' } });
-    fireEvent.change(screen.getByLabelText('emailAddress'), { target: { value: 'john@example.com' } });
-    fireEvent.change(screen.getByLabelText('phoneNumber'), { target: { value: '+213555000000' } });
-    fireEvent.change(screen.getByLabelText('password'), { target: { value: 'password123' } });
-    fireEvent.change(screen.getByLabelText('confirmPassword'), { target: { value: 'password123' } });
+    fireEvent.change(screen.getByLabelText('firstName'), {
+      target: { value: 'John' },
+    });
+    fireEvent.change(screen.getByLabelText('lastName'), {
+      target: { value: 'Doe' },
+    });
+    fireEvent.change(screen.getByLabelText('emailAddress'), {
+      target: { value: 'john@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('phoneNumber'), {
+      target: { value: '+213555000000' },
+    });
+    fireEvent.change(screen.getByLabelText('password'), {
+      target: { value: 'password123' },
+    });
+    fireEvent.change(screen.getByLabelText('confirmPassword'), {
+      target: { value: 'password123' },
+    });
 
     fireEvent.click(screen.getByText('createAccount'));
 
@@ -181,16 +210,30 @@ describe('SignupPage', () => {
   });
 
   it('disables submit button while loading', async () => {
-    mockRegister.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+    mockRegister.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 100)),
+    );
 
     render(<SignupPage />);
 
-    fireEvent.change(screen.getByLabelText('firstName'), { target: { value: 'John' } });
-    fireEvent.change(screen.getByLabelText('lastName'), { target: { value: 'Doe' } });
-    fireEvent.change(screen.getByLabelText('emailAddress'), { target: { value: 'john@example.com' } });
-    fireEvent.change(screen.getByLabelText('phoneNumber'), { target: { value: '+213555000000' } });
-    fireEvent.change(screen.getByLabelText('password'), { target: { value: 'password123' } });
-    fireEvent.change(screen.getByLabelText('confirmPassword'), { target: { value: 'password123' } });
+    fireEvent.change(screen.getByLabelText('firstName'), {
+      target: { value: 'John' },
+    });
+    fireEvent.change(screen.getByLabelText('lastName'), {
+      target: { value: 'Doe' },
+    });
+    fireEvent.change(screen.getByLabelText('emailAddress'), {
+      target: { value: 'john@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('phoneNumber'), {
+      target: { value: '+213555000000' },
+    });
+    fireEvent.change(screen.getByLabelText('password'), {
+      target: { value: 'password123' },
+    });
+    fireEvent.change(screen.getByLabelText('confirmPassword'), {
+      target: { value: 'password123' },
+    });
 
     const submitBtn = screen.getByText('createAccount');
     fireEvent.click(submitBtn);

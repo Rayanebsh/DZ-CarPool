@@ -32,9 +32,7 @@ describe('TrajetService', () => {
         count: 1,
       };
 
-      mock
-        .onPost(`${API_BASE}/trajets/search/`)
-        .reply(200, mockResponse);
+      mock.onPost(`${API_BASE}/trajets/search/`).reply(200, mockResponse);
 
       const result = await trajetService.simpleSearch({
         ville_depart: 'Alger',
@@ -56,9 +54,7 @@ describe('TrajetService', () => {
 
       const spy = jest.spyOn(axios, 'post');
 
-      mock
-        .onPost(`${API_BASE}/trajets/search/`)
-        .reply(200, mockResponse);
+      mock.onPost(`${API_BASE}/trajets/search/`).reply(200, mockResponse);
 
       const result = await trajetService.simpleSearch(payload);
 
@@ -71,9 +67,7 @@ describe('TrajetService', () => {
     });
 
     test('simpleSearch() handles network error', async () => {
-      mock
-        .onPost(`${API_BASE}/trajets/search/`)
-        .networkError();
+      mock.onPost(`${API_BASE}/trajets/search/`).networkError();
 
       await expect(
         trajetService.simpleSearch({
@@ -137,9 +131,7 @@ describe('TrajetService', () => {
         conducteur_name: 'John Doe',
       };
 
-      mock
-        .onGet(`${API_BASE}/trajets/1/`)
-        .reply(200, mockTrajet);
+      mock.onGet(`${API_BASE}/trajets/1/`).reply(200, mockTrajet);
 
       const result = await trajetService.getTrajetDetails(1);
 
@@ -167,9 +159,7 @@ describe('TrajetService', () => {
         status: 'PENDING',
       };
 
-      mock
-        .onPost(`${API_BASE}/reservations/`)
-        .reply(201, mockResponse);
+      mock.onPost(`${API_BASE}/reservations/`).reply(201, mockResponse);
 
       const result = await trajetService.bookTrajet({
         trajet: 1,
@@ -184,22 +174,17 @@ describe('TrajetService', () => {
       const payload = { trajet: 1, nbr_places: 2, message: 'Hello' };
       const spy = jest.spyOn(axios, 'post');
 
-      mock
-        .onPost(`${API_BASE}/reservations/`)
-        .reply(201, {
-          id: 1,
-          ...payload,
-          status: 'PENDING',
-        });
+      mock.onPost(`${API_BASE}/reservations/`).reply(201, {
+        id: 1,
+        ...payload,
+        status: 'PENDING',
+      });
 
       await trajetService.bookTrajet(payload);
 
       // Correction : ne vérifier que les 2 premiers arguments
-      expect(spy).toHaveBeenCalledWith(
-        `${API_BASE}/reservations/`,
-        payload
-      );
-      
+      expect(spy).toHaveBeenCalledWith(`${API_BASE}/reservations/`, payload);
+
       spy.mockRestore();
     });
 
@@ -237,9 +222,7 @@ describe('TrajetService', () => {
         ville_arrivee: 'Oran',
       };
 
-      mock
-        .onPost(`${API_BASE}/trajets/`)
-        .reply(201, mockTrajet);
+      mock.onPost(`${API_BASE}/trajets/`).reply(201, mockTrajet);
 
       const result = await trajetService.createTrajet({
         ville_depart: 'Alger',
@@ -268,9 +251,7 @@ describe('TrajetService', () => {
         { id: 2, status: 'ACTIVE' },
       ];
 
-      mock
-        .onGet(`${API_BASE}/trajets/my_trips/`)
-        .reply(200, mockTrajets);
+      mock.onGet(`${API_BASE}/trajets/my_trips/`).reply(200, mockTrajets);
 
       const result = await trajetService.getMyTrajets();
 
@@ -281,7 +262,9 @@ describe('TrajetService', () => {
       const mockTrajets = [{ id: 1, status: 'UPCOMING' }];
 
       mock
-        .onGet(`${API_BASE}/trajets/my_trips/`, { params: { status: 'UPCOMING' } })
+        .onGet(`${API_BASE}/trajets/my_trips/`, {
+          params: { status: 'UPCOMING' },
+        })
         .reply(200, mockTrajets);
 
       const result = await trajetService.getMyTrajets('UPCOMING');
@@ -290,9 +273,7 @@ describe('TrajetService', () => {
     });
 
     test('getMyTrajets() handles network error', async () => {
-      mock
-        .onGet(`${API_BASE}/trajets/my_trips/`)
-        .networkError();
+      mock.onGet(`${API_BASE}/trajets/my_trips/`).networkError();
 
       await expect(trajetService.getMyTrajets()).rejects.toThrow();
     });
@@ -300,9 +281,7 @@ describe('TrajetService', () => {
     test('getUpcomingTrajets() returns upcoming trips', async () => {
       const mockTrajets = [{ id: 1, status: 'upcoming' }];
 
-      mock
-        .onGet(`${API_BASE}/trajets/upcoming/`)
-        .reply(200, mockTrajets);
+      mock.onGet(`${API_BASE}/trajets/upcoming/`).reply(200, mockTrajets);
 
       const result = await trajetService.getUpcomingTrajets();
 
@@ -310,9 +289,7 @@ describe('TrajetService', () => {
     });
 
     test('getUpcomingTrajets() handles error', async () => {
-      mock
-        .onGet(`${API_BASE}/trajets/upcoming/`)
-        .reply(500);
+      mock.onGet(`${API_BASE}/trajets/upcoming/`).reply(500);
 
       await expect(trajetService.getUpcomingTrajets()).rejects.toThrow();
     });
@@ -320,9 +297,7 @@ describe('TrajetService', () => {
     test('getPastTrajets() returns past trips', async () => {
       const mockTrajets = [{ id: 1, status: 'completed' }];
 
-      mock
-        .onGet(`${API_BASE}/trajets/past/`)
-        .reply(200, mockTrajets);
+      mock.onGet(`${API_BASE}/trajets/past/`).reply(200, mockTrajets);
 
       const result = await trajetService.getPastTrajets();
 
@@ -330,9 +305,7 @@ describe('TrajetService', () => {
     });
 
     test('getPastTrajets() handles error', async () => {
-      mock
-        .onGet(`${API_BASE}/trajets/past/`)
-        .reply(500);
+      mock.onGet(`${API_BASE}/trajets/past/`).reply(500);
 
       await expect(trajetService.getPastTrajets()).rejects.toThrow();
     });
@@ -363,9 +336,7 @@ describe('TrajetService', () => {
     test('getFuelPrices() returns data', async () => {
       const mockData = { diesel: 100, essence: 120 };
 
-      mock
-        .onGet(`${API_BASE}/trajets/fuel_prices/`)
-        .reply(200, mockData);
+      mock.onGet(`${API_BASE}/trajets/fuel_prices/`).reply(200, mockData);
 
       const result = await trajetService.getFuelPrices();
 
@@ -373,9 +344,7 @@ describe('TrajetService', () => {
     });
 
     test('getFuelPrices() handles error', async () => {
-      mock
-        .onGet(`${API_BASE}/trajets/fuel_prices/`)
-        .reply(500);
+      mock.onGet(`${API_BASE}/trajets/fuel_prices/`).reply(500);
 
       await expect(trajetService.getFuelPrices()).rejects.toThrow();
     });
