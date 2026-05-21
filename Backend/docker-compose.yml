@@ -1,9 +1,6 @@
-
 # ============================================================================
 # docker-compose.yml - Orchestration des services
 # ============================================================================
-
-version: '3.8'
 
 services:
   # Base de données PostgreSQL
@@ -49,7 +46,7 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
 
-  # Redis pour le cache (optionnel)
+  # Redis
   redis:
     image: redis:7-alpine
     container_name: dzcarpool_redis
@@ -57,6 +54,27 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+
+  # Celery Worker
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dzcarpool_celery
+    command: python -m celery -A config worker --loglevel=info
+    volumes:
+      - .:/app
+      - media_files:/app/media
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
 
 volumes:
   postgres_data:

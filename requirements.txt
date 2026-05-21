@@ -65,3 +65,5 @@ sentry-sdk==1.39.2
 django-redis>=5.0.0
 coverage>=7.0.0
 tblib>=3.0.0
+celery==5.3.6
+celery[redis]==5.3.6
